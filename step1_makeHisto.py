@@ -19,7 +19,7 @@ parser.add_option("","--jobId" ,dest='jobId',type='int',help="Current job number
 (options,args)=parser.parse_args()
 
 if(DEBUG>0):print "--LOAD ANALYZER--"
-ROOT.gSystem.Load("Analyzer_cc.so");
+ROOT.gSystem.Load("Analyzer.so");
 ROOT.gROOT.SetBatch(1);
 
 if(DEBUG>0):print "--USE ANALYZER---"

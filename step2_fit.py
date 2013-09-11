@@ -17,9 +17,6 @@ parser.add_option("-f","--fileName" ,dest='fileName',type='string',help="FileNam
 (options,args)=parser.parse_args()
 
 #import cuts
-#from step1_makeHisto import PtCuts
-#from step1_makeHisto import SigPhId
-#from step1_makeHisto import BkgPhId
 PtCuts=[100,150,200,250,300,350,450,550,650,750,-1,100,300,750]
 SigPhId=[-10.,-.1]
 BkgPhId=[0.1,10.]
@@ -62,7 +59,7 @@ for p in range(0,len(PtCuts)-1):
 		PtSig.append(PtCuts[p+1])
 
 if(DEBUG>0): print "----- FIT ------"
-ROOT.gSystem.Load("fit_C.so")
+ROOT.gSystem.Load("fit.so")
 for p in range(0,len(PtToFit)-1):
 	#find pt bin for sig
 	Sbin=-1
@@ -78,9 +75,9 @@ for p in range(0,len(PtToFit)-1):
 		continue
 	#BINNED
 	if DEBUG>0: print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
-	f=ROOT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
+	f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
 	#UNBINNED
-	#f=ROOT.fit(ToFitTree[p],SigTemplate[s],BkgTemplate[b],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
+	#f=ROOT.FIT.fit(ToFitTree[p],SigTemplate[s],BkgTemplate[b],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
 	print "Fraction="+str(f);
 	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],1000);
 	print "ERROR="+str(rms);	

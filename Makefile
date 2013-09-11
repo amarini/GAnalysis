@@ -26,7 +26,7 @@ CXXFLAGS+= -O -fPIC
 ROOTLIBS=`root-config --libs`
 
 .PHONY all:
-all: Analyzer_cc.so
+all: Analyzer.so fit.so
 #all: Analyzer.so
 
 Analyzer.d: Analyzer.cc Analyzer.h
@@ -35,17 +35,49 @@ Analyzer.d: Analyzer.cc Analyzer.h
 Analyzer.o: Analyzer.cc Analyzer.h Analyzer.d
 	$(CXX) -c -o Analyzer.$(ObjSuf) Analyzer.$(SrcSuf) $(LDFLAGS) $(CXXFLAGS)
 
-Analyzer.so: Analyzer.o
+Analyzer.so: Analyzer.o AnalyzerDict.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o -o Analyzer.so
 
-Analyzer_cc.so: Analyzer.cc Analyzer.h
-	root -q -l -b <<EOF \
-.L Analyzer.cc++ \
-EOF
+AnalyzerDict.o: AnalyzerDict.cc
+	$(CXX) -c -o AnalyzerDict.o AnalyzerDict.cc $(LDFLAGS) $(CXXFLAGS)
 
-fit_C.so: fit.C
-	root -q -l -b <<EOF \
-.L fit.C++ \
-EOF
+AnalyzerDict.cc: Analyzer.cc AnalyzerLinkDef.h
+	@rootcint -v4 -f AnalyzerDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src Analyzer.cc AnalyzerLinkDef.h
 
-	
+fit.so: fit.o fitDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  fit.o fitDict.o -o fit.so
+
+fit.o: fit.C fit.d
+	$(CXX) -c -o fit.o fit.C $(LDFLAGS) $(CXXFLAGS) 
+
+fit.d: fit.C
+	$(CXX) -o fit.$(DepSuf) -M fit.C -I$(ROOFIT_BASE)/include $(CXXFLAGS) $(LDFLAGS) 
+
+fitDict.cc: fit.C fitLinkDef.h
+	@rootcint -v4 -f fitDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src fit.C fitLinkDef.h
+
+fitDict.o: fitDict.cc
+	$(CXX) -c -o fitDict.o fitDict.cc $(LDFLAGS) $(CXXFLAGS)
+
+##Analyzer_cc.so: Analyzer.cc Analyzer.h
+##	root -q -l -b <<EOF \
+##.L Analyzer.cc++ \
+##EOF
+##
+##fit_C.so: fit.C
+##	root -q -l -b <<EOF \
+##.L fit.C++ \
+##EOF
+
+.PHONY: clean	
+clean:
+	[ -f Analyzer.d      ] && rm Analyzer.d || true
+	[ -f Analyzer.o      ] && rm Analyzer.o || true
+	[ -f Analyzer.so     ] && rm Analyzer.so || true
+	[ -f AnalyzerDict.cc ] && rm AnalyzerDict.cc || true
+	[ -f AnalyzerDict.o  ] && rm AnalyzerDict.o || true
+	[ -f fit.so          ] && rm fit.so || true
+	[ -f fit.o           ] && rm fit.o || true
+	[ -f fit.d           ] && rm fit.d || true
+	[ -f fitDict.cc      ] && rm fitDict.cc || true
+	[ -f fitDict.o       ] && rm fitDict.o || true

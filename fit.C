@@ -28,8 +28,9 @@
 using namespace std;
 using namespace RooFit;
 
-
-float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const char *name="")
+class FIT{
+public:
+static float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const char *name="")
 {
 	bool binned=false;
 	if(o->InheritsFrom("TH1") ) binned=true;
@@ -104,6 +105,8 @@ float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const char *n
 	return f.getVal();
 } //End Of Fit
 
+};
+
 //--------------------------------------------TOYS------------------------------------
 #include "TRandom3.h"
 #include "TRandom.h"
@@ -111,9 +114,11 @@ float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const char *n
 #include <vector>
 #include <algorithm>
 
-namespace TOYS {
+//namespace TOYS {
+class TOYS{
+public:
 
-void RandomVar(TH1F*h,TRandom *r,int sumw2=0){
+static void RandomVar(TH1F*h,TRandom *r,int sumw2=0){
 	for(int i=0;i<=h->GetNbinsX()+1;i++)
 		{
 		float bc=h->GetBinContent(i);
@@ -126,7 +131,7 @@ void RandomVar(TH1F*h,TRandom *r,int sumw2=0){
 	
 }
 
-float GetMedian(std::vector<float> &v)
+static float GetMedian(std::vector<float> &v)
 {
 	sort(v.begin(),v.end());
 	int n=int(v.size()); //start from 0
@@ -137,14 +142,14 @@ float GetMedian(std::vector<float> &v)
 	else  //odd
 		return v[n/2];
 }
-float GetMean(std::vector<float> &v){
+static float GetMean(std::vector<float> &v){
 	float S=0;
 	int n=int(v.size()); //start from 0
 	for(int i=0;i<n;++i)
 		S+=v[i];
 	return S/n;
 	}
-float GetRMS(std::vector<float> &v){
+static float GetRMS(std::vector<float> &v){
 	float S=0;
 	float m=GetMean(v);
 	int n=int(v.size()); 
@@ -153,7 +158,7 @@ float GetRMS(std::vector<float> &v){
 	return sqrt(S/(n-1));
 }
 
-float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68){
+static float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68){
 	sort(v.begin(),v.end());
 	int n=int(v.size()); 
 	int m=ceil(n*Q);
@@ -171,7 +176,7 @@ float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68){
 }
 
 
-float toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys=100,TRandom *random=NULL)
+static float toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys=100,TRandom *random=NULL)
 {
 vector<float> r; //result
 	if(random==NULL){
@@ -189,7 +194,7 @@ vector<float> r; //result
 	RandomVar(s1,random,0);//poisson
 	RandomVar(b1,random,0);//poisson
 	
-	float a= fit(h1,s1,b1);
+	float a= FIT::fit(h1,s1,b1);
 	
 	r.push_back(a);
 		
