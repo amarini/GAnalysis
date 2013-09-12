@@ -1,3 +1,4 @@
+
 #include "TH1F.h"
 #include "TFile.h"
 
@@ -24,13 +25,13 @@
 #include "RooVoigtian.h"
 #include "RooWorkspace.h"
 
+#include "fit.h"
+
 
 using namespace std;
 using namespace RooFit;
 
-class FIT{
-public:
-static float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const char *name="")
+float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char *name)
 {
 	bool binned=false;
 	if(o->InheritsFrom("TH1") ) binned=true;
@@ -105,7 +106,6 @@ static float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const 
 	return f.getVal();
 } //End Of Fit
 
-};
 
 //--------------------------------------------TOYS------------------------------------
 #include "TRandom3.h"
@@ -115,10 +115,8 @@ static float fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName="",const 
 #include <algorithm>
 
 //namespace TOYS {
-class TOYS{
-public:
 
-static void RandomVar(TH1F*h,TRandom *r,int sumw2=0){
+void TOYS::RandomVar(TH1F*h,TRandom *r,int sumw2){
 	for(int i=0;i<=h->GetNbinsX()+1;i++)
 		{
 		float bc=h->GetBinContent(i);
@@ -131,7 +129,7 @@ static void RandomVar(TH1F*h,TRandom *r,int sumw2=0){
 	
 }
 
-static float GetMedian(std::vector<float> &v)
+float TOYS::GetMedian(std::vector<float> &v)
 {
 	sort(v.begin(),v.end());
 	int n=int(v.size()); //start from 0
@@ -142,14 +140,14 @@ static float GetMedian(std::vector<float> &v)
 	else  //odd
 		return v[n/2];
 }
-static float GetMean(std::vector<float> &v){
+float TOYS::GetMean(std::vector<float> &v){
 	float S=0;
 	int n=int(v.size()); //start from 0
 	for(int i=0;i<n;++i)
 		S+=v[i];
 	return S/n;
 	}
-static float GetRMS(std::vector<float> &v){
+float TOYS::GetRMS(std::vector<float> &v){
 	float S=0;
 	float m=GetMean(v);
 	int n=int(v.size()); 
@@ -158,7 +156,7 @@ static float GetRMS(std::vector<float> &v){
 	return sqrt(S/(n-1));
 }
 
-static float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68){
+float TOYS::GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q){
 	sort(v.begin(),v.end());
 	int n=int(v.size()); 
 	int m=ceil(n*Q);
@@ -176,7 +174,7 @@ static float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68){
 }
 
 
-static float toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys=100,TRandom *random=NULL)
+float TOYS::toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys,TRandom *random)
 {
 vector<float> r; //result
 	if(random==NULL){
@@ -208,4 +206,4 @@ vector<float> r; //result
 }
 
 
-}; //namespace TOYS
+//}; //namespace TOYS

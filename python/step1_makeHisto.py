@@ -34,6 +34,7 @@ if(DEBUG>0):print "--USE ANALYZER---"
 
 A=ROOT.Analyzer()
 
+if(DEBUG>0):A.debug=DEBUG;
 
 if options.inputDat =="" :
 	A.AddTree("SinglePhoton_Run2012C-22Jan2013-v1_AOD/*.root")

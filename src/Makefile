@@ -47,14 +47,14 @@ AnalyzerDict.cc: Analyzer.cc AnalyzerLinkDef.h
 fit.so: fit.o fitDict.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  fit.o fitDict.o -o fit.so
 
-fit.o: fit.C fit.d
-	$(CXX) -c -o fit.o fit.C $(LDFLAGS) $(CXXFLAGS) 
+fit.o: fit.cc fit.d fit.h
+	$(CXX) -c -o fit.o fit.cc $(LDFLAGS) $(CXXFLAGS) 
 
-fit.d: fit.C
-	$(CXX) -o fit.$(DepSuf) -M fit.C -I$(ROOFIT_BASE)/include $(CXXFLAGS) $(LDFLAGS) 
+fit.d: fit.cc fit.h
+	$(CXX) -o fit.$(DepSuf) -M fit.cc -I$(ROOFIT_BASE)/include $(CXXFLAGS) $(LDFLAGS) 
 
-fitDict.cc: fit.C fitLinkDef.h
-	@rootcint -v4 -f fitDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src fit.C fitLinkDef.h
+fitDict.cc: fit.h fitLinkDef.h
+	@rootcint -v4 -f fitDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src fit.h fitLinkDef.h
 
 fitDict.o: fitDict.cc
 	$(CXX) -c -o fitDict.o fitDict.cc $(LDFLAGS) $(CXXFLAGS)

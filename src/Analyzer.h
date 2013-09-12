@@ -546,7 +546,8 @@ Analyzer::~Analyzer()
 void Analyzer::AddTree(const char *fileName)
 {
 	if(!fChain)fChain=new TChain("accepted/events");
-	fChain->Add(fileName);
+	int N=fChain->Add(fileName);
+	if(debug>0) std::cout<<"Added "<<N<<" Trees corresponding to filename: "<<string(fileName)<<endl;
 }
 
 Int_t Analyzer::GetEntry(Long64_t entry)
