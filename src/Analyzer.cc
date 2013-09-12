@@ -3,6 +3,7 @@
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include "TDirectory.h"
 
 void Analyzer::MakeTree(string name){
 	treeContainer[name]=new TTree(name.c_str(),name.c_str());

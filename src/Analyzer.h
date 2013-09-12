@@ -25,7 +25,7 @@ using namespace std;
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
-class Analyzer {
+class Analyzer: public TObject {
 public :
    TChain          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
@@ -473,7 +473,9 @@ public :
 	string outputFileName;
 	
 	int debug;
-
+	
+	//
+	ClassDef(Analyzer,1);
 };
 
 #endif
