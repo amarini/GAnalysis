@@ -1,0 +1,6 @@
+#
+#
+DATATREE=root://eoscms///store/user/amarini/zjets_V00-09/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-09/Photon*.root
+PtCuts=100 150 200 250 300 350 450 550 650 750 -1 100 300 750
+SignPhId=0 0.11
+BkgPhId=0.11 0.17

@@ -36,6 +36,7 @@ A=ROOT.Analyzer()
 
 if(DEBUG>0):A.debug=DEBUG;
 
+A.outputFileName="output"
 if options.inputDat =="" :
 	A.AddTree("SinglePhoton_Run2012C-22Jan2013-v1_AOD/*.root")
 else:
@@ -43,7 +44,6 @@ else:
 	read_dat(options.inputDat,A)
 
 if(DEBUG>0): print "--> loaded files"
-A.outputFileName="output"
 
 for p in range(0,len(PtCuts)):
 	A.PtCuts.push_back(PtCuts[p])

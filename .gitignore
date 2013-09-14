@@ -1,0 +1,8 @@
+*Dict.cc
+*Dict.h
+*.o
+*.d
+*.so
+*pyc
+*~
+__init__*
