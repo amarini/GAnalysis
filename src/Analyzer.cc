@@ -105,10 +105,10 @@ void Analyzer::Loop()
 		if(gamma.Pt() > cutsContainer[iCut].VPt.second)continue;
 		if(Ht         < cutsContainer[iCut].Ht.first)continue;
 		if(Ht         > cutsContainer[iCut].Ht.second)continue;
-		if(GammaMVA         < cutsContainer[iCut].phid.first)continue;
-		if(GammaMVA         > cutsContainer[iCut].phid.second)continue;
-		//if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
-		//if((*photonid_sieie)[GammaIdx]         > cutsContainer[iCut].phid.second)continue;
+		//if(GammaMVA         < cutsContainer[iCut].phid.first)continue;
+		//if(GammaMVA         > cutsContainer[iCut].phid.second)continue;
+		if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
+		if((*photonid_sieie)[GammaIdx]         > cutsContainer[iCut].phid.second)continue;
 		//-----
 		{
 		string name=string("gammaPt_")+cutsContainer[iCut].name();
