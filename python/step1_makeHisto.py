@@ -36,20 +36,43 @@ A=ROOT.Analyzer()
 
 if(DEBUG>0):A.debug=DEBUG;
 
-A.outputFileName="output"
-if options.inputDat =="" :
-	A.AddTree("SinglePhoton_Run2012C-22Jan2013-v1_AOD/*.root")
-else:
-	if(DEBUG>0): print "--> load dat file: "+options.inputDat;
-	read_dat(options.inputDat,A)
+
+if(DEBUG>0): print "--> load dat file: "+options.inputDat;
+	config=read_dat(options.inputDat)
+
+try:
+	WorkDir=config["WorkDir"]
+except KeyError:
+	WorkDir="./"
+
+try:	
+	A.outputFileName=WorkDir+config["outputFileName"]
+	if(DEBUG>0):print "OutputFile="+config["outputFileName"]
+except KeyError:	
+	A.outputFileName=WorkDir+"output"
+	if(DEBUG>0):print "OutputFile=output"
+
+try: 
+	for tree in config["DataTree"]: A.AddTree(tree) 
+except KeyError: A.AddTree("SinglePhoton_Run2012C-22Jan2013-v1_AOD/*.root")
 
 if(DEBUG>0): print "--> loaded files"
 
+try:
+	PtCuts=config["PtCuts"]
+except KeyError: PtCuts=[0,100,200,300]
+
+try:
+	SigPhId=config["SigPhId"]
+except KeyError: SigPhId=[0,0.11]	
+
+try:
+	BkgPhId=config["BkgPhId"]
+except KeyError: BkgPhId=[0,0.11]	
+
 for p in range(0,len(PtCuts)):
 	A.PtCuts.push_back(PtCuts[p])
-	###	don't work unless make dictonaries worknig
-	### 	A.cutsContainer.push_back(ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1])); #bkg
-	### 	A.cutsContainer.push_back(ROOT.Analyzer.CUTS(PtCuts[p],PtCUts[p+1],0,8000,SigPhId[0],SigPhId[1])); #sig
+
 A.SigPhId.first=SigPhId[0];
 A.SigPhId.second=SigPhId[1];
 A.BkgPhId.first=BkgPhId[0];

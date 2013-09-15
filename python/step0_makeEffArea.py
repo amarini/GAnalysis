@@ -10,6 +10,10 @@ DEBUG=1
 
 print "BEGIN"
 
+WorkDir="./"
+
+ROOT.gROOT.SetBatch()
+
 ROOT.gROOT.ProcessLine (\
 "struct Entry{ \
 float rho;\
@@ -76,25 +80,60 @@ usage = "usage: %prog [options] arg1 arg2"
 parser = OptionParser(usage=usage)
 parser.add_option("-d","--dirName"  ,dest='dirName' ,type='string',help="directory on eos root://eoscms///store/...",default="root://eoscms///store/user/amarini/zjets_V00-12")
 parser.add_option("-x","--dataName" ,dest='dataName',type='string',help="data files comma separated",default="Photon_Run2012A-22Jan2013-v1_AOD_v2.root")
+parser.add_option("-i","--inputDat" ,dest='inputDat',type='string',help="Configuration file",default="data/config.dat")
 
 (options,args)=parser.parse_args()
 
-#if options.help:
-#parser.print_help()
-#exit(0)
-
 dataNames=options.dataName.split(',')
+
 
 print "Adding Files"
 
 data=ROOT.TChain("accepted/events")
-for name in dataNames:
-	data.Add(options.dirName+"/"+name)
+
+if options.inputDat=="" :
+	for name in dataNames:
+		data.Add(options.dirName+"/"+name)
+
+print "Load Configuration"
+from common import *
+config=read_dat(options.inputDat);
 #SET BRANCH ADDRESSES -- LOOP
+if(DEBUG>0):
+	for name in config:
+		print "Dat contains key " +str(name) + "with value" + str(config[name])
+
+try:	
+	for tree in config["DataTree"]: 
+		print "Added Tree "+tree
+		data.Add(tree) 
+except KeyError: 
+	print "Going To Exit"
+	exit
+
+
+try: 
+	PtBins=config["PtBins"]
+	print "PtBins="+str(PtBins)
+except KeyError: 
+	print "-> Load std PtBins" 
+	PtBins=[0,100,150,200,250,300,400,500,1000,2000]
+
+try: 
+	EtaBins=config["EtaBins"]
+	print "EtaBins="+str(EtaBins)
+except KeyError: 
+	print "-> Load std EtaBins"
+	EtaBins=[0,.5,1,1.5]
+
+try: 
+	WorkDir=config["WorkDir"]
+	print "WorkDir is "+str(WorkDir)
+except KeyError: 
+	print "-> Working Directory set as ./"
+	WorkDir="./"
 
 print "Begin LOOP"
-PtBins=[0,100,150,200,250,300,400,500,1000,2000]
-EtaBins=[0,.5,1,1.5]
 H=Loop(data,40,0,40,PtBins,EtaBins)
 
 #LOAD ROOFIT
@@ -103,8 +142,8 @@ ROOT.gSystem.Load("libRooFit") ;
 
 print "Begin Analysis"
 #DO PROFILE
-f=open("effarea.txt","w")
-tf=ROOT.TFile.Open("effarea.root","RECREATE")
+f=open(WorkDir+"effarea.txt","w")
+tf=ROOT.TFile.Open(WorkDir+"effarea.root","RECREATE")
 tf.cd()
 for name in H:
 	h=H[name].ProfileX();

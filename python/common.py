@@ -2,7 +2,8 @@
 import sys,os
 import array
 
-def read_dat(filename,Analyzer):
+def read_dat(filename):
+	Dat={}
 	try:
 		f=open(filename,"r")
 	except IOError:	
@@ -16,28 +17,44 @@ def read_dat(filename,Analyzer):
 		else:
 			l2=ll
 		if "=" in l2: 
-			member_lines.append(l2)
+			member_lines.append(l2.strip())
 	for ll in member_lines:
 		parts=ll.split("=")
 		if(len(parts)>2):
 			print "Line: \""+ll+"\" ignored"
 			continue
-		if(parts[0] == "DATATREE"):
+		elif(parts[0] == "DATATREE"):
+			Dat["DataTree"]=[]
 			for tree in parts[1].split(" ") :
-				Analyzer.AddTree(tree)
-		if(parts[0] == "PtCuts"):
-			PtCuts=[]
+				#Analyzer.AddTree(tree)
+				Dat["DataTree"].append(tree)
+		elif(parts[0] == "PtCuts"):
+			Dat["PtCuts"]=[]
 			for pt in parts[1].split(" "):
-				PtCuts.append(pt)
-		if(parts[0] == "SigPhId"):
-			SigPhId=[]
+				Dat["PtCuts"].append(float(pt))
+		elif(parts[0] == "SigPhId"):
+			Dat["SigPhId"]=[]
 			for id in parts[1].split(" "):
-				SigPhId.append(id)
-		if(parts[0] == "BkgPhId"):
-			BkgPhId=[]
+				Dat["SigPhId"].append(float(id))
+		elif(parts[0] == "BkgPhId"):
+			Dat["BkgPhId"]=[]
 			for id in parts[1].split(" "):
-				BkgPhId.append(id)
-		if(parts[0] == "outputFileName"):
-			Analyzer.outputFileName=parts[1];
+				Dat["BkgPhId"].append(float(id))
+		elif(parts[0] == "outputFileName"):
+			Dat["outputFileName"]=parts[1];
+		elif(parts[0] == "WorkDir"):
+			Dat["WorkDir"]=parts[1];
+			if( Dat["WorkDir"][-1] != '/' ): Dat["WorkDir"]+="/";
+		elif(parts[0] == "PtBins"):
+			Dat["PtBins"]=[]
+			for id in parts[1].split(" "):
+				Dat["PtBins"].append(float(id))
+		elif(parts[0] == "EtaBins"):
+			Dat["EtaBins"]=[]
+			for id in parts[1].split(" "):
+				Dat["EtaBins"].append(float(id))
+		else: print "Config parameter "+parts[0]+" ignored"
+	return Dat
+
 		
 	
