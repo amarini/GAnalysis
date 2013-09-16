@@ -145,6 +145,7 @@ print "Begin Analysis"
 f=open(WorkDir+"effarea.txt","w")
 tf=ROOT.TFile.Open(WorkDir+"effarea.root","RECREATE")
 tf.cd()
+f.write( "#what ptmin ptmax etamin etamax value\n" )
 for name in H:
 	h=H[name].ProfileX();
 	
@@ -162,6 +163,11 @@ for name in H:
 	Rp=ROOT.RooPolynomial("lin","linear",Rnvtx,ROOT.RooArgList(Ra));
 	RR=Rp.fitTo(Rh,ROOT.RooFit.Extended(ROOT.kFALSE), ROOT.RooFit.Save(ROOT.kTRUE),ROOT.RooFit.SumW2Error(ROOT.kTRUE),ROOT.RooFit.Range(rMin,rMax));
 
+	outputStr=name;	
+	outputStr.replace("vs_nvtx_","");
+	outputStr.replace("pt"," ");
+	outputStr.replace("eta"," ");
+	outputStr.replace("_"," ");
 	f.write( name + " " + str(Ra.getVal()) +"\n" )
 	#Save the histograms fitted in tf
 	tf.cd()
