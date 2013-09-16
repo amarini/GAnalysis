@@ -59,14 +59,17 @@ void Analyzer::Loop()
        			 idvars.tmva_photonid_sceta			=(*photonid_sceta)[iGamma];
        			 idvars.tmva_photonid_eventrho			=rho; //TODO check that it is the correct rho
 		//compute mva
-		GammaMVA = tmvaReaderID_Single_Barrel->EvaluateMVA("AdaBoost");
-		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie?
+		if(loadMVA)
+			GammaMVA = tmvaReaderID_Single_Barrel->EvaluateMVA("AdaBoost");
+		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 
 		//pass all the cuts
 		GammaIdx=iGamma;
 		break;
 		}
+
 	if(GammaIdx<0) continue; //--no gamma candidate found
+
 	TLorentzVector gamma;
 	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
 	gamma.SetPtEtaPhiE(photonPt->at(GammaIdx),photonEta->at(GammaIdx),photonPhi->at(GammaIdx),photonE->at(GammaIdx));	
@@ -74,6 +77,7 @@ void Analyzer::Loop()
 	JetIdx.clear();
 	Int_t mynJets=jetPt->size();
 	Float_t Ht=0;
+	//---------Smearings
 	//	for(Int_t iJet=0;iJet<nJets;++iJet)
 	//		{
 	//		//syst smearing JES
@@ -88,8 +92,9 @@ void Analyzer::Loop()
 		j.SetPtEtaPhiE((*jetPt)[iJet],(*jetEta)[iJet],(*jetPhi)[iJet],(*jetE)[iJet]);
 		//Delta R Cut wrt the leading selected photon
 		if(j.DeltaR(gamma)<0.5) continue;	
+
 		//PU ID -- cut based
-		 if(1.-(*jetBeta)[iJet] >= 0.2*TMath::Log(nVtx-0.67))  continue;
+		 if(1.-(*jetBeta)[iJet] >= 0.2*TMath::Log(nVtx-0.64))  continue;
                  if((*jetRMS)[iJet] > TMath::Sqrt(0.06) ) continue;
 
 		//book the jet
@@ -99,6 +104,25 @@ void Analyzer::Loop()
 	mynJets=JetIdx.size();
 	//my selection 
 	if(mynJets<1) continue; 
+
+	//compute RhoCorrections
+	float RhoCorr=0;
+	if(useEffArea){
+		//search in the database for the correct bin
+   		for(map<string,float>::iterator it=effAreaCorr.begin();it!=effAreaCorr.end();it++)
+		{
+		string name=it->first;
+		float ptmin,ptmax,etamin,etamax;
+  		sscanf(name.c_str(),"%f %f %f %f",&ptmin,&ptmax,&etamin,&etamax);
+		if(gamma.Pt()>ptmin && gamma.Pt()<ptmax && fabs(gamma.Eta())> etamin && fabs(gamma.Eta()) <etamax)
+			{
+			RhoCorr= it->second * rho;
+			}
+		
+		}
+	}
+	//end rho corrections
+
 	for(int iCut=0;iCut<int(cutsContainer.size());++iCut)
 		{
 		if(gamma.Pt() < cutsContainer[iCut].VPt.first)continue;
@@ -109,6 +133,7 @@ void Analyzer::Loop()
 		//if(GammaMVA         > cutsContainer[iCut].phid.second)continue;
 		if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
 		if((*photonid_sieie)[GammaIdx]         > cutsContainer[iCut].phid.second)continue;
+		//Going to fill
 		//-----
 		{
 		string name=string("gammaPt_")+cutsContainer[iCut].name();
@@ -126,18 +151,18 @@ void Analyzer::Loop()
 		{
 		string name=string("photoniso_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]);
+		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr);
 		//FILL Tree
 		name="tree_"+cutsContainer[iCut].name();
 		if(treeContainer[name]==NULL) MakeTree(name); 
-		TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx];
+		TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
 		treeContainer[name]->Fill( );
 		}
 		//-----
 		{
 		string name=string("photonisoRC_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]);
+		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr);
 		}
 		//-----
 		

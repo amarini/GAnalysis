@@ -408,17 +408,19 @@ public :
    TBranch        *b_lepSigmaIEtaIEta;   //!
    TBranch        *b_lepHadronicOverEm;   //!
 
+   TMVA::Reader * tmvaReaderID_Single_Barrel;
+   TMVA::Reader * tmvaReaderID_Single_Endcap;
+//------------------------PUBLIC----------------
    Analyzer();
-   //Analyzer(Analyzer&x){Analyzer();};
    virtual void      AddTree(const char *fileName);
    virtual ~Analyzer();
    virtual Int_t    GetEntry(Long64_t entry);
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init();
    virtual void     Loop();
-
-   TMVA::Reader * tmvaReaderID_Single_Barrel;
-   TMVA::Reader * tmvaReaderID_Single_Endcap;
+	
+   
+   int loadMVA;
    virtual void InitMVA();
    struct PHOTONID{
 	float tmva_photonid_r9;
@@ -434,6 +436,7 @@ public :
 	float tmva_photonid_eventrho;
 	};
    PHOTONID idvars;
+
    class CUTS{
 		public:
 		CUTS(float vpt1=0,float vpt2=8000,float ht1=0,float ht2=8000,float phid0=-10,float phid1=10){Ht=pair<float,float>(ht1,ht2);VPt=pair<float,float>(vpt1,vpt2);phid=pair<float,float>(phid0,phid1);};
@@ -442,6 +445,7 @@ public :
 		pair<float,float> phid;
 		string name() { return string(Form("VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f",VPt.first,VPt.second,Ht.first,Ht.second,phid.first,phid.second));}
 		};
+
    class BINS{
 		public:
 		BINS(int nB=100,float x0=0,float x1=1){nBins=nB;xMin=x0;xMax=x1;}
@@ -453,41 +457,55 @@ public :
    vector<int> JetIdx;
    map<string,TH1F*> histoContainer;
    map<string,TTree*> treeContainer;
-	void MakeTree(string name);
-		struct TREE_VAR{
-		float photoniso;
-		};
-		TREE_VAR TreeVar;
-
    vector<CUTS> cutsContainer;
    map<string,BINS> binsContainer;
+
+   void MakeTree(string name);
+
+   struct TREE_VAR{
+		float photoniso;
+		};
+   TREE_VAR TreeVar;
+
    virtual void InitCuts();
-	//READED IN INITCUTS
-	vector<float> PtCuts;
-	pair<float,float> SigPhId;
-	pair<float,float> BkgPhId;
+
+   //READ IN INITCUTS and loaded in Cuts Container
+   vector<float> PtCuts;
+   pair<float,float> SigPhId;
+   pair<float,float> BkgPhId;
 	
-	//BATCH RUN
-	int nJobs;
-	int jobId;
-	string outputFileName;
+   //BATCH RUN
+   int nJobs;
+   int jobId;
+   string outputFileName;
 	
-	int debug;
+   //effarea
+   int useEffArea;
+   string effAreaFile;
+   map<string,float> effAreaCorr;
+   void InitEffArea();
+
+   //activate extra cout	
+   int debug;
 	
-	//
-	ClassDef(Analyzer,1);
+   //
+   ClassDef(Analyzer,1);
 };
 
 #endif
 
 #ifdef Analyzer_cxx
 
+
 Analyzer::Analyzer() : fChain(0) 
 {
    debug=0;
-	nJobs=-1;
-	jobId=-1;
-	outputFileName="output";
+   nJobs=-1;
+   jobId=-1;
+   outputFileName="output";
+   loadMVA=0;
+   useEffArea=0;
+   effAreaFile="";
 }
 void Analyzer::InitCuts()
 {
@@ -504,6 +522,54 @@ void Analyzer::InitCuts()
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId.first,BkgPhId.second ));
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,SigPhId.first,SigPhId.second ));
 		}
+}
+
+void Analyzer::InitEffArea()
+{
+   map<string,float> effArea_rho;
+   map<string,float> effArea_iso;
+
+  FILE *fr=fopen(effAreaFile.c_str(),"r"); 
+  if(fr==NULL) fprintf(stderr,"Error opening: %s",effAreaFile.c_str());
+  char what[1023],buf[2048];
+  float ptmin,ptmax,etamin,etamax,value;
+  while(fgets(buf,2048,fr)!=NULL)
+	{
+	if(buf[0]=='#') continue;
+	if(buf[0]=='\n') continue;
+	if(buf[0]=='\0') continue;
+  	sscanf(buf,"%s %f %f %f %f %f",what,&ptmin,&ptmax,&etamin,&etamax,&value);
+	if( string(what).find("iso") !=string::npos )  //it is iso
+		{
+		string name=Form("%.1f_%.1f_%.1f_%.1f",ptmin,ptmax,etamin,etamax);
+		effArea_iso[name]=value;
+		}
+	else if( string(what).find("rho") !=string::npos )  //it is rho
+		{
+		string name=Form("%.1f_%.1f_%.1f_%.1f",ptmin,ptmax,etamin,etamax);
+		effArea_rho[name]=value;
+		}
+	
+	}
+   //check that rho <-> iso and fill corr
+   for(map<string,float>::iterator it=effArea_rho.begin();it!=effArea_rho.end();it++)
+	{
+	string name=it->first;
+	if(effArea_iso.find(name) == effArea_iso.end())	
+		{
+		fprintf(stderr,"Error in effArea.txt: value [%s] in rho but not iso\n",name.c_str());	
+		}
+	else effAreaCorr[name]=effArea_iso[name]/effArea_rho[name];
+	}
+   for(map<string,float>::iterator it=effArea_iso.begin();it!=effArea_iso.end();it++)
+	{
+	string name=it->first;
+	if(effArea_rho.find(name) == effArea_rho.end())	
+		{
+		fprintf(stderr,"Error in effArea.txt: value [%s] in iso but not rho\n",name.c_str());	
+		}
+	}
+  return;
 }
 
 void Analyzer::InitMVA(){
@@ -883,7 +949,8 @@ if(debug>1) printf("-> SetBranchAddress B - photon vectors\n");
    fChain->SetBranchAddress("VBPartonPhi", &VBPartonPhi, &b_VBPartonPhi);
    fChain->SetBranchAddress("lepSigmaIEtaIEta", &lepSigmaIEtaIEta, &b_lepSigmaIEtaIEta);
    fChain->SetBranchAddress("lepHadronicOverEm", &lepHadronicOverEm, &b_lepHadronicOverEm);
-   InitMVA();
+   if(loadMVA)InitMVA();
    InitCuts();
+   if(useEffArea)InitEffArea();
 }
 #endif

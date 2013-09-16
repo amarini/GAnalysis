@@ -20,7 +20,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
-parser.add_option("","--nJobs" ,dest='nJobs',type='int',help="Total number of jobs. Useful to run on batch",default=0)
+parser.add_option("","--nJobs" ,dest='nJobs',type='int',help="Total number of jobs. Useful to run on batch",default=-1)
 parser.add_option("","--jobId" ,dest='jobId',type='int',help="Current job number. Useful to run on batch",default=0)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 
@@ -38,7 +38,7 @@ if(DEBUG>0):A.debug=DEBUG;
 
 
 if(DEBUG>0): print "--> load dat file: "+options.inputDat;
-	config=read_dat(options.inputDat)
+config=read_dat(options.inputDat)
 
 try:
 	WorkDir=config["WorkDir"]
@@ -77,6 +77,14 @@ A.SigPhId.first=SigPhId[0];
 A.SigPhId.second=SigPhId[1];
 A.BkgPhId.first=BkgPhId[0];
 A.BkgPhId.second=BkgPhId[1];
+##EffArea
+A.useEffArea=1;
+A.effAreaFile=WorkDir+"effarea.txt"
+if(DEBUG>0):print "Using EFF AREA="+A.effAreaFile
+
+#BATCH JOBS
+A.nJobs=options.nJobs
+A.jobId=options.jobId
 ### 
 if(DEBUG>0): print "--> Init"
 A.Init()
