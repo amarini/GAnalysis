@@ -26,7 +26,7 @@ CXXFLAGS+= -O -fPIC
 ROOTLIBS=`root-config --libs`
 
 .PHONY: all
-all: Analyzer.so fit.so
+all: Analyzer.so fit.so stat.so
 #all: Analyzer.so
 
 Analyzer.d: Analyzer.cc Analyzer.h
@@ -58,7 +58,21 @@ fitDict.cc: fit.h fitLinkDef.h
 
 fitDict.o: fitDict.cc
 	$(CXX) -c -o fitDict.o fitDict.cc $(LDFLAGS) $(CXXFLAGS)
+####################---STAT----
+stat.so: stat.o statDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  stat.o statDict.o -o stat.so
 
+stat.o: stat.cc stat.d stat.h
+	$(CXX) -c -o stat.o stat.cc $(LDFLAGS) $(CXXFLAGS) 
+
+stat.d: stat.cc stat.h
+	$(CXX) -o stat.$(DepSuf) -M stat.cc  $(CXXFLAGS) $(LDFLAGS) 
+
+statDict.cc: stat.h statLinkDef.h
+	@rootcint -v4 -f statDict.cc -c  stat.h statLinkDef.h
+
+statDict.o: statDict.cc
+	$(CXX) -c -o statDict.o statDict.cc $(LDFLAGS) $(CXXFLAGS)
 ##Analyzer_cc.so: Analyzer.cc Analyzer.h
 ##	root -q -l -b <<EOF \
 ##.L Analyzer.cc++ \
@@ -81,3 +95,8 @@ clean:
 	[ -f fit.d           ] && rm fit.d || true
 	[ -f fitDict.cc      ] && rm fitDict.cc || true
 	[ -f fitDict.o       ] && rm fitDict.o || true
+	[ -f stat.so          ] && rm stat.so || true
+	[ -f stat.o           ] && rm stat.o || true
+	[ -f stat.d           ] && rm stat.d || true
+	[ -f statDict.cc      ] && rm statDict.cc || true
+	[ -f statDict.o       ] && rm statDict.o || true
