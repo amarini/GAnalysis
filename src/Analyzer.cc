@@ -35,12 +35,13 @@ void Analyzer::Loop()
 	if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue;
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
      // Long64_t ientry = LoadTree(jentry);
-	if( (jentry%10000)==0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
+	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
 	//error
      // if (ientry < 0) break;
 	Int_t GammaIdx=-1;
 	float GammaMVA=-999;
+	float ScaleTrigger=1.0;
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
@@ -64,7 +65,49 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
+		
+	
+		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
+		string triggerMenu="";
+		
+		for(map<string,pair<float,float> >::iterator it=triggerMenus.begin();it!=triggerMenus.end();it++)
+			{
+			if( (*photonPt)[iGamma] >= it->second.first && (*photonPt)[iGamma] < it->second.second )
+				{
+				triggerMenu=it->first;
+				}
+			}
+		if(triggerMenu=="") continue; //doesn't have a trigger selection
+	
 
+		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
+		else if(triggerMenu=="HLT_Photon20_CaloIdVL_IsoL_v*"  && !(trigger &  2     ) ) continue;
+		else if(triggerMenu=="HLT_Photon30_v*"  && !(trigger &  4     ) ) continue;
+		else if(triggerMenu=="HLT_Photon30_CaloIdVL_v*"  && !(trigger &  8     ) ) continue;
+		else if(triggerMenu=="HLT_Photon30_CaloIdVL_IsoL_v*"  && !(trigger &  16    ) ) continue;
+		else if(triggerMenu=="HLT_Photon50_CaloIdVL_v*"  && !(trigger &  32    ) ) continue;
+		else if(triggerMenu=="HLT_Photon50_CaloIdVL_IsoL_v*"  && !(trigger &  64    ) ) continue;
+		else if(triggerMenu=="HLT_Photon75_CaloIdVL_v*"  && !(trigger &  128   ) ) continue;
+		else if(triggerMenu=="HLT_Photon75_CaloIdVL_IsoL_v*"  && !(trigger &  256   ) ) continue;
+		else if(triggerMenu=="HLT_Photon90_CaloIdVL_v*"  && !(trigger &  512   ) ) continue;
+		else if(triggerMenu=="HLT_Photon90_CaloIdVL_IsoL_v*"  && !(trigger &  1024  ) ) continue;
+		else if(triggerMenu=="HLT_Photon135_v*"  && !(trigger &  2048  ) ) continue;
+		else if(triggerMenu=="HLT_Photon150_v*"  && !(trigger &  4096  ) ) continue;
+		//trigger -- from twiki
+		//	0000000000001 	1 	HLT_Photon20_CaloIdVL_v*
+		//  	0000000000010 	2 	HLT_Photon20_CaloIdVL_IsoL_v*
+		//  	0000000000100 	4 	HLT_Photon30_v*
+		//  	0000000001000 	8 	HLT_Photon30_CaloIdVL_v*
+		//  	0000000010000 	16 	HLT_Photon30_CaloIdVL_IsoL_v*
+		//  	0000000100000 	32 	HLT_Photon50_CaloIdVL_v*
+		//  	0000001000000 	64 	HLT_Photon50_CaloIdVL_IsoL_v*
+		//  	0000010000000 	128 	HLT_Photon75_CaloIdVL_v*
+		//  	0000100000000 	256 	HLT_Photon75_CaloIdVL_IsoL_v*
+		//  	0001000000000 	512 	HLT_Photon90_CaloIdVL_v*
+		//  	0010000000000 	1024 	HLT_Photon90_CaloIdVL_IsoL_v*
+		//  	0100000000000 	2048 	HLT_Photon135_v*
+		//  	1000000000000 	4096 	HLT_Photon150_v* 
+		ScaleTrigger=triggerScales[triggerMenu];
 		//pass all the cuts
 		GammaIdx=iGamma;
 		break;
@@ -143,20 +186,20 @@ void Analyzer::Loop()
 		{
 		string name=string("gammaPt_")+cutsContainer[iCut].name();
 			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
-		histoContainer[name]->Fill(gamma.Pt());
+		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger);
 		}
 		//-----
 		{
 		string name=string("sieie_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax);
-		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx]);
+		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],ScaleTrigger);
 		//histoContainer[name]->Fill(  GammaMVA);
 		}
 		//-----
 		{
 		string name=string("photoniso_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr);
+		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		//FILL Tree
 		name="tree_"+cutsContainer[iCut].name();
 		if(treeContainer[name]==NULL) MakeTree(name); 
@@ -167,7 +210,7 @@ void Analyzer::Loop()
 		{
 		string name=string("photonisoRC_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr);
+		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		}
 		//-----
 		

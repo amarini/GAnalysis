@@ -9,3 +9,11 @@ WorkDir=/afs/cern.ch/user/a/amarini/work/V00-12/
 #PtBins=0 100 150 200 250 300 400 500 1000 2000
 PtBins=0 2000
 EtaBins=0 .5 1 1.5
+#
+##TRIGGER SELECTION
+TriggerMenus=HLT_Photon20_CaloIdVL_v* HLT_Photon20_CaloIdVL_IsoL_v* HLT_Photon30_v* HLT_Photon30_CaloIdVL_v* HLT_Photon30_CaloIdVL_IsoL_v* HLT_Photon50_CaloIdVL_v* HLT_Photon50_CaloIdVL_IsoL_v* HLT_Photon75_CaloIdVL_v* HLT_Photon75_CaloIdVL_IsoL_v* HLT_Photon90_CaloIdVL_v* HLT_Photon90_CaloIdVL_IsoL_v* HLT_Photon135_v* HLT_Photon150_v*
+#[n,n+1]_[]
+PtTriggers=[0,0] [0,20] [0,0] [0,0] [20,30] [0,0] [30,50] [0,0] [50,75] [0,0] [75,90] [90,135] [135,8000]
+PreScale=0 0 0 0 0 0 0 0 0 0 0 0 1.0
+
+

@@ -484,6 +484,11 @@ public :
    string effAreaFile;
    map<string,float> effAreaCorr;
    void InitEffArea();
+	
+   //TRIGGER MENUS
+   map<string,pair<float,float> > triggerMenus; 
+   map<string,float> triggerScales;
+   void LoadTrigger(string menu,float ptmin,float ptmax, float scale=1.0);
 
    //activate extra cout	
    int debug;
@@ -496,6 +501,12 @@ public :
 
 #ifdef Analyzer_cxx
 
+void Analyzer::LoadTrigger(string menu,float ptmin,float ptmax, float scale)
+{
+triggerMenus[menu]= pair<float,float>(ptmin,ptmax);
+triggerScales[menu]= scale;
+return;
+}
 
 Analyzer::Analyzer() : fChain(0) 
 {

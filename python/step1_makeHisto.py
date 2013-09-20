@@ -6,6 +6,7 @@ import time
 from optparse import OptionParser
 
 DEBUG=1
+ROOT.gROOT.SetBatch(1);
 
 ### #Book Cuts
 PtCuts=[100,150,200,250,300,350,450,550,650,750,-1,100,300,750]
@@ -28,7 +29,6 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 
 if(DEBUG>0):print "--LOAD ANALYZER--"
 ROOT.gSystem.Load("Analyzer.so");
-ROOT.gROOT.SetBatch(1);
 
 if(DEBUG>0):print "--USE ANALYZER---"
 
@@ -69,6 +69,12 @@ except KeyError: SigPhId=[0,0.11]
 try:
 	BkgPhId=config["BkgPhId"]
 except KeyError: BkgPhId=[0,0.11]	
+
+try:
+	for iT in range(0,len(config["TriggerMenus"]) ):
+		A.LoadTrigger(config["TriggerMenus"][iT],config["PtTriggers"][iT][0],config["PtTriggers"][iT][1],config["PreScale"][iT]);
+except KeyError: print "NO TRIGGER LOADED!!!"
+except IndexError: print "Check TRigger configurations: index out of range"
 
 for p in range(0,len(PtCuts)):
 	A.PtCuts.push_back(PtCuts[p])

@@ -53,6 +53,21 @@ def read_dat(filename):
 			Dat["EtaBins"]=[]
 			for id in parts[1].split(" "):
 				Dat["EtaBins"].append(float(id))
+		elif(parts[0] == "TriggerMenus"):
+			Dat["TriggerMenus"]=[]
+			for value in parts[1].split(" "):
+				Dat["TriggerMenus"]=value
+		elif(parts[0] == "PtTriggers"):
+			Dat["PtTriggers"]=[]
+			for pair in parts[1].split(" "):
+				str2=pair.replace("[","")
+				str2=str2.replace("]","")
+				str3=str2.split(",")
+				Dat["PtTriggers"].append([float(str3[0]),float(str3[1])])
+		elif(parts[0] == "PreScale"):
+			Dat["PreScale"]=[]
+			for s in parts[1].split(" "):
+				Dat["PreScale"].append(float(s))
 		else: print "Config parameter "+parts[0]+" ignored"
 	return Dat
 
