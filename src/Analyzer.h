@@ -512,7 +512,7 @@ void Analyzer::InitCuts()
 	if(debug>0)printf("Init cuts and bins\n");
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
 	binsContainer["gammaPt"] = BINS(1000.-90.,90,1000);
-	binsContainer["sieie"] = BINS(30,0,4);
+	binsContainer["sieie"] = BINS(1000,0,.1);
 	binsContainer["phid"] = BINS(100,-1.,1.);
 	binsContainer["photoniso"] = BINS(100,-10,10);
 	for(int p=0; p<int(PtCuts.size())-1 ;p++)	
@@ -538,7 +538,16 @@ void Analyzer::InitEffArea()
 	if(buf[0]=='#') continue;
 	if(buf[0]=='\n') continue;
 	if(buf[0]=='\0') continue;
+	int i=0;
+	while(buf[i]!='\n' && buf[i]!='\0') i++;
+	buf[i]='\0';
   	sscanf(buf,"%s %f %f %f %f %f",what,&ptmin,&ptmax,&etamin,&etamax,&value);
+
+	if(debug>0){
+	fprintf(stderr,"Buffer is %s\n",buf);
+	fprintf(stderr,"Going to scan %s %f %f %f %f %f\n",what,ptmin,ptmax,etamin,etamax,value);
+	}
+
 	if( string(what).find("iso") !=string::npos )  //it is iso
 		{
 		string name=Form("%.1f_%.1f_%.1f_%.1f",ptmin,ptmax,etamin,etamax);
@@ -559,7 +568,10 @@ void Analyzer::InitEffArea()
 		{
 		fprintf(stderr,"Error in effArea.txt: value [%s] in rho but not iso\n",name.c_str());	
 		}
-	else effAreaCorr[name]=effArea_iso[name]/effArea_rho[name];
+	else {
+		effAreaCorr[name]=effArea_iso[name]/effArea_rho[name];
+		fprintf(stderr,"Loaded %s in EffArea Corrections with val %f - \n",name.c_str(), effArea_iso[name]/effArea_rho[name]);
+		}
 	}
    for(map<string,float>::iterator it=effArea_iso.begin();it!=effArea_iso.end();it++)
 	{

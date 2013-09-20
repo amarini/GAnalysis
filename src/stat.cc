@@ -167,7 +167,7 @@ void STAT::drawFitError(TH1*h,pair<float,float> &R,vector<float> &e2,float sigma
 	for(int iBin=1;iBin<=h->GetNbinsX();iBin++){
 		float x=h->GetBinCenter(iBin);
 		float t=(c-a*x)/(b-c*x);
-		float qt=sqrt(sigma/(a+2*c*t+b*t*t));
+		float qt=sqrt(sigma*sigma/(a+2*c*t+b*t*t));
 		float mt=t*qt;
 	
 		float ext1= (mm+mt)*x+(qm+qt);	
@@ -177,5 +177,22 @@ void STAT::drawFitError(TH1*h,pair<float,float> &R,vector<float> &e2,float sigma
 		h->SetBinError(iBin,fabs(mt*x+qt));
 		}
 	return ;
+}
+
+float STAT::ConfidenceInterval(std::vector<float> &v,std::pair<float,float>&r,float Q){
+	sort(v.begin(),v.end());
+	int n=int(v.size()); 
+	int m=ceil(n*Q);
+	//Look for m consecutive bin such that the distance covered is minima
+	vector<float> d;
+	int min=0;
+	for(int i=0;i<n-m;i++)
+		{
+		d.push_back(v[i+m]-v[i]);
+		if(d[i]<d[min]) min=i;
+		}
+	r.first=v[min];
+	r.second=v[min+m];
+	return (r.second-r.first)/2.;
 }
 

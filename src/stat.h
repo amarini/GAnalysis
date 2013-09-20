@@ -17,4 +17,5 @@ static pair<float,float> regression(vector<float>&a,vector<float>&b, vector<floa
 
 static void drawFitError(TH1*h,pair<float,float> &R,vector<float> &e2,float sigma=1);
 
+static float ConfidenceInterval(std::vector<float> &v,std::pair<float,float>&r,float Q);
 };

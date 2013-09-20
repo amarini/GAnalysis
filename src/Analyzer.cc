@@ -62,6 +62,8 @@ void Analyzer::Loop()
 		if(loadMVA)
 			GammaMVA = tmvaReaderID_Single_Barrel->EvaluateMVA("AdaBoost");
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
+		//select the leading photon in |eta|<1.4
+		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
 
 		//pass all the cuts
 		GammaIdx=iGamma;
@@ -113,7 +115,8 @@ void Analyzer::Loop()
 		{
 		string name=it->first;
 		float ptmin,ptmax,etamin,etamax;
-  		sscanf(name.c_str(),"%f %f %f %f",&ptmin,&ptmax,&etamin,&etamax);
+  		sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
+		//fprintf(stderr,"GPt=%f pt in [%f,%f] GETA=%f et=[%f,%f]\n",gamma.Pt(),ptmin,ptmax,gamma.Eta(),etamin,etamax);
 		if(gamma.Pt()>ptmin && gamma.Pt()<ptmax && fabs(gamma.Eta())> etamin && fabs(gamma.Eta()) <etamax)
 			{
 			RhoCorr= it->second * rho;
@@ -121,6 +124,8 @@ void Analyzer::Loop()
 		
 		}
 	}
+
+	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
 	//end rho corrections
 
 	for(int iCut=0;iCut<int(cutsContainer.size());++iCut)
@@ -132,7 +137,7 @@ void Analyzer::Loop()
 		//if(GammaMVA         < cutsContainer[iCut].phid.first)continue;
 		//if(GammaMVA         > cutsContainer[iCut].phid.second)continue;
 		if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
-		if((*photonid_sieie)[GammaIdx]         > cutsContainer[iCut].phid.second)continue;
+		if((*photonid_sieie)[GammaIdx]         >= cutsContainer[iCut].phid.second)continue;
 		//Going to fill
 		//-----
 		{
@@ -142,10 +147,10 @@ void Analyzer::Loop()
 		}
 		//-----
 		{
-		string name=string("phid_")+cutsContainer[iCut].name();
-		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["phid"].nBins,binsContainer["phid"].xMin,binsContainer["phid"].xMax);
-		//histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx]);
-		histoContainer[name]->Fill(  GammaMVA);
+		string name=string("sieie_")+cutsContainer[iCut].name();
+		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax);
+		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx]);
+		//histoContainer[name]->Fill(  GammaMVA);
 		}
 		//-----
 		{

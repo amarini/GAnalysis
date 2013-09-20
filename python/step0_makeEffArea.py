@@ -182,8 +182,8 @@ for name in H:
 
 	outputStr=name;	
 	outputStr=outputStr.replace("vs_nvtx_","");
-	outputStr=outputStr.replace("pt"," ");
-	outputStr=outputStr.replace("eta"," ");
+	outputStr=outputStr.replace("pt","");
+	outputStr=outputStr.replace("eta","");
 	outputStr=outputStr.replace("_"," ");
 	f.write( outputStr + " " + str(l.GetParameter(1)) +"\n" )
 	#Save the histograms fitted in tf
