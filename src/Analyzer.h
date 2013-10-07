@@ -439,11 +439,12 @@ public :
 
    class CUTS{
 		public:
-		CUTS(float vpt1=0,float vpt2=8000,float ht1=0,float ht2=8000,float phid0=-10,float phid1=10){Ht=pair<float,float>(ht1,ht2);VPt=pair<float,float>(vpt1,vpt2);phid=pair<float,float>(phid0,phid1);};
+		CUTS(float vpt1=0,float vpt2=8000,float ht1=0,float ht2=8000,float phid0=-10,float phid1=10,int nJ=1){Ht=pair<float,float>(ht1,ht2);VPt=pair<float,float>(vpt1,vpt2);phid=pair<float,float>(phid0,phid1); nJets=nJ;};
 		pair<float,float> Ht;
 		pair<float,float> VPt;
 		pair<float,float> phid;
-		string name() { return string(Form("VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f",VPt.first,VPt.second,Ht.first,Ht.second,phid.first,phid.second));}
+		int nJets;
+		string name() { return string(Form("VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d",VPt.first,VPt.second,Ht.first,Ht.second,phid.first,phid.second,nJets));}
 		};
 
    class BINS{

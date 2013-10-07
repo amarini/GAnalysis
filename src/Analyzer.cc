@@ -42,6 +42,7 @@ void Analyzer::Loop()
 	Int_t GammaIdx=-1;
 	float GammaMVA=-999;
 	float ScaleTrigger=1.0;
+	float RhoCorr=0;
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
@@ -65,6 +66,25 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
+		//loose iso req
+	//compute RhoCorrections
+	if(useEffArea){
+		//search in the database for the correct bin
+   		for(map<string,float>::iterator it=effAreaCorr.begin();it!=effAreaCorr.end();it++)
+		{
+		string name=it->first;
+		float ptmin,ptmax,etamin,etamax;
+  		sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
+		//fprintf(stderr,"GPt=%f pt in [%f,%f] GETA=%f et=[%f,%f]\n",gamma.Pt(),ptmin,ptmax,gamma.Eta(),etamin,etamax);
+		if( (*photonPt)[iGamma]>ptmin && (*photonPt)[iGamma]<ptmax && fabs((*photonEta)[iGamma])> etamin && fabs((*photonEta)[iGamma]) <etamax)
+			{
+			RhoCorr= it->second * rho;
+			}
+		
+		}
+	} //RhoCorr
+		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;
+		
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -150,23 +170,6 @@ void Analyzer::Loop()
 	//my selection 
 	if(mynJets<1) continue; 
 
-	//compute RhoCorrections
-	float RhoCorr=0;
-	if(useEffArea){
-		//search in the database for the correct bin
-   		for(map<string,float>::iterator it=effAreaCorr.begin();it!=effAreaCorr.end();it++)
-		{
-		string name=it->first;
-		float ptmin,ptmax,etamin,etamax;
-  		sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
-		//fprintf(stderr,"GPt=%f pt in [%f,%f] GETA=%f et=[%f,%f]\n",gamma.Pt(),ptmin,ptmax,gamma.Eta(),etamin,etamax);
-		if(gamma.Pt()>ptmin && gamma.Pt()<ptmax && fabs(gamma.Eta())> etamin && fabs(gamma.Eta()) <etamax)
-			{
-			RhoCorr= it->second * rho;
-			}
-		
-		}
-	}
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
 	//end rho corrections
@@ -181,6 +184,8 @@ void Analyzer::Loop()
 		//if(GammaMVA         > cutsContainer[iCut].phid.second)continue;
 		if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
 		if((*photonid_sieie)[GammaIdx]         >= cutsContainer[iCut].phid.second)continue;
+		if( mynJets < cutsContainer[iCut].nJets) continue;
+		
 		//Going to fill
 		//-----
 		{

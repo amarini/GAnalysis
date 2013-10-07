@@ -83,22 +83,23 @@ ToFitTree=[]
 PtSig=[]
 PtBkg=[]
 PtToFit=[]
+nJets=1
 for p in range(0,len(PtCuts)-1):
 	if( PtCuts[p] <0 ): 
 		Bin+=1		
 		continue
 	if( PtCuts[p+1] <0 ): continue
 	if( Bin == ToFitBin):
-		ToFitTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1])  ) )
-		ToFitTree.append(f.Get("tree_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1])  ) )
+		ToFitTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1] ,nJets ) ) )
+		ToFitTree.append(f.Get("tree_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
 		if(len(PtToFit)==0): PtToFit.append(PtCuts[p]);
 		PtToFit.append(PtCuts[p+1])
 	if( Bin == BkgBin ):
-		BkgTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f"%(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1])  ) )
+		BkgTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1],nJets)  ) )
 		if(len(PtBkg)==0): PtBkg.append(PtCuts[p]);
 		PtBkg.append(PtCuts[p+1])
 	if( Bin == SigBin ):
-		SigTemplate.append(f.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1])  ) )
+		SigTemplate.append(f.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
 		if(len(PtSig)==0): PtSig.append(PtCuts[p]);
 		PtSig.append(PtCuts[p+1])
 
@@ -106,7 +107,10 @@ if(DEBUG>0): print "----- FIT ------"
 ROOT.gSystem.Load("fit.so")
 
 o_txt=open(WorkDir+"/fit.txt","w")
-popen("rm "+WorkDir+"/fitresults.root")
+#os.popen("rm "+WorkDir+"/fitresults.root")
+try:
+	os.remove(WorkDir+"/fitresults.root")
+except OSError: print "file doesn't exist"
 
 for p in range(0,len(PtToFit)-1):
 	#find pt bin for sig
@@ -134,7 +138,7 @@ for p in range(0,len(PtToFit)-1):
 	
 	#Write output
 	o_txt.write("Fraction= "+str(f))
-	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],1000);
+	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],10);
 	o_txt.write(" ERROR= "+str(rms) +"\n");
 
 if(DEBUG>0): print "----- END ------"

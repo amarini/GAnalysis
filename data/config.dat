@@ -3,7 +3,7 @@
 DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root
 PtCuts=100 150 200 250 300 350 450 550 650 750 -1 100 300 750
 SigPhId=0 0.011
-BkgPhId=0.011 0.017
+BkgPhId=0.011 0.014
 WorkDir=/afs/cern.ch/user/a/amarini/work/V00-12/
 ##Bins for the eff area
 #PtBins=0 100 150 200 250 300 400 500 1000 2000

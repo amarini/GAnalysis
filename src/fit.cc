@@ -61,7 +61,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		}
 
 	//create real var
-	RooRealVar f("f","fraction",0.01,1.) ;
+	RooRealVar f("f","fraction",0.8,0.60,1.) ;
 	RooRealVar x("photoniso","photoniso",xMin,xMax) ;
 	//Import Histogram in RooFit
 	RooDataHist HistSig("sig","hist sig",x,sig);
@@ -87,6 +87,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	//----SAVE---
 	PdfModel.plotOn(frame);
 	PdfModel.plotOn(frame,Components(PdfBkg),LineStyle(kDashed));
+	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
 	
 	  // Access basic information
 	  cout << "EDM = " << r->edm() << endl ;
