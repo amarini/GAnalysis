@@ -27,6 +27,8 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("rho",1);  // activate branchname
     fChain->SetBranchStatus("nVtx",1);  // activate branchname
     fChain->SetBranchStatus("runNum",1);  // activate branchname
+    fChain->SetBranchStatus("isRealData",1);  // activate branchname
+    fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
    if (fChain == 0) return;
 
    Long64_t nentries = fChain->GetEntries();
@@ -39,6 +41,58 @@ void Analyzer::Loop()
 	fChain->GetEntry(jentry);
 	//error
      // if (ientry < 0) break;
+
+	int GammaIdxGEN=-1;
+	int HtGEN=0;
+	int mynJetsGEN=0;
+	vector<int> JetIdxGEN;
+
+	if(!isRealData) //only MC
+	{
+		//look for Gamma	
+			if( fabs(photonEtaGEN)<1.4) {
+			//isolation at GEN LEVEL - tighter than the preselection abs = 10
+			//pass all selections
+			GammaIdxGEN=1;
+			}
+		TLorentzVector gGEN;
+			gGEN.SetPtEtaPhiE( photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
+		//look for Jets
+		for(int iJetGEN=0;iJetGEN< int(jetPtGEN->size());iJetGEN++)
+			{
+			if((*jetPtGEN)[iJetGEN]<30) continue;
+			TLorentzVector jGEN;
+				jGEN.SetPtEtaPhiE((*jetPtGEN)[iJetGEN],(*jetEtaGEN)[iJetGEN],(*jetPhiGEN)[iJetGEN],(*jetEGEN)[iJetGEN]);
+			if(jGEN.DeltaR(gGEN)<0.5) continue;
+			//pass all selection
+			mynJetsGEN++;
+			HtGEN+=jGEN.Pt();
+			JetIdxGEN.push_back(iJetGEN);
+			}
+		/////---end of object selection---
+		
+		for(int iCut=0;iCut<int(cutsContainer.size());++iCut)
+			{
+			if( GammaIdxGEN <0 ) break; //gamma not selected
+			if(gGEN.Pt() < cutsContainer[iCut].VPt.first)continue;
+			if(gGEN.Pt() > cutsContainer[iCut].VPt.second)continue;
+			if(HtGEN         < cutsContainer[iCut].Ht.first)continue;
+			if(HtGEN         > cutsContainer[iCut].Ht.second)continue;
+		//	if((*photonid_sieie)[GammaIdx]         < cutsContainer[iCut].phid.first)continue;
+		//	if((*photonid_sieie)[GammaIdx]         >= cutsContainer[iCut].phid.second)continue;
+			if( mynJetsGEN < cutsContainer[iCut].nJets) continue;
+			
+			//Going to fill
+			//-----
+			{
+				string name=string("gammaPtGEN_")+cutsContainer[iCut].name();
+					if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
+			}
+			//-----
+			} // iCut
+	} //isMC
+	
 	Int_t GammaIdx=-1;
 	float GammaMVA=-999;
 	float ScaleTrigger=1.0;
@@ -203,6 +257,19 @@ void Analyzer::Loop()
 		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger);
 		}
 		//-----
+		if( !isRealData &&  //only for MC
+			GammaIdxGEN >=0 && // Gamma is ok
+			photonPtGEN > cutsContainer[iCut].VPt.first && 
+			photonPtGEN < cutsContainer[iCut].VPt.second && 
+			HtGEN > cutsContainer[iCut].Ht.first && 
+			HtGEN < cutsContainer[iCut].Ht.second && 
+			mynJetsGEN >= cutsContainer[iCut].nJets 
+			){
+		string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name();
+			if(histo2Container[name]==NULL) histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+		histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
+		}
+		//-----
 		{
 		string name=string("gammaEta_")+cutsContainer[iCut].name();
 			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);
@@ -244,6 +311,12 @@ void Analyzer::Loop()
 	TFile *f=TFile::Open(outputFileName.c_str(),"RECREATE");
 	f->cd();
 	for(map<string,TH1F*>::iterator it=histoContainer.begin();it!=histoContainer.end();it++)
+		{
+		printf("going to Write %s\n",it->first.c_str());
+		it->second->SetDirectory(gDirectory);
+		it->second->Write("",TObject::kOverwrite);
+		}
+	for(map<string,TH2F*>::iterator it=histo2Container.begin();it!=histo2Container.end();it++)
 		{
 		printf("going to Write %s\n",it->first.c_str());
 		it->second->SetDirectory(gDirectory);

@@ -10,6 +10,7 @@
 
 
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -32,6 +33,7 @@ public :
 
    // Declaration of leaf types
    Int_t           isRealData;
+   double 	 PUWeight;
    ULong64_t       eventNum;
    Int_t           runNum;
    Int_t           lumi;
@@ -220,6 +222,7 @@ public :
    vector<float>   *lepHadronicOverEm;
 
    // List of branches
+   TBranch        *b_PUWeight;   //!
    TBranch        *b_isRealData;   //!
    TBranch        *b_eventNum;   //!
    TBranch        *b_runNum;   //!
@@ -457,6 +460,7 @@ public :
 
    vector<int> JetIdx;
    map<string,TH1F*> histoContainer;
+   map<string,TH2F*> histo2Container;
    map<string,TTree*> treeContainer;
    vector<CUTS> cutsContainer;
    map<string,BINS> binsContainer;
@@ -490,7 +494,7 @@ public :
    map<string,pair<float,float> > triggerMenus; 
    map<string,float> triggerScales;
    void LoadTrigger(string menu,float ptmin,float ptmax, float scale=1.0);
-
+	
    //activate extra cout	
    int debug;
 	
@@ -785,6 +789,7 @@ void Analyzer::Init()
    // Set branch addresses and branch pointers
 if(debug>1) printf("-> SetBranchAddress A\n");
    fChain->SetBranchAddress("isRealData", &isRealData, &b_isRealData);
+   fChain->SetBranchAddress("PUWeight", &PUWeight, &b_PUWeight);
 if(debug>1) printf("-> SetBranchAddress A1\n");
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
