@@ -14,11 +14,11 @@ EtaBins=0 .5 1 1.5
 TriggerMenus=HLT_Photon20_CaloIdVL_v* HLT_Photon20_CaloIdVL_IsoL_v* HLT_Photon30_v* HLT_Photon30_CaloIdVL_v* HLT_Photon30_CaloIdVL_IsoL_v* HLT_Photon50_CaloIdVL_v* HLT_Photon50_CaloIdVL_IsoL_v* HLT_Photon75_CaloIdVL_v* HLT_Photon75_CaloIdVL_IsoL_v* HLT_Photon90_CaloIdVL_v* HLT_Photon90_CaloIdVL_IsoL_v* HLT_Photon135_v* HLT_Photon150_v*
 #[n,n+1]_[]
 PtTriggers=[0,0] [0,30] [0,0] [0,0] [30,50] [0,0] [50,70] [0,0] [75,90] [0,0] [90,135] [135,150] [150,8000]
-PreScale=0 0 0 0 0 0 0 0 0 70.53 52.84 19.03 1.0
+PreScale=0 0 0 0 0 0 0 0 0 70.53 52.84 1.43 1.0
 
 #HLT_Photon90_CaloIdVL_v Eff=279.472pb rec=19.711 PreScale=70.53
 #HLT_Photon90_CaloIdVL_IsoL_v Eff=373.037pb PreScale=52.84
-#HLT_Photon135_v Eff=1045.959 PreScale=19.03
+#HLT_Photon135_v Eff=13771.211 PreScale=1.43
 #HLT_Photon150_v PreScale=1
 
 
