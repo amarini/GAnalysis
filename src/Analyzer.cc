@@ -83,8 +83,16 @@ void Analyzer::Loop()
 		
 		}
 	} //RhoCorr
-		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;
-		
+		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
+
+		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
+		if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
+		if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
+		if( jentry%1000==0) printf("---> *jentry=%d* Gamma=%d Passed charged\n",jentry,iGamma);	
+		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
+		if( jentry%1000==0) printf("---> *jentry=%d* Gamma=%d Passed neutral\n",jentry,iGamma);	
+		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
+		if( jentry%1000==0) if( (*photonPfIsoPhoton)[iGamma]<0.7+0.005*(*photonPt)[iGamma]) printf("---> *jentry=%d* Gamma=%d Passed photon - not required\n",jentry,iGamma);	
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -98,8 +106,6 @@ void Analyzer::Loop()
 				}
 			}
 		if(triggerMenu=="") continue; //doesn't have a trigger selection
-	
-
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_IsoL_v*"  && !(trigger &  2     ) ) continue;
 		else if(triggerMenu=="HLT_Photon30_v*"  && !(trigger &  4     ) ) continue;
@@ -128,6 +134,9 @@ void Analyzer::Loop()
 		//  	0100000000000 	2048 	HLT_Photon135_v*
 		//  	1000000000000 	4096 	HLT_Photon150_v* 
 		ScaleTrigger=triggerScales[triggerMenu];
+		
+		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
+
 		//pass all the cuts
 		GammaIdx=iGamma;
 		break;
@@ -192,6 +201,12 @@ void Analyzer::Loop()
 		string name=string("gammaPt_")+cutsContainer[iCut].name();
 			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
 		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger);
+		}
+		//-----
+		{
+		string name=string("gammaEta_")+cutsContainer[iCut].name();
+			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);
+		histoContainer[name]->Fill(fabs(gamma.Eta()),ScaleTrigger);
 		}
 		//-----
 		{

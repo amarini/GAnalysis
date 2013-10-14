@@ -73,6 +73,7 @@ except KeyError: BkgPhId=[0,0.11]
 try:
 	for iT in range(0,len(config["TriggerMenus"]) ):
 		A.LoadTrigger(config["TriggerMenus"][iT],config["PtTriggers"][iT][0],config["PtTriggers"][iT][1],config["PreScale"][iT]);
+		print "-> TRIGGER: "+config["TriggerMenus"][iT] + " "+str(config["PtTriggers"][iT][0])+"-"+str(config["PtTriggers"][iT][1])+"    "+str(config["PreScale"][iT])
 except KeyError: print "NO TRIGGER LOADED!!!"
 except IndexError: print "Check TRigger configurations: index out of range"
 

@@ -56,7 +56,7 @@ def read_dat(filename):
 		elif(parts[0] == "TriggerMenus"):
 			Dat["TriggerMenus"]=[]
 			for value in parts[1].split(" "):
-				Dat["TriggerMenus"]=value
+				Dat["TriggerMenus"].append(value)
 		elif(parts[0] == "PtTriggers"):
 			Dat["PtTriggers"]=[]
 			for pair in parts[1].split(" "):

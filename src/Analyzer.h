@@ -524,6 +524,7 @@ void Analyzer::InitCuts()
 	if(debug>0)printf("Init cuts and bins\n");
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
 	binsContainer["gammaPt"] = BINS(1000.-90.,90,1000);
+	binsContainer["gammaEta"] = BINS(100,0,5.);
 	binsContainer["sieie"] = BINS(1000,0,.1);
 	binsContainer["phid"] = BINS(100,-1.,1.);
 	binsContainer["photoniso"] = BINS(100,-10,10);

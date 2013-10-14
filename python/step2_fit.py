@@ -95,11 +95,11 @@ for p in range(0,len(PtCuts)-1):
 		if(len(PtToFit)==0): PtToFit.append(PtCuts[p]);
 		PtToFit.append(PtCuts[p+1])
 	if( Bin == BkgBin ):
-		BkgTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1],nJets)  ) )
+		BkgTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1],nJets)  ) )
 		if(len(PtBkg)==0): PtBkg.append(PtCuts[p]);
 		PtBkg.append(PtCuts[p+1])
 	if( Bin == SigBin ):
-		SigTemplate.append(f.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.2f_%.2f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
+		SigTemplate.append(f.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
 		if(len(PtSig)==0): PtSig.append(PtCuts[p]);
 		PtSig.append(PtCuts[p+1])
 
@@ -110,7 +110,7 @@ o_txt=open(WorkDir+"/fit.txt","w")
 #os.popen("rm "+WorkDir+"/fitresults.root")
 try:
 	os.remove(WorkDir+"/fitresults.root")
-except OSError: print "file doesn't exist"
+except OSError: print "file doesn't exist: not removed"
 
 for p in range(0,len(PtToFit)-1):
 	#find pt bin for sig

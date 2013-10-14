@@ -30,6 +30,8 @@ def Loop(t,nBins=100,xMin=40,xMax=120,PtBins=[0,100,150,200,250,300,400,500,1000
 	photonIsoFPRRandomConePhoton=ROOT.std.vector(float)()
 	photonPt=ROOT.std.vector(float)()
 	photonEta=ROOT.std.vector(float)()
+	photonid_sieie=ROOT.std.vector(float)()
+	photonPassConversionVeto=ROOT.std.vector(float)()
 
 	t.SetBranchAddress("isRealData",ROOT.AddressOf(entry,'isRealData'))
 	t.GetEntry(0);#update isRealData
@@ -38,6 +40,8 @@ def Loop(t,nBins=100,xMin=40,xMax=120,PtBins=[0,100,150,200,250,300,400,500,1000
 	t.SetBranchAddress("photonEta"	,ROOT.AddressOf(photonEta) )
 	t.SetBranchAddress("rho",ROOT.AddressOf(entry,'rho'))
 	t.SetBranchAddress("nVtx",ROOT.AddressOf(entry,'nVtx'))
+	t.SetBranchAddress("photonid_sieie",ROOT.AddressOf(photonid_sieie));
+	t.SetBranchAddress("photonPassConversionVeto",ROOT.AddressOf(photonPassConversionVeto));
 
 	#H=ROOT.std.map(ROOT.std.pair(string,ROOT.TH2D))()
 	H={}
@@ -63,18 +67,26 @@ def Loop(t,nBins=100,xMin=40,xMax=120,PtBins=[0,100,150,200,250,300,400,500,1000
 		#	print "Exiting, too many entries"
 		#	break
 		t.GetEntry(iEntry)
-		iPt=0;iEta=0;
+		iPt=-1;iEta=-1;
 		if( photonPt.size() <1): continue;
-		for i in range(0,len(PtBins)-1): 
-			if( photonPt[0]>= PtBins[i] and photonPt[0] <=PtBins[i+1]): iPt=i;
-		for i in range(0,len(EtaBins)-1): 
-				if( abs(photonEta[0])>= EtaBins[i] and abs(photonEta[0]) <=EtaBins[i+1]): iEta=i;
+		GammaIdx=-1
+		for iGamma in range(0,photonPt.size()):
+			for i in range(0,len(PtBins)-1): 
+				if( photonPt[iGamma]>= PtBins[i] and photonPt[iGamma] <=PtBins[i+1]): iPt=i;
+			for i in range(0,len(EtaBins)-1): 
+					if( abs(photonEta[iGamma])>= EtaBins[i] and abs(photonEta[iGamma]) <=EtaBins[i+1]): iEta=i;
+			if iPt<0 or iEta<0 : continue;
+			if photonid_sieie[iGamma]>0.011: continue;
+			if photonPassConversionVeto[iGamma]<0.001: continue;
+			GammaIdx=iGamma
+			break;
+		if GammaIdx<0 : continue;
 		name="rho_vs_nvtx"+UniqName(PtBins,iPt,EtaBins,iEta)
 		if(DEBUG>1): print "Going to Fill:" + name
 		H[name].Fill(entry.nVtx,entry.rho);
 		name="iso_vs_nvtx"+UniqName(PtBins,iPt,EtaBins,iEta)
 		if(DEBUG>1): print "Going to Fill:" + name
-		H[name].Fill(entry.nVtx,photonIsoFPRRandomConePhoton[0]);
+		H[name].Fill(entry.nVtx,photonIsoFPRRandomConePhoton[GammaIdx]);
 	return H;
 
 
