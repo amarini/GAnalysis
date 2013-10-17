@@ -536,6 +536,15 @@ void Analyzer::InitCuts()
 		{
 		if(PtCuts[p]<0)continue;
 		if(PtCuts[p+1]<0)continue;
+			//need to check if the cut already exist in pt
+		int exists=0;
+			for(int pp=0;pp<p-1;pp++)
+				if( PtCuts[pp]==PtCuts[p] && PtCuts[pp+1]==PtCuts[p+1])
+					exists=1;
+		if(exists)
+			{
+			if(debug>0)cout<<"--> PtBin "<<PtCuts[p]<<" "<<PtCuts[p+1]<<" already exists"<<endl;
+			continue;}
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId.first,BkgPhId.second ));
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,SigPhId.first,SigPhId.second ));
 		}

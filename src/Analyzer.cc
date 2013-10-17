@@ -34,7 +34,10 @@ void Analyzer::Loop()
    Long64_t nentries = fChain->GetEntries();
 
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
-	if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue;
+	//select jobs
+	//if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue; // slow on eos
+	if( (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
+
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
      // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
@@ -142,11 +145,8 @@ void Analyzer::Loop()
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 		if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
 		if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		if( jentry%1000==0) printf("---> *jentry=%d* Gamma=%d Passed charged\n",jentry,iGamma);	
 		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		if( jentry%1000==0) printf("---> *jentry=%d* Gamma=%d Passed neutral\n",jentry,iGamma);	
 		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
-		if( jentry%1000==0) if( (*photonPfIsoPhoton)[iGamma]<0.7+0.005*(*photonPt)[iGamma]) printf("---> *jentry=%d* Gamma=%d Passed photon - not required\n",jentry,iGamma);	
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -275,18 +275,20 @@ void Analyzer::Loop()
 			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);
 		histoContainer[name]->Fill(fabs(gamma.Eta()),ScaleTrigger);
 		}
-		//-----
+		//----- NOT WEIGHTED -> LOW STAT FIT
 		{
 		string name=string("sieie_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax);
-		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],ScaleTrigger);
+		//histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],ScaleTrigger);
+		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],1.0);
 		//histoContainer[name]->Fill(  GammaMVA);
 		}
 		//-----
 		{
 		string name=string("photoniso_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
+		//histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
+		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
 		//FILL Tree
 		name="tree_"+cutsContainer[iCut].name();
 		if(treeContainer[name]==NULL) MakeTree(name); 
@@ -297,7 +299,8 @@ void Analyzer::Loop()
 		{
 		string name=string("photonisoRC_")+cutsContainer[iCut].name();
 		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
-		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
+		//histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
+		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,1.0);
 		}
 		//-----
 		

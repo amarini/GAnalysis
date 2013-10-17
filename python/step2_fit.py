@@ -138,7 +138,8 @@ for p in range(0,len(PtToFit)-1):
 	
 	#Write output
 	o_txt.write("Fraction= "+str(f))
-	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],10);
+	#rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],10);
+	rms=0
 	o_txt.write(" ERROR= "+str(rms) +"\n");
 
 if(DEBUG>0): print "----- END ------"
