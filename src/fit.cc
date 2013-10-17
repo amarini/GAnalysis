@@ -177,7 +177,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 //namespace TOYS {
 
 void TOYS::RandomVar(TH1F*h,TRandom *r,int sumw2){
-	for(int i=0;i<=h->GetNbinsX()+1;i++)
+	for(int i=1;i<=h->GetNbinsX();i++)
 		{
 		float bc=h->GetBinContent(i);
 		float be=h->GetBinError(i);
@@ -214,6 +214,7 @@ float TOYS::GetMedian(std::vector<float> &v)
 float TOYS::GetMean(std::vector<float> &v){
 	float S=0;
 	int n=int(v.size()); //start from 0
+	if(n==0)return -1;
 	for(int i=0;i<n;++i)
 		S+=v[i];
 	return S/n;
@@ -222,6 +223,7 @@ float TOYS::GetRMS(std::vector<float> &v){
 	float S=0;
 	float m=GetMean(v);
 	int n=int(v.size()); 
+	if(n<=1) return -1;
 	for(int i=0;i<n;++i)
 		S+=(v[i]-m)*(v[i]-m);
 	return sqrt(S/(n-1));
@@ -265,6 +267,9 @@ vector<float> r; //result
 	//RandomVar(h1,random,1);//gaus
 	//RandomVar(s1,random,1);//gaus
 	//RandomVar(b1,random,1);//gaus
+	
+	if(h1->Integral()==0 || s1->Integral()==0 || b1->Integral()==0)
+		{cout<<"SKIP TOY EVENT: INTEGRAL=0"<<endl;continue;}
 	
 	float a= FIT::fit(h1,s1,b1);
 	
