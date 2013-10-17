@@ -94,6 +94,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		else if(sigInt==0 && bkgInt==0) fracEstimator=0.8;
 		else if(sigInt==0) fracEstimator=frac2;
 		else if(bkgInt==0) fracEstimator=frac1;
+		if(fracEstimator>1.0 || fracEstimator<0)fracEstimator=0.8;
 		cout<<"---> @@ Fraction Estimation"<<frac1<<" "<<frac2<<": "<<fracEstimator <<" @@"<<endl;
 		}
 
