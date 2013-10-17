@@ -130,6 +130,10 @@ for p in range(0,len(PtToFit)-1):
 		print "---> Fit Template:" + ToFitTree[p].GetName()
 		print "---> Sig Template:" + SigTemplate[Sbin].GetName()
 		print "---> Bkg Template:" + BkgTemplate[Bbin].GetName()
+	
+	NormToFit = ToFitTemplate[p].Integral();
+	NormSig   = SigTemplate[Sbin].Integral();
+	NormBkg   = BkgTemplate[Bbin].Integral();
 
 	#BINNED
 	f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
@@ -138,8 +142,12 @@ for p in range(0,len(PtToFit)-1):
 	
 	#Write output
 	o_txt.write("Fraction= "+str(f))
-	#rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],10);
 	rms=0
+	#make sure Normalization didn't change ->Poisson
+	ToFitTemplate[p].Scale(NormToFit/ToFitTemplate[p].Integral());
+	SigTemplate[Sbin].Scale(NormSig/SigTemplate[Sbin].Integral());
+	BkgTemplate[Bbin].Scale(NormBkg/BkgTemplate[Bbin].Integral());
+	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
 	o_txt.write(" ERROR= "+str(rms) +"\n");
 
 if(DEBUG>0): print "----- END ------"
