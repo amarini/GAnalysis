@@ -117,8 +117,7 @@ from common import *
 config=read_dat(options.inputDat);
 #SET BRANCH ADDRESSES -- LOOP
 if(DEBUG>0):
-	for name in config:
-		print "Dat contains key " +str(name) + "with value" + str(config[name])
+	PrintDat(config)
 
 try:	
 	for tree in config["DataTree"]: 
@@ -127,7 +126,6 @@ try:
 except KeyError: 
 	print "Going To Exit"
 	exit
-
 
 try: 
 	PtBins=config["PtBins"]
@@ -151,12 +149,14 @@ except KeyError:
 	WorkDir="./"
 
 print "Begin LOOP"
+
 if(options.fast): maxentries=50000
 else: maxentries=-1
+
 H=Loop(data,40,0,40,PtBins,EtaBins,maxentries)
 
 #LOAD ANALYSIS stat - inside there is the regression method
-ROOT.gSystem.Load("stat.so");
+#ROOT.gSystem.Load("stat.so");
 
 print "Begin Analysis"
 #DO PROFILE

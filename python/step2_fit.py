@@ -16,25 +16,17 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("-f","--fileName" ,dest='fileName',type='string',help="FileName result of step0",default="output.root")
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
-#parser.add_option("","--jobId" ,dest='jobId',type='int',help="Current job number. Useful to run on batch",default=0)
+
 (options,args)=parser.parse_args()
 
-#import cuts
-#PtCuts=[100,150,200,250,300,350,450,550,650,750,-1,100,300,750]
-#SigPhId=[-10.,-.1]
-#BkgPhId=[0.1,10.]
-
 from common import *
-if(DEBUG>0): print "--> load dat file: "+options.inputDat;
-config=read_dat(options.inputDat)
-if(DEBUG>0):
-	print "--------------------------------------"
-	for name in config:
-		print "Dat contains key " +str(name) + "with value" + str(config[name])
-	print "--------------------------------------"
-	print 
-	print 
 
+if(DEBUG>0): print "--> load dat file: "+options.inputDat;
+
+config=read_dat(options.inputDat)
+
+if(DEBUG>0):
+	PrintDat(config)
 
 try:
 	WorkDir=config["WorkDir"]

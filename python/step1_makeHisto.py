@@ -40,6 +40,9 @@ if(DEBUG>0):A.debug=DEBUG;
 if(DEBUG>0): print "--> load dat file: "+options.inputDat;
 config=read_dat(options.inputDat)
 
+if(DEBUG>0):
+	PrintDat(config)
+
 try:
 	WorkDir=config["WorkDir"]
 except KeyError:

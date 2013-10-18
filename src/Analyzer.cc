@@ -308,10 +308,10 @@ void Analyzer::Loop()
 		//histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
 		//FILL Tree
-		name="tree_"+cutsContainer[iCut].name();
-		if(treeContainer[name]==NULL) MakeTree(name); 
-		TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
-		treeContainer[name]->Fill( );
+		//name="tree_"+cutsContainer[iCut].name();
+		//if(treeContainer[name]==NULL) MakeTree(name); 
+		//TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
+		//treeContainer[name]->Fill( );
 		}
 		//-----
 		{
@@ -343,11 +343,11 @@ void Analyzer::Loop()
 		it->second->SetDirectory(gDirectory);
 		it->second->Write("",TObject::kOverwrite);
 		}
-	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
-		{
-		printf("going to Write %s\n",it->first.c_str());
-		it->second->SetDirectory(gDirectory);
-		it->second->Write("",TObject::kOverwrite);
-		}
+//	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
+//		{
+//		printf("going to Write %s\n",it->first.c_str());
+//		it->second->SetDirectory(gDirectory);
+//		it->second->Write("",TObject::kOverwrite);
+//		}
 return;
 }//Analyzer::Loop

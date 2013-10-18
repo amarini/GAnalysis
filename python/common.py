@@ -68,8 +68,38 @@ def read_dat(filename):
 			Dat["PreScale"]=[]
 			for s in parts[1].split(" "):
 				Dat["PreScale"].append(float(s))
+		elif(parts[0] == "include"):
+			filename2=parts[1].replace(" ","")
+			k=filename.rfind("/")
+			if k>=0:
+				dir=filename[:k] + "/"
+			else: 
+				dir="./"
+			try:
+				f=open(dir+filename2);
+				f.close();
+				print "Reading configuration from "+dir+filename2
+				Dat2=read_dat(dir+filename2)
+				for name in Dat2:
+					Dat[name]=Dat2[name]
+			except IOError:
+				try:
+					f=open("./"+filename2);
+					f.close();
+					print "Reading configuration from ./"+filename2
+					Dat2=read_dat("./"+filename2)
+					for name in Dat2:
+						Dat[name]=Dat2[name]
+				except IOError:
+					print "ERROR: "+dir+filename2+" - ./"+filename2+" - No such file or directory"
 		else: print "Config parameter "+parts[0]+" ignored"
 	return Dat
 
-		
+def PrintDat(dat):
+	print "--------------------------------------------------------"
+	for name in config:
+		print "Dat contains key " +str(name) + " with value: " + str(config[name])
+	print "--------------------------------------------------------"
+	print 
+	print 
 	

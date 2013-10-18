@@ -527,6 +527,8 @@ void Analyzer::InitCuts()
 {
 	if(debug>0)printf("Init cuts and bins\n");
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
+	cutsContainer.push_back( CUTS(0,8000,0,8000,SigPhId.first,SigPhId.second) );
+	cutsContainer.push_back( CUTS(0,8000,0,8000,BkgPhId.first,BkgPhId.second) );
 	binsContainer["gammaPt"] = BINS(1000.-90.,90,1000);
 	binsContainer["gammaEta"] = BINS(100,0,5.);
 	binsContainer["sieie"] = BINS(1000,0,.1);
