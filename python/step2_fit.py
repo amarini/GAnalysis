@@ -83,7 +83,7 @@ for p in range(0,len(PtCuts)-1):
 	if( PtCuts[p+1] <0 ): continue
 	if( Bin == ToFitBin):
 		ToFitTemplate.append(f.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1] ,nJets ) ) )
-		ToFitTree.append(f.Get("tree_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
+		#ToFitTree.append(f.Get("tree_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],nJets)  ) )
 		if(len(PtToFit)==0): PtToFit.append(PtCuts[p]);
 		PtToFit.append(PtCuts[p+1])
 	if( Bin == BkgBin ):
@@ -119,7 +119,7 @@ for p in range(0,len(PtToFit)-1):
 		continue
 	if DEBUG>0: 
 		print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
-		print "---> Fit Template:" + ToFitTree[p].GetName()
+		print "---> Fit Template:" + ToFitTemplate[p].GetName()
 		print "---> Sig Template:" + SigTemplate[Sbin].GetName()
 		print "---> Bkg Template:" + BkgTemplate[Bbin].GetName()
 	
@@ -133,7 +133,7 @@ for p in range(0,len(PtToFit)-1):
 	#f=ROOT.FIT.fit(ToFitTree[p],SigTemplate[s],BkgTemplate[b],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
 	
 	#Write output
-	o_txt.write("Fraction= "+str(f))
+	o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Fraction= "+str(f))
 	rms=0
 	#make sure Normalization didn't change ->Poisson
 	ToFitTemplate[p].Scale(NormToFit/ToFitTemplate[p].Integral());

@@ -97,8 +97,8 @@ def read_dat(filename):
 
 def PrintDat(dat):
 	print "--------------------------------------------------------"
-	for name in config:
-		print "Dat contains key " +str(name) + " with value: " + str(config[name])
+	for name in dat:
+		print "Dat contains key " +str(name) + " with value: " + str(dat[name])
 	print "--------------------------------------------------------"
 	print 
 	print 
