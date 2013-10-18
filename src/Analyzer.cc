@@ -28,8 +28,13 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("nVtx",1);  // activate branchname
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
-    fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
    if (fChain == 0) return;
+	fChain->GetEntry(0);
+   if(!isRealData) {
+    	fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
+	fChain->SetBranchStatus("photon*GEN",1);
+	fChain->SetBranchStatus("jet*GEN",1);
+	}
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -89,7 +94,7 @@ void Analyzer::Loop()
 			//-----
 			{
 				string name=string("gammaPtGEN_")+cutsContainer[iCut].name();
-					if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histoContainer[name]->Sumw2();}
 				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
 			}
 			//-----
@@ -236,6 +241,8 @@ void Analyzer::Loop()
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
 	//end rho corrections
+	
+	if(isRealData) PUWeight=1;
 
 	for(int iCut=0;iCut<int(cutsContainer.size());++iCut)
 		{
@@ -253,32 +260,43 @@ void Analyzer::Loop()
 		//-----
 		{
 		string name=string("gammaPt_")+cutsContainer[iCut].name();
-			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
-		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger);
+			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); histoContainer[name]->Sumw2();}
+		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);
 		}
 		//-----
-		if( !isRealData &&  //only for MC
+		if( !isRealData ){  //only for MC
+			TLorentzVector gGEN;
+			gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
+			if(
 			GammaIdxGEN >=0 && // Gamma is ok
 			photonPtGEN > cutsContainer[iCut].VPt.first && 
 			photonPtGEN < cutsContainer[iCut].VPt.second && 
 			HtGEN > cutsContainer[iCut].Ht.first && 
 			HtGEN < cutsContainer[iCut].Ht.second && 
 			mynJetsGEN >= cutsContainer[iCut].nJets 
+			//gamma.DeltaR(gGEN) <0.3	 //--------------<-------
 			){
 		string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name();
-			if(histo2Container[name]==NULL) histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+			if(histo2Container[name]==NULL){histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histo2Container[name]->Sumw2();}
 		histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
 		}
+		//if( gamma.DeltaR(gGEN) <0.3 )  //--------------<-------
+			{
+			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name();
+			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); histoContainer[name]->Sumw2();}
+			histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);	
+			}
+		}//end of only MC
 		//-----
 		{
 		string name=string("gammaEta_")+cutsContainer[iCut].name();
-			if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);
-		histoContainer[name]->Fill(fabs(gamma.Eta()),ScaleTrigger);
+			if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax); histoContainer[name]->Sumw2();}
+		histoContainer[name]->Fill(fabs(gamma.Eta()),ScaleTrigger*PUWeight);
 		}
 		//----- NOT WEIGHTED -> LOW STAT FIT
 		{
 		string name=string("sieie_")+cutsContainer[iCut].name();
-		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax);
+		if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],ScaleTrigger);
 		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],1.0);
 		//histoContainer[name]->Fill(  GammaMVA);
@@ -286,7 +304,7 @@ void Analyzer::Loop()
 		//-----
 		{
 		string name=string("photoniso_")+cutsContainer[iCut].name();
-		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
+		if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
 		//FILL Tree
@@ -298,7 +316,7 @@ void Analyzer::Loop()
 		//-----
 		{
 		string name=string("photonisoRC_")+cutsContainer[iCut].name();
-		if(histoContainer[name]==NULL) histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax);
+		if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,1.0);
 		}
