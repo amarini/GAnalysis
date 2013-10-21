@@ -63,7 +63,21 @@ if(DEBUG>0): print "--> loaded files"
 
 try:
 	PtCuts=config["PtCuts"]
-except KeyError: PtCuts=[0,100,200,300]
+except KeyError: 
+	print "ERROR PtCuts"
+	PtCuts=[0,100,200,300]
+
+try:
+	HtCuts=config["HtCuts"]
+except KeyError: 
+	print "ERROR HtCuts"
+	HtCuts=[0,100,200,300]
+
+try:
+	nJetsCuts=config["nJetsCuts"]
+except KeyError: 
+	print "ERROR nJetsCuts"
+	nJetsCuts=[1,3]
 
 try:
 	SigPhId=config["SigPhId"]
@@ -80,8 +94,13 @@ try:
 except KeyError: print "NO TRIGGER LOADED!!!"
 except IndexError: print "Check TRigger configurations: index out of range"
 
+if(DEBUG>0): print "-->Loading Cuts in Analyzer"
 for p in range(0,len(PtCuts)):
 	A.PtCuts.push_back(PtCuts[p])
+for h in range(0,len(HtCuts)):
+	A.HtCuts.push_back(HtCuts[h])
+for j in range(0,len(nJetsCuts)):
+	A.nJetsCuts.push_back( int(nJetsCuts[j]) )
 
 A.SigPhId.first=SigPhId[0];
 A.SigPhId.second=SigPhId[1];

@@ -32,6 +32,14 @@ def read_dat(filename):
 			Dat["PtCuts"]=[]
 			for pt in parts[1].split(" "):
 				Dat["PtCuts"].append(float(pt))
+		elif(parts[0] == "HtCuts"):
+			Dat["HtCuts"]=[]
+			for ht in parts[1].split(" "):
+				Dat["HtCuts"].append(float(ht))
+		elif(parts[0] == "nJetsCuts"):
+			Dat["nJetsCuts"]=[]
+			for nj in parts[1].split(" "):
+				Dat["nJetsCuts"].append(float(nj))
 		elif(parts[0] == "SigPhId"):
 			Dat["SigPhId"]=[]
 			for id in parts[1].split(" "):

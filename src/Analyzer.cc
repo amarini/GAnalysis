@@ -58,7 +58,7 @@ void Analyzer::Loop()
 	if(!isRealData) //only MC
 	{
 		//look for Gamma	
-			if( fabs(photonEtaGEN)<1.4) {
+			if( fabs(photonEtaGEN)<1.4 && photonPtGEN>=0 ) { // photonPtGEN=-999 initialized
 			//isolation at GEN LEVEL - tighter than the preselection abs = 10
 			//pass all selections
 			GammaIdxGEN=1;
@@ -164,6 +164,8 @@ void Analyzer::Loop()
 				triggerMenu=it->first;
 				}
 			}
+		if(isRealData) 
+		{
 		if(triggerMenu=="") continue; //doesn't have a trigger selection
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_IsoL_v*"  && !(trigger &  2     ) ) continue;
@@ -193,6 +195,9 @@ void Analyzer::Loop()
 		//  	0100000000000 	2048 	HLT_Photon135_v*
 		//  	1000000000000 	4096 	HLT_Photon150_v* 
 		ScaleTrigger=triggerScales[triggerMenu];
+		}//DATA
+		else
+		ScaleTrigger=1; //MC
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
 
@@ -276,10 +281,10 @@ void Analyzer::Loop()
 			mynJetsGEN >= cutsContainer[iCut].nJets 
 			//gamma.DeltaR(gGEN) <0.3	 //--------------<-------
 			){
-		string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name();
+			string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name();
 			if(histo2Container[name]==NULL){histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histo2Container[name]->Sumw2();}
-		histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
-		}
+			histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
+			}
 		//if( gamma.DeltaR(gGEN) <0.3 )  //--------------<-------
 			{
 			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name();
