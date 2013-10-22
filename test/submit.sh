@@ -22,7 +22,7 @@ cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
 rm $PWD/log/log_$i.done || true
-python python/step1_makeHisto.py --inputDat=data/config.dat --nJobs=100 --jobId=$i && touch $PWD/log/log_$i.done
+python python/step1_makeHisto.py --inputDat=data/config.dat --nJobs=100 --jobId=$i && touch $PWD/log/log_$i.done || exit 1
 
 echo "************************"
 echo "*          DONE        *"

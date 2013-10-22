@@ -476,6 +476,9 @@ public :
 
    //READ IN INITCUTS and loaded in Cuts Container
    vector<float> PtCuts;
+   vector<float> HtCuts;
+   vector<int>   nJetsCuts;
+
    pair<float,float> SigPhId;
    pair<float,float> BkgPhId;
 	
@@ -529,7 +532,7 @@ void Analyzer::InitCuts()
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,SigPhId.first,SigPhId.second) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,BkgPhId.first,BkgPhId.second) );
-	binsContainer["gammaPt"] = BINS(1000.-90.,90,1000);
+	binsContainer["gammaPt"] = BINS(1000.,0,1000);
 	binsContainer["gammaEta"] = BINS(100,0,5.);
 	binsContainer["sieie"] = BINS(1000,0,.1);
 	binsContainer["phid"] = BINS(100,-1.,1.);
@@ -546,9 +549,24 @@ void Analyzer::InitCuts()
 		if(exists)
 			{
 			if(debug>0)cout<<"--> PtBin "<<PtCuts[p]<<" "<<PtCuts[p+1]<<" already exists"<<endl;
-			continue;}
+			continue;
+			}
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId.first,BkgPhId.second ));
 		cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,SigPhId.first,SigPhId.second ));
+
+		for(int h=0;h<int(HtCuts.size());h++)
+			{
+			if( HtCuts[h]<1) continue; //0 already booked
+			cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],HtCuts[h],8000,BkgPhId.first,BkgPhId.second ));
+			cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],HtCuts[h],8000,SigPhId.first,SigPhId.second ));
+			}
+		for(int h=0;h<int(nJetsCuts.size());h++)
+			{
+			if( nJetsCuts[h] == 1 ) continue; //cut already booked
+			cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId.first,BkgPhId.second,nJetsCuts[h] ));
+			cutsContainer.push_back(CUTS(PtCuts[p],PtCuts[p+1],0,8000,SigPhId.first,SigPhId.second,nJetsCuts[h] ));
+			}
+			
 		}
 }
 
