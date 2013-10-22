@@ -1,5 +1,5 @@
 
-int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root")
+int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root",const char*histoName="gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1")
 {
    float xFac=2.3,yFac=2.2 ;
    int txtSize=15;
@@ -20,7 +20,7 @@ int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root")
    Canvas_1->SetFrameBorderMode(0);
    
    //TH1F *gammaPt = new TH1F("gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1","gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1",1000,0,1000);
-   TH1F *gammaPt = (TH1F*)f->Get("gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1");
+   TH1F *gammaPt = (TH1F*)f->Get(histoName);
    
    Int_t ci;   // for color index setting
    ci = TColor::GetColor("#000099");
