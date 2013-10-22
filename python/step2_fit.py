@@ -134,16 +134,22 @@ def FIT(file,nJets=1,Ht=0):
 		if Sbin<0 or Bbin<0:
 			print "ERROR: not found a suitable bin for signal or background"
 			continue
+		try:
+			NormToFit = ToFitTemplate[p].Integral();
+			NormSig   = SigTemplate[Sbin].Integral();
+			NormBkg   = BkgTemplate[Bbin].Integral();
+		except ReferenceError:
+			print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
+			print "--> ERROR NULL HISTOS"
+			continue;
+		
 		if DEBUG>0: 
 			print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
 			print "-> nJets=%d Ht=%.1f"%(nJets,Ht)
 			print "---> Fit Template:" + ToFitTemplate[p].GetName()
 			print "---> Sig Template:" + SigTemplate[Sbin].GetName()
 			print "---> Bkg Template:" + BkgTemplate[Bbin].GetName()
-		
-		NormToFit = ToFitTemplate[p].Integral();
-		NormSig   = SigTemplate[Sbin].Integral();
-		NormBkg   = BkgTemplate[Bbin].Integral();
+
 	
 		#BINNED
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) )
