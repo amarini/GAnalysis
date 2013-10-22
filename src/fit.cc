@@ -102,7 +102,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		}
 
 	//create real var
-	RooRealVar f("f","fraction",fracEstimator,0.60,1.) ;
+	RooRealVar f("f","fraction",fracEstimator,0.40,1.) ;
 	RooRealVar x("photoniso","photoniso",xMin,xMax) ;
 	//Import Histogram in RooFit
 	RooDataHist HistSig("sig","hist sig",x,sig);
@@ -123,14 +123,12 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	RooFitResult *r;
 	RooPlot *frame=x.frame();
 	if(binned){
+		printf("----> Going to create RooDataHist\n");
 		RooDataHist HistToFit("hist","hist",x,h); 
 		//r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save());
+		printf("----> Going to fit\n");
 		r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE));
-		//if(r->status() != 0 ) { //bad fit
-		//		cout<<"---> !!! BAD FIT - PASS TO CHI2!!!"<<endl;
-		//		r=PdfModel.chi2FitTo(HistToFit,SumW2Error(kTRUE),Save());
-		//		if(r->status() != 0 ) cout<<"---> !!! STILL BAD. DON'T DO ANYTHING!!!!" <<endl;
-		//		}
+		printf("----> Going to plot\n");
 		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
 		}
 	else {
@@ -183,7 +181,6 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	if(name[0]!='\0')
 		{
 		TFile file(fileName,"UPDATE") ;
-		//r->Write(name);
 		c->Write();
 		RooWorkspace *ws=NULL;
 			ws=(RooWorkspace*)file.Get("fit_ws");
@@ -191,13 +188,9 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		frame->SetName((string(name)+"_plot").c_str());
 		f.SetName((string(name)+"_f").c_str());
 		r->SetName((string(name)+"_r").c_str());
-		//ws->import(*frame);	
-		//ws->import(f,(string(name)+"_f").c_str());	
-		//ws->import(*r,(string(name)+"_r").c_str());	
 		ws->import(RooArgSet(f,PdfModel));
 		ws->Write("fit_ws",TObject::kOverwrite);
-		//f->Write();
-		//frame->Write( (string(name)+"_plot" ).c_str());
+		frame->Write( (string(name)+"_plot" ).c_str());
 		file.Close();
 		}
 

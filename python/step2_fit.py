@@ -138,7 +138,7 @@ def FIT(file,nJets=1,Ht=0):
 			NormToFit = ToFitTemplate[p].Integral();
 			NormSig   = SigTemplate[Sbin].Integral();
 			NormBkg   = BkgTemplate[Bbin].Integral();
-		except ReferenceError:
+		except (ReferenceError, AttributeError) as e:
 			print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
 			print "--> ERROR NULL HISTOS"
 			continue;
@@ -149,7 +149,9 @@ def FIT(file,nJets=1,Ht=0):
 			print "---> Fit Template:" + ToFitTemplate[p].GetName()
 			print "---> Sig Template:" + SigTemplate[Sbin].GetName()
 			print "---> Bkg Template:" + BkgTemplate[Bbin].GetName()
-
+		if NormToFit == 0 or NormSig == 0 or NormBkg == 0 :
+			print "-> NUll INTEGRAL"
+			continue
 	
 		#BINNED
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) )
