@@ -4,54 +4,65 @@
 #include "Selection.h"
 #include "TDirectory.h"
 #include "TList.h"
+#include "TCanvas.h"
+#include "TH1F.h"
+#include "TLatex.h"
+#include "TROOT.h"
+#include "TStyle.h"
+
 #include <cstdio>
 
 #ifdef SEL_cxx
 using namespace std;
-selection::selection()
+Selection::Selection(const char *dir)
 	{
 	nCuts=0;
+	dirName=string(dir);
 	};
-int selection::getNcuts()
+Selection::~Selection()
+	{
+	};
+int Selection::getNcuts()
 	{
 	return nCuts;
 	};
-int selection::initCut(string cutName)
+int Selection::initCut(string cutName)
 	{
 	cuts[nCuts]=pair<string,TH1F*> (cutName,new TH1F( (cutName+Form("_%d",nCuts)).c_str(),cutName.c_str(),1,-0.5,0.5 )    );
 	names[cutName]=nCuts;
 	nCuts++;
 	}
-int selection::Fill(string cutName,float weight)
+int Selection::Fill(string cutName,float weight)
 	{
 	//cuts[ names[cutName] ].second->Fill(0,weight);	
 	return Fill( names[cutName] );
 	}
-int selection::Fill(int iCut,float weight)
+int Selection::Fill(int iCut,float weight)
 	{
 	cuts[iCut].second->Fill(0.,weight);	
 	return 0;
 	}
-int selection::Write(TFile *f)
+int Selection::Write(TFile *f)
 	{
-	f->mkdir("selection");
-	f->cd("selection");
+	f->mkdir(dirName.c_str());
+	f->cd(dirName.c_str());
 	for( map<int,pair<string,TH1F*> >::iterator it=cuts.begin();it!=cuts.end();it++)
 		{
 		it->second.second->Write();
 		}
 	}
-int selection::Read(TFile *f)
+int Selection::Read(TFile *f)
 	{
-	TDirectory *d=(TDirectory*)f->Get("selection");
-	TList *l=d->GetList();	
+	TDirectory *d=(TDirectory*)f->Get(dirName.c_str());
+	TList *l=d->GetListOfKeys();	
 	nCuts=0;
 	cuts.clear();names.clear();
 	for(int i=0;i< l->GetEntries();i++)
 		{
 		if(  l->At(i) == NULL ) continue;
-		if(!(l->At(i)->InheritsFrom("TH1F")) ) continue;
-		TH1F* h = (TH1F*)l->At(i);
+		TObject *o = d->Get( l->At(i)->GetName()  );
+		if(!( o->InheritsFrom("TH1F")) ) continue;
+		TH1F *h=(TH1F*)o;
 		string name( h->GetName());
 		string name2(name);
 		int pos=name2.rfind("_"); name2[pos]=' ';
@@ -65,8 +76,39 @@ int selection::Read(TFile *f)
 	for(int i=0;i<nCuts;i++) if( cuts.count(i) ==0 ) {fprintf(stderr,"READING ERROR:%s\n");return 1;}
 	return 0;
 	}
-int selection::getStats()
+int Selection::getStats()
 	{
+	gStyle->SetOptStat(0);
+	//gStyle->SetOptTitle(0);
+	TH1F*h=new TH1F("stats","Cuts Efficiencies",nCuts,0,nCuts);
+	for(int iCut=0;iCut<nCuts;iCut++)	
+		{
+		h->GetXaxis()->SetBinLabel(iCut+1,cuts[iCut].first.c_str()) ;
+		h->SetBinContent(iCut+1,cuts[iCut].second->GetBinContent(1)   );
+		}
+	TCanvas *c=new TCanvas();
+	c->SetLogy();
+	h->Draw();
+	h->SetLineColor(kBlue+2);
+	h->SetLineWidth(3);
+	TLatex *l=new TLatex();
+		//l->SetNDC();
+		l->SetTextFont(42);
+		l->SetTextSize(0.03);
+		l->SetTextAlign(22);
+	for(int iCut=0;iCut<nCuts;iCut++)	
+		{
+		l->SetTextFont(42);
+		if(iCut>0)l->DrawLatex(iCut+.5,cuts[0].second->GetBinContent(1),Form("%.1f%%",cuts[iCut].second->GetBinContent(1)/cuts[iCut-1].second->GetBinContent(1)*100  )  );
+		l->SetTextFont(62);
+		l->DrawLatex(iCut+.5,cuts[iCut].second->GetBinContent(1)+2,Form("%.0f",cuts[iCut].second->GetBinContent(1)  )  );
+		}
+
 	return 0;
+	}
+int Selection::FillAndInit(std::string cutName,float weight)
+	{
+	if( names.count(cutName) ==0 ) initCut(cutName);
+	Fill(cutName,weight);
 	}
 #endif

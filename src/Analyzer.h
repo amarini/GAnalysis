@@ -16,9 +16,12 @@
 #include "TChain.h"
 #include "TLorentzVector.h"
 
+#include "Selection.h"
+
 // Header file for the classes stored in the TTree if any.
 #include <vector>
 #include <map>
+
 using namespace std;
 
 // --- Headers for TMVA - photonID --------------
@@ -497,10 +500,10 @@ public :
    map<string,pair<float,float> > triggerMenus; 
    map<string,float> triggerScales;
    void LoadTrigger(string menu,float ptmin,float ptmax, float scale=1.0);
-	
+
    //activate extra cout	
    int debug;
-	
+
    //
    ClassDef(Analyzer,1);
 };
@@ -532,7 +535,23 @@ void Analyzer::InitCuts()
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,SigPhId.first,SigPhId.second) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,BkgPhId.first,BkgPhId.second) );
-	binsContainer["gammaPt"] = BINS(1000.,0,1000);
+		for(int h=0;h<int(HtCuts.size());h++)
+			{
+			if( HtCuts[h]<1) continue; //0 already booked
+			cutsContainer.push_back( CUTS(0,8000,HtCuts[h],8000) );
+			cutsContainer.push_back( CUTS(0,8000,HtCuts[h],8000,SigPhId.first,SigPhId.second) );
+			cutsContainer.push_back( CUTS(0,8000,HtCuts[h],8000,BkgPhId.first,BkgPhId.second) );
+			}
+		for(int h=0;h<int(nJetsCuts.size());h++)
+			{
+			if( nJetsCuts[h] == 1 ) continue; //cut already booked
+			cutsContainer.push_back( CUTS(0,8000,0,8000,-10,10,nJetsCuts[h]) );
+			cutsContainer.push_back( CUTS(0,8000,0,8000,SigPhId.first,SigPhId.second,nJetsCuts[h]) );
+			cutsContainer.push_back( CUTS(0,8000,0,8000,BkgPhId.first,BkgPhId.second,nJetsCuts[h]) );
+			}
+	
+	
+	binsContainer["gammaPt"] = BINS(2000.,0,2000);
 	binsContainer["gammaEta"] = BINS(100,0,5.);
 	binsContainer["sieie"] = BINS(1000,0,.1);
 	binsContainer["phid"] = BINS(100,-1.,1.);

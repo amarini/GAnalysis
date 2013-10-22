@@ -4,6 +4,12 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include "TDirectory.h"
+#include "Selection.cc"
+   //Selection cuts	
+	Selection Sel("selection");
+	Selection Sel2("selectionAllGamma");
+
+
 
 void Analyzer::MakeTree(string name){
 	treeContainer[name]=new TTree(name.c_str(),name.c_str());
@@ -47,6 +53,7 @@ void Analyzer::Loop()
      // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
+	Sel.FillAndInit("All"); //Selection
 	//error
      // if (ientry < 0) break;
 
@@ -108,6 +115,7 @@ void Analyzer::Loop()
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
+		Sel2.FillAndInit("All"); //Selection
 		//TODO Gamma ID with CiC
 		//if( photonid_hadronicOverEm2012->at(iGamma) >0.1 ) continue;	
 			//set variables for tmva
@@ -128,6 +136,7 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
+		Sel2.FillAndInit("Eta"); //Selection
 		//loose iso req
 	//compute RhoCorrections
 	if(useEffArea){
@@ -145,13 +154,17 @@ void Analyzer::Loop()
 		
 		}
 	} //RhoCorr
-		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
 
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 		if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
+		Sel2.FillAndInit("HoE"); //Selection
 		if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
+		Sel2.FillAndInit("IsoCharged"); //Selection
 		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
+		Sel2.FillAndInit("IsoNeutral"); //Selection
 		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
+		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
+		Sel2.FillAndInit("IsoPhoton"); //Selection
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -198,6 +211,8 @@ void Analyzer::Loop()
 		}//DATA
 		else
 		ScaleTrigger=1; //MC
+
+		Sel2.FillAndInit("Trigger"); //Selection
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
 
@@ -206,7 +221,9 @@ void Analyzer::Loop()
 		break;
 		}
 
+
 	if(GammaIdx<0) continue; //--no gamma candidate found
+	Sel.FillAndInit("GammaSelection"); //Selection
 
 	TLorentzVector gamma;
 	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
@@ -242,6 +259,7 @@ void Analyzer::Loop()
 	mynJets=JetIdx.size();
 	//my selection 
 	if(mynJets<1) continue; 
+	Sel.FillAndInit("OneJet"); //Selection
 
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
@@ -348,6 +366,8 @@ void Analyzer::Loop()
 		it->second->SetDirectory(gDirectory);
 		it->second->Write("",TObject::kOverwrite);
 		}
+	Sel.Write(f);
+	Sel2.Write(f);
 //	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
 //		{
 //		printf("going to Write %s\n",it->first.c_str());

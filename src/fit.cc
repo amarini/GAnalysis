@@ -7,6 +7,7 @@
 #include "TText.h"
 #include "TROOT.h"
 #include "TDirectory.h"
+#include "TCanvas.h"
 
 //----------ROOFIT-----------
 //Roofit
@@ -143,10 +144,33 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
 	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
 	
-	TText* txt = new TText(.2,.85,Form("Fraction=%.1f\%",f.getVal()*100)) ;
-  	txt->SetTextSize(0.04) ;
+	TCanvas *c=new TCanvas((string(name)+"_canvas").c_str(),"Canvas");
+	c->cd();
+	c->Draw();
+	frame->Draw();
+	
+	TLatex* txt = new TLatex();//Form("Fraction=%.1f\%",f.getVal()*100) ;
+  	txt->SetTextSize(0.03) ;
   	txt->SetTextColor(kBlack) ;
 	txt->SetNDC();
+	txt->SetTextAlign(22);
+	//txt->AddText(Form("Fraction=%.1f\%",f.getVal()*100) );
+	txt->DrawLatex(.3,.85,Form("Fraction=%.1f%%",float(f.getVal()*100)));
+	//Get VPt Ht e Njets from name	
+		{
+		float ptmin,ptmax,ht,nj;
+		string n(name);
+		int pos=0;
+		//"Bin_PT_111.0_123.1_HT_0.0_nJets_1"
+		while ( (pos=n.find("_")) != string::npos) n[pos]=' ';
+		//"Bin PT 111.0 123.1 HT 0.0 nJets 1"
+		printf("--> STRING=%s\n",n.c_str());
+		sscanf(n.c_str(),"%*s %*s %f %f %*s %f %*s %f",&ptmin,&ptmax,&ht,&nj);
+		txt->SetTextSize(0.02);
+		txt->SetTextFont(42);
+		if( ht>1 ) txt->DrawLatex(.3,.82,Form("%.1f<P_{T}<%.1f H_{T}>%.0f N_{jets}#geq%.0f",ptmin,ptmax,ht,nj));
+		else txt->DrawLatex(.3,.82,Form("%.1f<P_{T}<%.1f N_{jets}#geq%.0f",ptmin,ptmax,nj));
+		}
   	frame->addObject(txt) ;	
 	
 	  // Access basic information
@@ -160,7 +184,20 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		{
 		TFile file(fileName,"UPDATE") ;
 		//r->Write(name);
-		frame->Write( (string(name)+"_plot" ).c_str());
+		c->Write();
+		RooWorkspace *ws=NULL;
+			ws=(RooWorkspace*)file.Get("fit_ws");
+		if(ws==NULL) {ws=new RooWorkspace("fit_ws");}
+		frame->SetName((string(name)+"_plot").c_str());
+		f.SetName((string(name)+"_f").c_str());
+		r->SetName((string(name)+"_r").c_str());
+		//ws->import(*frame);	
+		//ws->import(f,(string(name)+"_f").c_str());	
+		//ws->import(*r,(string(name)+"_r").c_str());	
+		ws->import(RooArgSet(f,PdfModel));
+		ws->Write("fit_ws",TObject::kOverwrite);
+		//f->Write();
+		//frame->Write( (string(name)+"_plot" ).c_str());
 		file.Close();
 		}
 

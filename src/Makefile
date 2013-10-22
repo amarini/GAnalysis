@@ -26,7 +26,7 @@ CXXFLAGS+= -O -fPIC
 ROOTLIBS=`root-config --libs`
 
 .PHONY: all
-all: Analyzer.so fit.so stat.so
+all: Analyzer.so fit.so stat.so Selection.so
 #all: Analyzer.so
 
 Analyzer.d: Analyzer.cc Analyzer.h
@@ -73,30 +73,51 @@ statDict.cc: stat.h statLinkDef.h
 
 statDict.o: statDict.cc
 	$(CXX) -c -o statDict.o statDict.cc $(LDFLAGS) $(CXXFLAGS)
-##Analyzer_cc.so: Analyzer.cc Analyzer.h
-##	root -q -l -b <<EOF \
-##.L Analyzer.cc++ \
-##EOF
-##
-##fit_C.so: fit.C
-##	root -q -l -b <<EOF \
-##.L fit.C++ \
+
+
+###############SELECTION
+Selection.d: Selection.cc Selection.h
+	$(CXX) -o Selection.$(DepSuf) -M Selection.$(SrcSuf) $(CXXFLAGS) $(LDFLAGS)
+
+Selection.o: Selection.cc Selection.h Selection.d
+	$(CXX) -c -o Selection.$(ObjSuf) Selection.$(SrcSuf) $(LDFLAGS) $(CXXFLAGS)
+
+Selection.so: Selection.o SelectionDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Selection.o SelectionDict.o -o Selection.so
+
+SelectionDict.o: SelectionDict.cc
+	$(CXX) -c -o SelectionDict.o SelectionDict.cc $(LDFLAGS) $(CXXFLAGS)
+
+SelectionDict.cc: Selection.cc SelectionLinkDef.h
+	@rootcint -v4 -f SelectionDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src Selection.h SelectionLinkDef.h
 ##EOF
 
 .PHONY: clean	
-clean:
+clean: clean_Selection clean_Analyzer clean_Fit clean_Stat
+
+.PHONY: clean_Selection clean_Analyzer clean_Fit clean_Stat
+clean_Analyzer:
 	[ -f Analyzer.d      ] && rm Analyzer.d || true
 	[ -f Analyzer.o      ] && rm Analyzer.o || true
 	[ -f Analyzer.so     ] && rm Analyzer.so || true
 	[ -f AnalyzerDict.cc ] && rm AnalyzerDict.cc || true
 	[ -f AnalyzerDict.o  ] && rm AnalyzerDict.o || true
+clean_Fit:
 	[ -f fit.so          ] && rm fit.so || true
 	[ -f fit.o           ] && rm fit.o || true
 	[ -f fit.d           ] && rm fit.d || true
 	[ -f fitDict.cc      ] && rm fitDict.cc || true
 	[ -f fitDict.o       ] && rm fitDict.o || true
+clean_Stat:
 	[ -f stat.so          ] && rm stat.so || true
 	[ -f stat.o           ] && rm stat.o || true
 	[ -f stat.d           ] && rm stat.d || true
 	[ -f statDict.cc      ] && rm statDict.cc || true
 	[ -f statDict.o       ] && rm statDict.o || true
+clean_Selection:
+	[ -f Selection.so          ] && rm Selection.so || true
+	[ -f Selection.o           ] && rm Selection.o || true
+	[ -f Selection.d           ] && rm Selection.d || true
+	[ -f SelectionDict.cc      ] && rm SelectionDict.cc || true
+	[ -f SelectionDict.o       ] && rm SelectionDict.o || true
+	
