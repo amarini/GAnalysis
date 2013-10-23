@@ -15,6 +15,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file",default="")
 parser.add_option("-l","--libRooUnfold" ,dest='libRooUnfold',type='string',help="Shared RooUnfoldLibrary",default="/afs/cern.ch/user/a/amarini/work/RooUnfold-1.1.1/libRooUnfold.so")
 
 (options,args)=parser.parse_args()
@@ -28,7 +29,13 @@ config=read_dat(options.inputDat)
 if(DEBUG>0):
 	PrintDat(config)
 
+configMC=read_dat(options.inputDatMC)
+
+if(DEBUG>0):
+	PrintDat(configMC)
+
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
+WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
 
 PtCuts=ReadFromDat(config,"PtCuts",[0,100,200,300],"--> Default PtCuts")
 
@@ -42,6 +49,7 @@ BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 inputFileNameFit=WorkDir + "/fitresults.txt"  
 inputFileNameRoot= WorkDir + ReadFromDat(config,"outputFileName","output","--> Default outputFileName")
+inputFileNameRootMC= WorkDirMC + ReadFromDat(configMC,"outputFileName","output","--> Default outputFileName")
 
 if(DEBUG>0): print "--> Load RooUnfold Library"
 ROOT.gSystem.Load(options.libRooUnfold)
@@ -49,14 +57,56 @@ ROOT.gSystem.Load(options.libRooUnfold)
 if(DEBUG>0): print "--> Opening files"
 fFit= open(inputFileNameFit,"r")
 fRoot= ROOT.TFile.Open(inputFileNameRoot);
+fRootMC= ROOT.TFile.Open(inputFileNameRootMC);
+
+#READ FITTED FRACTION IN A DATABASE
+#Pt 43.5 48.3 Ht 0.0 nJets 1 Fraction= 0.528608322144 ERROR= 0.000138673000038
+Frac={};
+
+for line in fFit:
+	#exclude not well done lines
+	if '#' in line : continue
+	if len(line) <5 : continue
+	l=line.split(' ')
+	for iWord in range(0,len(l)):
+		if "Pt" in l[iWord] :
+			ptmin=float(l[iWord+1])
+			ptmax=float(l[iWord+2])
+		elif "Ht" in l[iWord]:
+			ht=float(l[iWord+1])
+		elif "nJets" in l[iWord]:
+			nj=float(l[iWord+1])
+		elif "Fraction" in l[iWord]:
+			fr=float(l[iWord+1])
+		elif "ERROR" in l[iWord]:
+			er=float(l[iWord+1])
+	try:
+		Frac[ (ptmin,ptmax,ht,nj) ] = fr
+	except NameError: continue;
 
 for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
-		if nJetsCuts[nj] != 1 or HtCuts[h] !=0:continue;
-		for p in range(0,len(PtCuts)):
+		if nJetsCuts[nj] != 1 or HtCuts[h] !=0:continue;	
+		#CREATE TARGET HISTO
+		try:
+			PtCuts2=PtCuts[0:: PtCuts.index(-1) ]
+		except ValueError: PtCuts2=PtCuts
+
+		H=ROOT.TH1F("h","h",len(PtCuts2)-1,PtCuts2)
+
+		for p in range(0,len(PtCuts)-1):
 			## TAKE FITTED FRACTION
+			try:
+				fr=Frac[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+			except IndexError: 
+				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				fr=1	
 			## TAKE HISTO WITH YIELDS
+			h=fRoot.Get("GammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+			rawYield=h.Integral()
 			## FILL HISTO CORRECTED
+			corYield=rawYield*fr
+			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
 		## UNFOLD
 		## SAVE OUTPUT
