@@ -23,6 +23,8 @@ def read_dat(filename):
 		if(len(parts)>2):
 			print "Line: \""+ll+"\" ignored"
 			continue
+		elif(parts[0] == "DoSyst"):
+			Dat["DoSyst"]=int(parts[1])
 		elif(parts[0] == "DATATREE"):
 			Dat["DataTree"]=[]
 			for tree in parts[1].split(" ") :
@@ -110,4 +112,9 @@ def PrintDat(dat):
 	print "--------------------------------------------------------"
 	print 
 	print 
-	
+def ReadFromDat(dat,what,default,Error):
+	try:
+		return dat[what]
+	except KeyError:
+		print Error
+		return default

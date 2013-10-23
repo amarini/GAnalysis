@@ -127,26 +127,11 @@ except KeyError:
 	print "Going To Exit"
 	exit
 
-try: 
-	PtBins=config["PtBins"]
-	print "PtBins="+str(PtBins)
-except KeyError: 
-	print "-> Load std PtBins" 
-	PtBins=[0,100,150,200,250,300,400,500,1000,2000]
+PtBins=ReadFromDat(config,"PtBins",[0,100,150,200,250,300,400,500,1000,2000],"--> Default PtBins")
 
-try: 
-	EtaBins=config["EtaBins"]
-	print "EtaBins="+str(EtaBins)
-except KeyError: 
-	print "-> Load std EtaBins"
-	EtaBins=[0,.5,1,1.5]
+EtaBins=ReadFromDat(config,"EtaBins",[0,.5,1,1.5],"--> Default EtaBins")
 
-try: 
-	WorkDir=config["WorkDir"]
-	print "WorkDir is "+str(WorkDir)
-except KeyError: 
-	print "-> Working Directory set as ./"
-	WorkDir="./"
+WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
 print "Begin LOOP"
 

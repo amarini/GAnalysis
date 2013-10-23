@@ -14,7 +14,6 @@ if(DEBUG>0):print "----- BEGIN -----"
 if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
-parser.add_option("-f","--fileName" ,dest='fileName',type='string',help="FileName result of step0",default="output.root")
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
@@ -28,46 +27,19 @@ config=read_dat(options.inputDat)
 if(DEBUG>0):
 	PrintDat(config)
 
-try:
-	WorkDir=config["WorkDir"]
-except KeyError:
-	WorkDir="./"
+WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
-try:	
-	inputFileName=WorkDir+config["outputFileName"] +".root"
-	if(DEBUG>0):print "OutputFile="+config["outputFileName"]+".root"
-except KeyError:	
-	inputFileName=WorkDir+"output.root"
-	if(DEBUG>0):print "InputFile=output"
-try:
-	PtCuts=config["PtCuts"]
-except KeyError: 
-	PtCuts=[0,100,200,300]
-	if(DEBUG>0):print "Loaded default PtCuts"
+inputFileName=WorkDir+ReadFromDat(config,"outputFileName","output","-->Default Output Name")+".root"
 
-try:
-	HtCuts=config["HtCuts"]
-except KeyError: 
-	print "ERROR HtCuts"
-	HtCuts=[0,100,200,300]
+PtCuts=ReadFromDat(config,"PtCuts",[0,100,200,300],"--> Default PtCuts")
 
-try:
-	nJetsCuts=config["nJetsCuts"]
-except KeyError: 
-	print "ERROR nJetsCuts"
-	nJetsCuts=[1,3]
+HtCuts=ReadFromDat(config,"HtCuts",[0,100,200,300],"--> Default HtCuts")
 
-try:
-	SigPhId=config["SigPhId"]
-except KeyError: 
-	SigPhId=[0,0.11]	
-	if(DEBUG>0):print "Loaded default SigPhId"
+nJetsCuts=ReadFromDat(config,"nJetsCuts",[1,3],"--> Default nJetsCuts")
 
-try:
-	BkgPhId=config["BkgPhId"]
-except KeyError: 
-	BkgPhId=[0,0.11]	
-	if(DEBUG>0):print "Loaded default BkgPhId"
+SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
+
+BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 #OPEN ROOT FILE - INPUT FILE FROM PREVIOUS RUNS
 if(DEBUG>0): print "-> Open File "+ inputFileName

@@ -43,17 +43,9 @@ config=read_dat(options.inputDat)
 if(DEBUG>0):
 	PrintDat(config)
 
-try:
-	WorkDir=config["WorkDir"]
-except KeyError:
-	WorkDir="./"
+WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
-try:	
-	A.outputFileName=WorkDir+config["outputFileName"]
-	if(DEBUG>0):print "OutputFile="+config["outputFileName"]
-except KeyError:	
-	A.outputFileName=WorkDir+"output"
-	if(DEBUG>0):print "OutputFile=output"
+A.outputFileName=WorkDir+ReadFromDat(config,"outputFileName","output","-->Default Output Name")
 
 try: 
 	for tree in config["DataTree"]: A.AddTree(tree) 
@@ -61,31 +53,15 @@ except KeyError: A.AddTree("SinglePhoton_Run2012C-22Jan2013-v1_AOD/*.root")
 
 if(DEBUG>0): print "--> loaded files"
 
-try:
-	PtCuts=config["PtCuts"]
-except KeyError: 
-	print "ERROR PtCuts"
-	PtCuts=[0,100,200,300]
+PtCuts=ReadFromDat(config,"PtCuts",[0,100,200,300],"--> Default PtCuts")
 
-try:
-	HtCuts=config["HtCuts"]
-except KeyError: 
-	print "ERROR HtCuts"
-	HtCuts=[0,100,200,300]
+HtCuts=ReadFromDat(config,"HtCuts",[0,100,200,300],"--> Default HtCuts")
 
-try:
-	nJetsCuts=config["nJetsCuts"]
-except KeyError: 
-	print "ERROR nJetsCuts"
-	nJetsCuts=[1,3]
+nJetsCuts=ReadFromDat(config,"nJetsCuts",[1,3],"--> Default nJetsCuts")
 
-try:
-	SigPhId=config["SigPhId"]
-except KeyError: SigPhId=[0,0.11]	
+SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 
-try:
-	BkgPhId=config["BkgPhId"]
-except KeyError: BkgPhId=[0,0.11]	
+BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 try:
 	for iT in range(0,len(config["TriggerMenus"]) ):
@@ -120,5 +96,20 @@ A.Init()
 
 if(DEBUG>0): print "----- LOOP -----"
 A.Loop()
+
+if config["DoSyst"] :
+	print "--- LOOP ON SYST ---- PU UP--"
+	#A.currentSyst=ROOT.Analyzer.SYST.PUUP  -- dont work
+	A.currentSyst= 3
+	A.Loop()
+	print "--- LOOP ON SYST ---- PU DN --"
+	A.currentSyst=4
+	A.Loop()
+	print "--- LOOP ON SYST ---- JES UP--"
+	A.currentSyst=1
+	A.Loop()
+	print "--- LOOP ON SYST ---- JES DN --"
+	A.currentSyst=2
+	A.Loop()
 
 if(DEBUG>0): print "----- END ------"
