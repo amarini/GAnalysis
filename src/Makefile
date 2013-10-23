@@ -35,8 +35,8 @@ Analyzer.d: Analyzer.cc Analyzer.h
 Analyzer.o: Analyzer.cc Analyzer.h Analyzer.d
 	$(CXX) -c -o Analyzer.$(ObjSuf) Analyzer.$(SrcSuf) $(LDFLAGS) $(CXXFLAGS)
 
-Analyzer.so: Analyzer.o AnalyzerDict.o
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o -o Analyzer.so
+Analyzer.so: Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o -o Analyzer.so
 
 AnalyzerDict.o: AnalyzerDict.cc
 	$(CXX) -c -o AnalyzerDict.o AnalyzerDict.cc $(LDFLAGS) $(CXXFLAGS)

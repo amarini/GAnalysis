@@ -4,13 +4,8 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include "TDirectory.h"
-#include "Selection.cc"
-   //Selection cuts	
-	Selection Sel("selection");
-	Selection Sel2("selectionAllGamma");
 
-
-
+//
 void Analyzer::MakeTree(string name){
 	treeContainer[name]=new TTree(name.c_str(),name.c_str());
 	treeContainer[name]->Branch("photoniso",&TreeVar.photoniso,"photoniso/F");
@@ -19,7 +14,7 @@ void Analyzer::MakeTree(string name){
 
 void Analyzer::Loop()
 {
-	if(debug>0)printf("start loop\n");
+    if(debug>0)printf("start loop\n");
     fChain->SetBranchStatus("*",0);  // disable all branches
     fChain->SetBranchStatus("photon*",1);  // activate branchname
     fChain->SetBranchStatus("jetPt",1);  // activate branchname
@@ -28,19 +23,27 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("jetE",1);  // activate branchname
     fChain->SetBranchStatus("jetBeta",1);  // activate branchname
     fChain->SetBranchStatus("jetRMS",1);  // activate branchname
+    fChain->SetBranchStatus("jetUNC",1);  // activate branchname
     fChain->SetBranchStatus("prescale*",1);  // activate branchname
     fChain->SetBranchStatus("TriMatchF4Path_photon",1);  // activate branchname
     fChain->SetBranchStatus("rho",1);  // activate branchname
     fChain->SetBranchStatus("nVtx",1);  // activate branchname
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
-   if (fChain == 0) return;
+    if (fChain == 0) return;
 	fChain->GetEntry(0);
    if(!isRealData) {
+	if(debug>0)printf("Running on mc: activating branches\n");
     	fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
 	fChain->SetBranchStatus("photon*GEN",1);
 	fChain->SetBranchStatus("jet*GEN",1);
 	}
+
+   //exit if syst does not make sense for data or mc	
+   if(currentSyst == SYST::PUUP && isRealData) return;	
+   if(currentSyst == SYST::PUDN && isRealData) return;	
+   if(currentSyst == SYST::JERUP && isRealData) return;	
+   if(currentSyst == SYST::JERDN && isRealData) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -53,7 +56,9 @@ void Analyzer::Loop()
      // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
-	Sel.FillAndInit("All"); //Selection
+	Sel->FillAndInit("All"); //Selection
+	//SYST SMEARINGS
+	Smear();
 	//error
      // if (ientry < 0) break;
 
@@ -100,7 +105,7 @@ void Analyzer::Loop()
 			//Going to fill
 			//-----
 			{
-				string name=string("gammaPtGEN_")+cutsContainer[iCut].name();
+				string name=string("gammaPtGEN_")+cutsContainer[iCut].name()+SystName();
 					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histoContainer[name]->Sumw2();}
 				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
 			}
@@ -115,7 +120,7 @@ void Analyzer::Loop()
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
-		Sel2.FillAndInit("All"); //Selection
+		Sel2->FillAndInit("All"); //Selection
 		//TODO Gamma ID with CiC
 		//if( photonid_hadronicOverEm2012->at(iGamma) >0.1 ) continue;	
 			//set variables for tmva
@@ -136,7 +141,7 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
-		Sel2.FillAndInit("Eta"); //Selection
+		Sel2->FillAndInit("Eta"); //Selection
 		//loose iso req
 	//compute RhoCorrections
 	if(useEffArea){
@@ -157,14 +162,14 @@ void Analyzer::Loop()
 
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 		if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
-		Sel2.FillAndInit("HoE"); //Selection
+		Sel2->FillAndInit("HoE"); //Selection
 		if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		Sel2.FillAndInit("IsoCharged"); //Selection
+		Sel2->FillAndInit("IsoCharged"); //Selection
 		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		Sel2.FillAndInit("IsoNeutral"); //Selection
+		Sel2->FillAndInit("IsoNeutral"); //Selection
 		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
 		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
-		Sel2.FillAndInit("IsoPhoton"); //Selection
+		Sel2->FillAndInit("IsoPhoton"); //Selection
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -212,7 +217,7 @@ void Analyzer::Loop()
 		else
 		ScaleTrigger=1; //MC
 
-		Sel2.FillAndInit("Trigger"); //Selection
+		Sel2->FillAndInit("Trigger"); //Selection
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
 
@@ -223,7 +228,7 @@ void Analyzer::Loop()
 
 
 	if(GammaIdx<0) continue; //--no gamma candidate found
-	Sel.FillAndInit("GammaSelection"); //Selection
+	Sel->FillAndInit("GammaSelection"); //Selection
 
 	TLorentzVector gamma;
 	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
@@ -232,12 +237,7 @@ void Analyzer::Loop()
 	JetIdx.clear();
 	Int_t mynJets=jetPt->size();
 	Float_t Ht=0;
-	//---------Smearings
-	//	for(Int_t iJet=0;iJet<nJets;++iJet)
-	//		{
-	//		//syst smearing JES
-	//		//(*jetPt)[iJet]*=
-	//		}
+
 	if(debug>1)printf("-> Starting Jet Loop\n");
 	for(Int_t iJet=0;iJet<mynJets;++iJet)
 		{
@@ -259,7 +259,7 @@ void Analyzer::Loop()
 	mynJets=JetIdx.size();
 	//my selection 
 	if(mynJets<1) continue; 
-	Sel.FillAndInit("OneJet"); //Selection
+	Sel->FillAndInit("OneJet"); //Selection
 
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
@@ -282,7 +282,7 @@ void Analyzer::Loop()
 		//Going to fill
 		//-----
 		{
-		string name=string("gammaPt_")+cutsContainer[iCut].name();
+		string name=string("gammaPt_")+cutsContainer[iCut].name()+SystName();
 			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); histoContainer[name]->Sumw2();}
 		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);
 		}
@@ -290,35 +290,50 @@ void Analyzer::Loop()
 		if( !isRealData ){  //only for MC
 			TLorentzVector gGEN;
 			gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
+				//bins for matrix
+				Float_t ptbinsForMatrix[1023];int nbins=0;
+				ptbinsForMatrix[nbins]=0;
+				for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
+					{nbins++;ptbinsForMatrix[nbins]=PtCuts[iPt];}
+				//
+		
 			if(
 			GammaIdxGEN >=0 && // Gamma is ok
 			photonPtGEN > cutsContainer[iCut].VPt.first && 
 			photonPtGEN < cutsContainer[iCut].VPt.second && 
 			HtGEN > cutsContainer[iCut].Ht.first && 
 			HtGEN < cutsContainer[iCut].Ht.second && 
-			mynJetsGEN >= cutsContainer[iCut].nJets 
+			mynJetsGEN >= cutsContainer[iCut].nJets &&
+			cutsContainer[iCut].VPt.first == 0 //only for the inclusive cuts
 			//gamma.DeltaR(gGEN) <0.3	 //--------------<-------
 			){
-			string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name();
-			if(histo2Container[name]==NULL){histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histo2Container[name]->Sumw2();}
+			string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name()+SystName();
+			if(histo2Container[name]==NULL){
+				//histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+				histo2Container[name]=new TH2F(name.c_str(),name.c_str(),nbins,ptbinsForMatrix,nbins,ptbinsForMatrix);
+				histo2Container[name]->Sumw2();
+				}
 			histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
 			}
-		//if( gamma.DeltaR(gGEN) <0.3 )  //--------------<-------
-			{
-			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name();
-			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); histoContainer[name]->Sumw2();}
+			if( cutsContainer[iCut].VPt.first==0){
+			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
+			if(histoContainer[name]==NULL) {
+					//histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+					histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbins,ptbinsForMatrix);
+					histoContainer[name]->Sumw2();
+					}
 			histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);	
 			}
 		}//end of only MC
 		//-----
 		{
-		string name=string("gammaEta_")+cutsContainer[iCut].name();
+		string name=string("gammaEta_")+cutsContainer[iCut].name()+SystName();
 			if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax); histoContainer[name]->Sumw2();}
 		histoContainer[name]->Fill(fabs(gamma.Eta()),ScaleTrigger*PUWeight);
 		}
 		//----- NOT WEIGHTED -> LOW STAT FIT
 		{
-		string name=string("sieie_")+cutsContainer[iCut].name();
+		string name=string("sieie_")+cutsContainer[iCut].name()+SystName();
 		if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["sieie"].nBins,binsContainer["sieie"].xMin,binsContainer["sieie"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],ScaleTrigger);
 		histoContainer[name]->Fill(  (*photonid_sieie)[GammaIdx],1.0);
@@ -326,19 +341,19 @@ void Analyzer::Loop()
 		}
 		//-----
 		{
-		string name=string("photoniso_")+cutsContainer[iCut].name();
+		string name=string("photoniso_")+cutsContainer[iCut].name()+SystName();
 		if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
 		//FILL Tree
-		//name="tree_"+cutsContainer[iCut].name();
+		//name="tree_"+cutsContainer[iCut].name()+SystName();
 		//if(treeContainer[name]==NULL) MakeTree(name); 
 		//TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
 		//treeContainer[name]->Fill( );
 		}
 		//-----
 		{
-		string name=string("photonisoRC_")+cutsContainer[iCut].name();
+		string name=string("photonisoRC_")+cutsContainer[iCut].name()+SystName();
 		if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
 		//histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,ScaleTrigger);
 		histoContainer[name]->Fill( (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,1.0);
@@ -350,8 +365,11 @@ void Analyzer::Loop()
    } //Loop over entries
 	//WRITE
 	//open output
+	if( outputFileName.find(".root") == string::npos ){
 	if(nJobs>0)outputFileName+=Form("_%d_%d",jobId,nJobs);
 	outputFileName+=".root";
+	}
+
 	TFile *f=TFile::Open(outputFileName.c_str(),"RECREATE");
 	f->cd();
 	for(map<string,TH1F*>::iterator it=histoContainer.begin();it!=histoContainer.end();it++)
@@ -366,13 +384,91 @@ void Analyzer::Loop()
 		it->second->SetDirectory(gDirectory);
 		it->second->Write("",TObject::kOverwrite);
 		}
-	Sel.Write(f);
-	Sel2.Write(f);
-//	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
-//		{
-//		printf("going to Write %s\n",it->first.c_str());
-//		it->second->SetDirectory(gDirectory);
-//		it->second->Write("",TObject::kOverwrite);
-//		}
+	//to be protected against syst
+	if( currentSyst==SYST::NONE){
+		Sel->Write(f);
+		Sel2->Write(f);
+	};
+	Sel->Clear();
+	Sel2->Clear();
+	/*
+	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
+		{
+		printf("going to Write %s\n",it->first.c_str());
+		it->second->SetDirectory(gDirectory);
+		it->second->Write("",TObject::kOverwrite);
+		}
+	*/
 return;
 }//Analyzer::Loop
+
+void Analyzer::Smear()
+{
+	float newPt,newE;
+	switch (currentSyst)
+	{
+	case SYST::NONE : return;
+	case SYST::JESUP : 
+		for(int i=0;i<int(jetPt->size());i++){
+			if(i>=int(jetE->size())) printf("ERROR JETE SIZE < JETPT SIZE\n");
+			if(i>=int(jetUNC->size())) printf("ERROR JETUNC SIZE < JETPT SIZE\n");
+			newPt= (*jetPt)[i]*(1+(*jetUNC)[i]);
+			newE= (*jetE)[i]*(1+(*jetUNC)[i]);
+			if(newPt<5){ (*jetPt)[i]=5;(*jetE)[i]=5;}
+			else{
+			(*jetPt)[i]*=newPt;
+			(*jetE)[i]*=newE;
+			}
+		}
+		break;
+	case SYST::JESDN:
+		for(int i=0;i<int(jetPt->size());i++){
+			newPt= (*jetPt)[i]*(1-(*jetUNC)[i]);
+			newE= (*jetE)[i]*(1-(*jetUNC)[i]);
+			if(newPt<5){ (*jetPt)[i]=5;(*jetE)[i]=5;}
+			else{
+			(*jetPt)[i]*=newPt;
+			(*jetE)[i]*=newE;
+			}
+		}
+		break;
+	case SYST::PUUP: 
+		PUWeight=PUWeightSysUp;
+		//TODO -- PUHLT
+		break;
+	case SYST::PUDN: 
+		PUWeight=PUWeightSysDown;
+		break;
+	case SYST::JERUP: 
+		break;
+	case SYST::JERDN: 
+		break;
+	default: return;
+	}
+};
+
+string Analyzer::SystName(){
+	switch (currentSyst)
+	{
+	case SYST::NONE : return string("");
+	case SYST::JESUP : 
+		return string("_JESUP");
+		break;
+	case SYST::JESDN:
+		return string("_JESDN");
+		break;
+	case SYST::PUUP: 
+		return string("_PUUP");
+		break;
+	case SYST::PUDN: 
+		return string("_PUDN");
+		break;
+	case SYST::JERUP: 
+		return string("_JERUP");
+		break;
+	case SYST::JERDN: 
+		return string("_JERDN");
+		break;
+	default: return "";
+	}
+}

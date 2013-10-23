@@ -1,6 +1,7 @@
 
 #include "TH1F.h"
 #include "TFile.h"
+#include "TObject.h"
 
 #include <string>
 #include <vector>
@@ -9,7 +10,7 @@
 #ifndef SEL_H
 #define SEL_H
 
-class Selection {
+class Selection: public TObject {
 public:
 	//selection();
 	Selection(const char dir[]="selection");
@@ -22,11 +23,14 @@ public:
 	int FillAndInit(std::string cutName,float weight=1);
 	int Fill(int iCut,float weight=1);
 	int getStats();
+	int Clear();
 private:
 	std::string dirName;
 	int nCuts;
 	std::map<int,std::pair<std::string,TH1F*> > cuts;
 	std::map<std::string,int> names;
+
+	ClassDef(Selection, 1);
 };
 
 #endif

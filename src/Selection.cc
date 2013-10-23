@@ -55,8 +55,9 @@ int Selection::Read(TFile *f)
 	{
 	TDirectory *d=(TDirectory*)f->Get(dirName.c_str());
 	TList *l=d->GetListOfKeys();	
-	nCuts=0;
-	cuts.clear();names.clear();
+	Clear();
+	//nCuts=0;
+	//cuts.clear();names.clear();
 	for(int i=0;i< l->GetEntries();i++)
 		{
 		if(  l->At(i) == NULL ) continue;
@@ -110,5 +111,16 @@ int Selection::FillAndInit(std::string cutName,float weight)
 	{
 	if( names.count(cutName) ==0 ) initCut(cutName);
 	Fill(cutName,weight);
+	}
+int Selection::Clear()
+	{
+	nCuts=0;
+	for(std::map<int,std::pair<std::string,TH1F*> >::iterator it=cuts.begin();it!=cuts.end();it++)
+		{
+		it->second.second->Delete();
+		it->second.second=NULL;
+		}
+	cuts.clear();
+	names.clear();
 	}
 #endif

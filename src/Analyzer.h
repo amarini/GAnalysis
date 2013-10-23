@@ -37,6 +37,8 @@ public :
    // Declaration of leaf types
    Int_t           isRealData;
    double 	 PUWeight;
+   double 	 PUWeightSysUp;
+   double 	 PUWeightSysDown;
    ULong64_t       eventNum;
    Int_t           runNum;
    Int_t           lumi;
@@ -226,6 +228,8 @@ public :
 
    // List of branches
    TBranch        *b_PUWeight;   //!
+   TBranch        *b_PUWeightSysUp;   //!
+   TBranch        *b_PUWeightSysDown;   //!
    TBranch        *b_isRealData;   //!
    TBranch        *b_eventNum;   //!
    TBranch        *b_runNum;   //!
@@ -443,6 +447,8 @@ public :
 	};
    PHOTONID idvars;
 
+   string SystName();
+
    class CUTS{
 		public:
 		CUTS(float vpt1=0,float vpt2=8000,float ht1=0,float ht2=8000,float phid0=-10,float phid1=10,int nJ=1){Ht=pair<float,float>(ht1,ht2);VPt=pair<float,float>(vpt1,vpt2);phid=pair<float,float>(phid0,phid1); nJets=nJ;};
@@ -450,7 +456,8 @@ public :
 		pair<float,float> VPt;
 		pair<float,float> phid;
 		int nJets;
-		string name() { return string(Form("VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d",VPt.first,VPt.second,Ht.first,Ht.second,phid.first,phid.second,nJets));}
+		string name(string extra="") { 
+			return string(Form("VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d",VPt.first,VPt.second,Ht.first,Ht.second,phid.first,phid.second,nJets))+extra;}
 		};
 
    class BINS{
@@ -501,6 +508,14 @@ public :
    map<string,float> triggerScales;
    void LoadTrigger(string menu,float ptmin,float ptmax, float scale=1.0);
 
+   //Selection
+	Selection *Sel,*Sel2;	
+
+   //SYST SMEARINGS
+   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN};
+   enum SYST currentSyst; 
+   void Smear();
+
    //activate extra cout	
    int debug;
 
@@ -528,6 +543,8 @@ Analyzer::Analyzer() : fChain(0)
    loadMVA=0;
    useEffArea=0;
    effAreaFile="";
+   Sel=new Selection("selection");
+   Sel2=new Selection("selectionAllGamma");
 }
 void Analyzer::InitCuts()
 {
@@ -838,6 +855,8 @@ void Analyzer::Init()
 if(debug>1) printf("-> SetBranchAddress A\n");
    fChain->SetBranchAddress("isRealData", &isRealData, &b_isRealData);
    fChain->SetBranchAddress("PUWeight", &PUWeight, &b_PUWeight);
+   fChain->SetBranchAddress("PUWeightSysUp", &PUWeightSysUp, &b_PUWeightSysUp);
+   fChain->SetBranchAddress("PUWeightSysDown", &PUWeightSysDown, &b_PUWeightSysDown);
 if(debug>1) printf("-> SetBranchAddress A1\n");
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
