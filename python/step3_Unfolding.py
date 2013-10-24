@@ -27,11 +27,13 @@ if(DEBUG>0): print "--> load dat file: "+options.inputDat;
 config=read_dat(options.inputDat)
 
 if(DEBUG>0):
+	print "--------- DATA CONFIG -----------"
 	PrintDat(config)
 
 configMC=read_dat(options.inputDatMC)
 
 if(DEBUG>0):
+	print "--------- MC CONFIG -----------"
 	PrintDat(configMC)
 
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
@@ -59,10 +61,10 @@ fFit= open(inputFileNameFit,"r")
 fRoot= ROOT.TFile.Open(inputFileNameRoot);
 fRootMC= ROOT.TFile.Open(inputFileNameRootMC);
 
+if DEBUG>0:print "--> Read Fraction"
 #READ FITTED FRACTION IN A DATABASE
 #Pt 43.5 48.3 Ht 0.0 nJets 1 Fraction= 0.528608322144 ERROR= 0.000138673000038
 Frac={};
-
 for line in fFit:
 	#exclude not well done lines
 	if '#' in line : continue
@@ -84,6 +86,24 @@ for line in fFit:
 		Frac[ (ptmin,ptmax,ht,nj) ] = fr
 	except NameError: continue;
 
+def Unfold(Response,H,par):
+	U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
+	U.SetNToys(1000)
+	u=U.Hreco(ROOT.RooUnfold.kCovToy)
+	c=U.Ereco(ROOT.RooUnfold.kCovToy)
+	return (u,c)
+
+
+if DEBUG>0:print "--> Loop"
+#Float_t * is needed for TH1F
+ROOT.ProcessLine("struct Bins{ \
+		Float_t PtBins[1023];\
+		};")
+
+from ROOT import Bins
+PtBins=ROOT.Bins()
+
+#LOOP OVER THE BINs
 for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
 		if nJetsCuts[nj] != 1 or HtCuts[h] !=0:continue;	
@@ -91,8 +111,11 @@ for h in range(0,len(HtCuts)):
 		try:
 			PtCuts2=PtCuts[0:: PtCuts.index(-1) ]
 		except ValueError: PtCuts2=PtCuts
-
-		H=ROOT.TH1F("h","h",len(PtCuts2)-1,PtCuts2)
+		for c in range(0,len(PtCuts2)):
+			PtBins.PtBins[c]=PtCuts2[c]
+		Bin="Ht_"+str(HtCuts[ht])+"_nJets_"+str(nJetsCuts[nj])
+		#Will it work?
+		H=ROOT.TH1F("u_"+Bin,"Unfold_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts)-1):
 			## TAKE FITTED FRACTION
@@ -108,8 +131,11 @@ for h in range(0,len(HtCuts)):
 			corYield=rawYield*fr
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
+		M=fRootMC.Get("GammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		G=fRootMC.Get("GammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		R=fRootMC.Get("GammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		Response= ROOT.RooUnfold.RooUnfoldResponse()
 		## UNFOLD
+		(u,c)=Unold(Response,H,10);
 		## SAVE OUTPUT
-
-#ToFitTemplate.append(file.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1] ,nJets ) ) )
 

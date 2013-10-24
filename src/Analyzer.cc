@@ -291,8 +291,8 @@ void Analyzer::Loop()
 			TLorentzVector gGEN;
 			gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
 				//bins for matrix
-				Float_t ptbinsForMatrix[1023];int nbins=0;
-				ptbinsForMatrix[nbins]=0;
+				Float_t ptbinsForMatrix[1023];int nbins=-1;
+				//ptbinsForMatrix[nbins]=0;
 				for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
 					{nbins++;ptbinsForMatrix[nbins]=PtCuts[iPt];}
 				//
