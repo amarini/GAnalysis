@@ -100,16 +100,16 @@ A.Loop()
 if ReadFromDat(config,"DoSyst",0,"--> Default No Syst") :
 	print "--- LOOP ON SYST ---- PU UP--"
 	#A.currentSyst=ROOT.Analyzer.SYST.PUUP  -- dont work
-	A.currentSyst= 3
+	A.currentSyst= ROOT.Analyzer.PUUP
 	A.Loop()
 	print "--- LOOP ON SYST ---- PU DN --"
-	A.currentSyst=4
+	A.currentSyst= ROOT.Analyzer.PUDN
 	A.Loop()
 	print "--- LOOP ON SYST ---- JES UP--"
-	A.currentSyst=1
+	A.currentSyst= ROOT.Analyzer.JESUP
 	A.Loop()
 	print "--- LOOP ON SYST ---- JES DN --"
-	A.currentSyst=2
+	A.currentSyst= ROOT.Analyzer.JESDN
 	A.Loop()
 
 if(DEBUG>0): print "----- END ------"

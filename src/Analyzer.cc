@@ -404,7 +404,11 @@ void Analyzer::Loop()
 	outputFileName+=".root";
 	}
 
-	TFile *f=TFile::Open(outputFileName.c_str(),"RECREATE");
+	TFile *f;
+		if(currentSyst == SYST::NONE )
+		 f = TFile::Open(outputFileName.c_str(),"RECREATE");
+		else 
+		 f = TFile::Open(outputFileName.c_str(),"UPDATE");
 	f->cd();
 	for(map<string,TH1F*>::iterator it=histoContainer.begin();it!=histoContainer.end();it++)
 		{

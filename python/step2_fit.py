@@ -138,8 +138,8 @@ def FIT(file,nJets=1,Ht=0):
 		SigTemplate[Sbin].Scale(NormSig/SigTemplate[Sbin].Integral());
 		BkgTemplate[Bbin].Scale(NormBkg/BkgTemplate[Bbin].Integral());
 		# TODO: the rms function implementation is wrong
-		if PtToFit[p] <300 and nJets==1 and Ht==0:
-			rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
+		#if PtToFit[p] <300 and nJets==1 and Ht==0:
+		#	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
 		o_txt.write(" ERROR= "+str(rms) +"\n");
 
 for h in HtCuts:

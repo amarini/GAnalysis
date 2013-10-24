@@ -89,7 +89,8 @@ for line in fFit:
 	except NameError: continue;
 
 def Unfold(Response,H,par):
-	U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
+	#U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
+	U=ROOT.RooUnfoldSvd(Response,H,par,1000)
 	U.SetNToys(1000)
 	u=U.Hreco(ROOT.RooUnfold.kCovToy)
 	c=U.Ereco(ROOT.RooUnfold.kCovToy)
@@ -146,14 +147,15 @@ for h in range(0,len(HtCuts)):
 		(u,c)=Unfold(Response,H,10);
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
-		c.SetName("cov_"+Bin)
-		c.SetTitle("Covariance "+Bin.replace("_"," ") )
+		hcov= ROOT.TH2D(c) # must be D because cov is a TMatrixD
+		hcov.SetName("cov_"+Bin)
+		hcov.SetTitle("Covariance "+Bin.replace("_"," ") )
 		b=u.Clone("b_"+Bin)
 		for i in range(1,b.GetNbinsX()+1 ):
 			b.SetBinContent(i, b.GetBinContent(i)/b.GetBinWidth(i) )
 		fUnfOut.cd()
 		u.Write()
-		c.Write()
+		hcov.Write()
 		b.Write()
 		## SAVE OUTPUT
 

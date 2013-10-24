@@ -102,7 +102,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		}
 
 	//create real var
-	RooRealVar f("f","fraction",fracEstimator,0.40,1.) ;
+	RooRealVar f("f","fraction",fracEstimator,0.10,1.) ;
 	RooRealVar x("photoniso","photoniso",xMin,xMax) ;
 	//Import Histogram in RooFit
 	RooDataHist HistSig("sig","hist sig",x,sig);
