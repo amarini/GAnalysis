@@ -97,7 +97,7 @@ A.Init()
 if(DEBUG>0): print "----- LOOP -----"
 A.Loop()
 
-if config["DoSyst"] :
+if ReadFromDat(config,"DoSyst",0,"--> Default No Syst") :
 	print "--- LOOP ON SYST ---- PU UP--"
 	#A.currentSyst=ROOT.Analyzer.SYST.PUUP  -- dont work
 	A.currentSyst= 3

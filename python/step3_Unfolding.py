@@ -58,8 +58,10 @@ ROOT.gSystem.Load(options.libRooUnfold)
 
 if(DEBUG>0): print "--> Opening files"
 fFit= open(inputFileNameFit,"r")
-fRoot= ROOT.TFile.Open(inputFileNameRoot);
-fRootMC= ROOT.TFile.Open(inputFileNameRootMC);
+fRoot= ROOT.TFile.Open(inputFileNameRoot+".root");
+fRootMC= ROOT.TFile.Open(inputFileNameRootMC+".root");
+fUnfOut = ROOT.TFile.Open(WorkDir+"UnfoldedDistributions.root","RECREATE")
+fUnfOut.cd()
 
 if DEBUG>0:print "--> Read Fraction"
 #READ FITTED FRACTION IN A DATABASE
@@ -115,7 +117,7 @@ for h in range(0,len(HtCuts)):
 			PtBins.PtBins[c]=PtCuts2[c]
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
-		H=ROOT.TH1F("u_"+Bin,"Unfold_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H=ROOT.TH1F("m_"+Bin,"Measured_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION
@@ -125,17 +127,33 @@ for h in range(0,len(HtCuts)):
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
 				fr=1	
 			## TAKE HISTO WITH YIELDS
-			h=fRoot.Get("GammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
-			rawYield=h.Integral()
+			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj])
+			try:
+				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+				rawYield=hBin.Integral()
+			except AttributeError:
+				print "ERROR HISTO NOT FOUND: Setting yield to 0"
+				rawYield=0
 			## FILL HISTO CORRECTED
 			corYield=rawYield*fr
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
-		M=fRootMC.Get("GammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
-		G=fRootMC.Get("GammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
-		R=fRootMC.Get("GammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
-		Response= ROOT.RooUnfold.RooUnfoldResponse()
+		M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+		Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
 		## UNFOLD
-		(u,c)=Unold(Response,H,10);
+		(u,c)=Unfold(Response,H,10);
+		u.SetName("u_"+Bin)
+		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
+		c.SetName("cov_"+Bin)
+		c.SetTitle("Covariance "+Bin.replace("_"," ") )
+		b=u.Clone("b_"+Bin)
+		for i in range(1,b.GetNbinsX()+1 ):
+			b.SetBinContent(i, b.GetBinContent(i)/b.GetBinWidth(i) )
+		fUnfOut.cd()
+		u.Write()
+		c.Write()
+		b.Write()
 		## SAVE OUTPUT
 

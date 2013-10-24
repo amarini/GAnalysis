@@ -47,6 +47,13 @@ void Analyzer::Loop()
 
    Long64_t nentries = fChain->GetEntries();
 
+   //bins for matrix
+   Float_t ptbinsForMatrix[1023];int nbinsForMatrix=-1;
+   //ptbinsForMatrix[nbinsForMatrix]=0;
+   for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
+   	{nbinsForMatrix++;ptbinsForMatrix[nbinsForMatrix]=PtCuts[iPt];}
+   //
+
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
 	//select jobs
 	//if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue; // slow on eos
@@ -70,7 +77,7 @@ void Analyzer::Loop()
 	if(!isRealData) //only MC
 	{
 		//look for Gamma	
-			if( fabs(photonEtaGEN)<1.4 && photonPtGEN>=0 ) { // photonPtGEN=-999 initialized
+			if( fabs(photonEtaGEN)<1.4 && photonPtGEN>=0  && photonIsoSumPtDR04GEN < 5) { // photonPtGEN=-999 initialized
 			//isolation at GEN LEVEL - tighter than the preselection abs = 10
 			//pass all selections
 			GammaIdxGEN=1;
@@ -106,7 +113,7 @@ void Analyzer::Loop()
 			//-----
 			{
 				string name=string("gammaPtGEN_")+cutsContainer[iCut].name()+SystName();
-					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);histoContainer[name]->Sumw2();}
+					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);histoContainer[name]->Sumw2();}
 				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
 			}
 			//-----
@@ -161,15 +168,38 @@ void Analyzer::Loop()
 	} //RhoCorr
 
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
-		if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
-		Sel2->FillAndInit("HoE"); //Selection
-		if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		Sel2->FillAndInit("IsoCharged"); //Selection
-		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		Sel2->FillAndInit("IsoNeutral"); //Selection
-		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
-		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
-		Sel2->FillAndInit("IsoPhoton"); //Selection
+		//---- OLD
+		//if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
+		//Sel2->FillAndInit("HoE"); //Selection
+		//if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
+		//Sel2->FillAndInit("IsoCharged"); //Selection
+		//if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
+		//Sel2->FillAndInit("IsoNeutral"); //Selection
+		////if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
+		//if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
+		//Sel2->FillAndInit("IsoPhoton"); //Selection
+		
+		//PRESELECTION H-GG
+		if( (*photonid_sieie)[iGamma] >0.014) continue;
+		Sel2->FillAndInit("SieieLoose");
+		if( (*photonid_r9)[iGamma]>0.9){
+			if( (*photonid_hadronicOverEm)[iGamma] >0.082) continue; 
+			Sel2->FillAndInit("HoE"); //Selection
+			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
+			Sel2->FillAndInit("hcalIso"); //Selection
+			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
+			Sel2->FillAndInit("trkIso"); //Selection
+		}
+		else{
+			if( (*photonid_hadronicOverEm)[iGamma] >0.075) continue; 
+			Sel2->FillAndInit("HoE"); //Selection
+			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
+			Sel2->FillAndInit("hcalIso"); //Selection
+			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
+			Sel2->FillAndInit("trkIso"); //Selection
+		}
+		if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
+			Sel2->FillAndInit("chgIso"); //Selection
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -182,7 +212,8 @@ void Analyzer::Loop()
 				triggerMenu=it->first;
 				}
 			}
-		if(isRealData) 
+		//if(isRealData) 
+		if(true)
 		{
 		if(triggerMenu=="") continue; //doesn't have a trigger selection
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
@@ -215,7 +246,7 @@ void Analyzer::Loop()
 		ScaleTrigger=triggerScales[triggerMenu];
 		}//DATA
 		else
-		ScaleTrigger=1; //MC
+		ScaleTrigger=1; //MC --> Check What we can do
 
 		Sel2->FillAndInit("Trigger"); //Selection
 		
@@ -290,12 +321,6 @@ void Analyzer::Loop()
 		if( !isRealData ){  //only for MC
 			TLorentzVector gGEN;
 			gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
-				//bins for matrix
-				Float_t ptbinsForMatrix[1023];int nbins=-1;
-				//ptbinsForMatrix[nbins]=0;
-				for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
-					{nbins++;ptbinsForMatrix[nbins]=PtCuts[iPt];}
-				//
 		
 			if(
 			GammaIdxGEN >=0 && // Gamma is ok
@@ -304,22 +329,31 @@ void Analyzer::Loop()
 			HtGEN > cutsContainer[iCut].Ht.first && 
 			HtGEN < cutsContainer[iCut].Ht.second && 
 			mynJetsGEN >= cutsContainer[iCut].nJets &&
-			cutsContainer[iCut].VPt.first == 0 //only for the inclusive cuts
-			//gamma.DeltaR(gGEN) <0.3	 //--------------<-------
+			gamma.DeltaR(gGEN) <0.3	 //--------------<-------
 			){
+			if(cutsContainer[iCut].VPt.first == 0 ){ //only for the inclusive cuts
 			string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name()+SystName();
 			if(histo2Container[name]==NULL){
 				//histo2Container[name]=new TH2F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
-				histo2Container[name]=new TH2F(name.c_str(),name.c_str(),nbins,ptbinsForMatrix,nbins,ptbinsForMatrix);
+				histo2Container[name]=new TH2F(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix,nbinsForMatrix,ptbinsForMatrix);
 				histo2Container[name]->Sumw2();
 				}
-			histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
+			//histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
+			histo2Container[name]->Fill(gGEN.Pt(),gamma.Pt(),ScaleTrigger*PUWeight);
+			} //only for the inclusive cuts
+			//-----
+			{
+			string name=string("photoniso_MATCHED_")+cutsContainer[iCut].name()+SystName();
+			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
+			histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
 			}
-			if( cutsContainer[iCut].VPt.first==0){
+			//-----
+			}//RECO & GEN
+			if( cutsContainer[iCut].VPt.first==0 && gamma.DeltaR(gGEN) <0.3 ){ // should match with the purity fraction
 			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
 			if(histoContainer[name]==NULL) {
 					//histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
-					histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbins,ptbinsForMatrix);
+					histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);
 					histoContainer[name]->Sumw2();
 					}
 			histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);	

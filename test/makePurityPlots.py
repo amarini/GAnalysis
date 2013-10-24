@@ -91,6 +91,7 @@ C=ROOT.TCanvas("C","C")
 L=ROOT.TLegend(0.65,0.15,.89,.45)
 L.SetFillStyle(0)
 L.SetBorderSize(0)
+C.SetLogx()
 for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
@@ -134,6 +135,8 @@ for h in range(0,len(HtCuts)):
 			print "Draw"
 			H.GetXaxis().SetTitle("p_{T}^{#gamma}");
 			H.GetYaxis().SetTitle("Purity");
+			H.GetXaxis().SetMoreLogLabels()
+			H.GetXaxis().SetNoExponent()
 			H.Draw("P")
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
