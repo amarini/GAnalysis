@@ -17,7 +17,7 @@ mkdir -p $PWD/log
 rm log/log_*.txt || true
 
 for i in `seq 0 100` ; do
-bsub -q 1nd -o $PWD/log/log_$i.txt <<EOF
+bsub -q 8nh -o $PWD/log/log_$i.txt <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`

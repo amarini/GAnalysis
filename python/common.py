@@ -25,6 +25,10 @@ def read_dat(filename):
 			continue
 		elif(parts[0] == "DoSyst"):
 			Dat["DoSyst"]=int(parts[1])
+		elif(parts[0] == "DoShapeCorrFit"):
+			Dat["DoShapeCorrFit"]=int(parts[1])
+		elif(parts[0] == "UsePUWeightHLT"):
+			Dat["UsePUWeightHLT"]=int(parts[1])
 		elif(parts[0] == "DATATREE"):
 			Dat["DataTree"]=[]
 			for tree in parts[1].split(" ") :

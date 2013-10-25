@@ -31,7 +31,7 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
     if (fChain == 0) return;
-	fChain->GetEntry(0);
+//	fChain->GetEntry(0); done in init
    if(!isRealData) {
 	if(debug>0)printf("Running on mc: activating branches\n");
     	fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
@@ -44,6 +44,9 @@ void Analyzer::Loop()
    if(currentSyst == SYST::PUDN && isRealData) return;	
    if(currentSyst == SYST::JERUP && isRealData) return;	
    if(currentSyst == SYST::JERDN && isRealData) return;	
+   if(currentSyst == SYST::UNFOLD ) return;	
+   if(currentSyst == SYST::SIGSHAPE ) return;	
+   if(currentSyst == SYST::BKGSHAPE ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -63,7 +66,7 @@ void Analyzer::Loop()
      // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
-	Sel->FillAndInit("All"); //Selection
+	if(currentSyst==SYST::NONE)Sel->FillAndInit("All"); //Selection
 	//SYST SMEARINGS
 	Smear();
 	//error
@@ -127,7 +130,7 @@ void Analyzer::Loop()
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
-		Sel2->FillAndInit("All"); //Selection
+		if(currentSyst==SYST::NONE)Sel2->FillAndInit("All"); //Selection
 		//TODO Gamma ID with CiC
 		//if( photonid_hadronicOverEm2012->at(iGamma) >0.1 ) continue;	
 			//set variables for tmva
@@ -148,7 +151,7 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
-		Sel2->FillAndInit("Eta"); //Selection
+		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Eta"); //Selection
 		//loose iso req
 	//compute RhoCorrections
 	if(useEffArea){
@@ -170,36 +173,36 @@ void Analyzer::Loop()
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 		//---- OLD
 		//if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
-		//Sel2->FillAndInit("HoE"); //Selection
+		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
 		//if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		//Sel2->FillAndInit("IsoCharged"); //Selection
+		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoCharged"); //Selection
 		//if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		//Sel2->FillAndInit("IsoNeutral"); //Selection
+		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
 		////if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
-		//if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
-		//Sel2->FillAndInit("IsoPhoton"); //Selection
 		
 		//PRESELECTION H-GG
 		if( (*photonid_sieie)[iGamma] >0.014) continue;
-		Sel2->FillAndInit("SieieLoose");
+		if(currentSyst==SYST::NONE)Sel2->FillAndInit("SieieLoose");
 		if( (*photonid_r9)[iGamma]>0.9){
 			if( (*photonid_hadronicOverEm)[iGamma] >0.082) continue; 
-			Sel2->FillAndInit("HoE"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
 			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
-			Sel2->FillAndInit("hcalIso"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
 			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
-			Sel2->FillAndInit("trkIso"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
 		else{
 			if( (*photonid_hadronicOverEm)[iGamma] >0.075) continue; 
-			Sel2->FillAndInit("HoE"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
 			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
-			Sel2->FillAndInit("hcalIso"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
 			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
-			Sel2->FillAndInit("trkIso"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
 		if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
-			Sel2->FillAndInit("chgIso"); //Selection
+			if(currentSyst==SYST::NONE)Sel2->FillAndInit("chgIso"); //Selection
+		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
+		if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -244,11 +247,20 @@ void Analyzer::Loop()
 		//  	0100000000000 	2048 	HLT_Photon135_v*
 		//  	1000000000000 	4096 	HLT_Photon150_v* 
 		ScaleTrigger=triggerScales[triggerMenu];
-		}//DATA
-		else
-		ScaleTrigger=1; //MC --> Check What we can do
-
-		Sel2->FillAndInit("Trigger"); //Selection
+		}//DATA & MC
+		//else
+		//ScaleTrigger=1; //MC --> Check What we can do -- & for GEN?
+		if(usePUWeightHLT)
+			{
+			if(triggerMenu == "HLT_Photon150_v*") {PUWeight=PUWeightHLT_Photon150; PUWeightSysUp=PUWeightHLT_Photon150SysUp;PUWeightSysDown=PUWeightHLT_Photon150SysDown;}
+			if(triggerMenu == "HLT_Photon135_v*") {PUWeight=PUWeightHLT_Photon135; PUWeightSysUp=PUWeightHLT_Photon135SysUp;PUWeightSysDown=PUWeightHLT_Photon135SysDown;}
+			if(triggerMenu == "HLT_Photon90_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon90; PUWeightSysUp=PUWeightHLT_Photon90SysUp;PUWeightSysDown=PUWeightHLT_Photon90SysDown;}
+			if(triggerMenu == "HLT_Photon75_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon75; PUWeightSysUp=PUWeightHLT_Photon75SysUp;PUWeightSysDown=PUWeightHLT_Photon75SysDown;}
+			if(triggerMenu == "HLT_Photon50_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon50; PUWeightSysUp=PUWeightHLT_Photon50SysUp;PUWeightSysDown=PUWeightHLT_Photon50SysDown;}
+			if(triggerMenu == "HLT_Photon30_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon30; PUWeightSysUp=PUWeightHLT_Photon30SysUp;PUWeightSysDown=PUWeightHLT_Photon30SysDown;}
+			}
+	
+		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Trigger"); //Selection
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
 
@@ -259,7 +271,7 @@ void Analyzer::Loop()
 
 
 	if(GammaIdx<0) continue; //--no gamma candidate found
-	Sel->FillAndInit("GammaSelection"); //Selection
+	if(currentSyst==SYST::NONE)Sel->FillAndInit("GammaSelection"); //Selection
 
 	TLorentzVector gamma;
 	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
@@ -290,7 +302,7 @@ void Analyzer::Loop()
 	mynJets=JetIdx.size();
 	//my selection 
 	if(mynJets<1) continue; 
-	Sel->FillAndInit("OneJet"); //Selection
+	if(currentSyst==SYST::NONE)Sel->FillAndInit("OneJet"); //Selection
 
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
@@ -320,7 +332,8 @@ void Analyzer::Loop()
 		//-----
 		if( !isRealData ){  //only for MC
 			TLorentzVector gGEN;
-			gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
+			if(GammaIdxGEN>=0)
+				gGEN.SetPtEtaPhiE(photonPtGEN,photonEtaGEN,photonPhiGEN,photonEGEN);
 		
 			if(
 			GammaIdxGEN >=0 && // Gamma is ok
@@ -349,10 +362,25 @@ void Analyzer::Loop()
 			}
 			//-----
 			}//RECO & GEN
+			
+			if(
+			photonPtGEN > cutsContainer[iCut].VPt.first && 
+			photonPtGEN < cutsContainer[iCut].VPt.second && 
+			HtGEN > cutsContainer[iCut].Ht.first && 
+			HtGEN < cutsContainer[iCut].Ht.second && 
+			mynJetsGEN >= cutsContainer[iCut].nJets &&
+			(GammaIdxGEN <0 || // Gamma is NOT ok
+			gamma.DeltaR(gGEN) >0.3 )	 //--------------<-------
+			){
+			string name=string("photoniso_NOTMATCHED_")+cutsContainer[iCut].name()+SystName();
+			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["photoniso"].nBins,binsContainer["photoniso"].xMin,binsContainer["photoniso"].xMax); histoContainer[name]->Sumw2();}
+			histoContainer[name]->Fill( (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,1.0);
+			} //RECO & GEN (but NOT PHOTON)
+
+			// -- only for mc --
 			if( cutsContainer[iCut].VPt.first==0 && gamma.DeltaR(gGEN) <0.3 ){ // should match with the purity fraction
-			string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
-			if(histoContainer[name]==NULL) {
-					//histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
+				string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
+				if(histoContainer[name]==NULL) {
 					histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);
 					histoContainer[name]->Sumw2();
 					}
@@ -405,10 +433,7 @@ void Analyzer::Loop()
 	}
 
 	TFile *f;
-		if(currentSyst == SYST::NONE )
-		 f = TFile::Open(outputFileName.c_str(),"RECREATE");
-		else 
-		 f = TFile::Open(outputFileName.c_str(),"UPDATE");
+	 f = TFile::Open(outputFileName.c_str(),"RECREATE");
 	f->cd();
 	for(map<string,TH1F*>::iterator it=histoContainer.begin();it!=histoContainer.end();it++)
 		{
@@ -422,13 +447,9 @@ void Analyzer::Loop()
 		it->second->SetDirectory(gDirectory);
 		it->second->Write("",TObject::kOverwrite);
 		}
-	//to be protected against syst
-	if( currentSyst==SYST::NONE){
-		Sel->Write(f);
-		Sel2->Write(f);
-	};
-	Sel->Clear();
-	Sel2->Clear();
+
+	Sel->Write(f);
+	Sel2->Write(f);
 	/*
 	for(map<string,TTree*>::iterator it=treeContainer.begin();it!=treeContainer.end();it++)
 		{
@@ -486,7 +507,11 @@ void Analyzer::Smear()
 };
 
 string Analyzer::SystName(){
-	switch (currentSyst)
+ return SystName(currentSyst)	;
+}
+
+string Analyzer::SystName(enum SYST a){
+	switch (a)
 	{
 	case SYST::NONE : return string("");
 	case SYST::JESUP : 
@@ -506,6 +531,15 @@ string Analyzer::SystName(){
 		break;
 	case SYST::JERDN: 
 		return string("_JERDN");
+		break;
+	case SYST::SIGSHAPE: 
+		return string("_SIGSHAPE");
+		break;
+	case SYST::BKGSHAPE: 
+		return string("_BKGSHAPE");
+		break;
+	case SYST::UNFOLD: 
+		return string("_UNFOLD");
 		break;
 	default: return "";
 	}

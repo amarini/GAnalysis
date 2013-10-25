@@ -96,13 +96,17 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 		else if(sigInt==0) fracEstimator=frac2;
 		else if(bkgInt==0) fracEstimator=frac1;
 		else if(bkgTail==0) fracEstimator=frac1;
+		else if(frac1 <0 || frac1>1)fracEstimator=frac2;
+		else if(frac2 <0 || frac2>1)fracEstimator=frac1;
 
 		if(fracEstimator>1.0 || fracEstimator<0)fracEstimator=0.8;
+
 		cout<<"---> @@ Fraction Estimation"<<frac1<<" "<<frac2<<": "<<fracEstimator <<" @@"<<endl;
 		}
 
 	//create real var
-	RooRealVar f("f","fraction",fracEstimator,0.10,1.) ;
+	RooRealVar f("f","fraction",fracEstimator,0.01,10.) ;
+		//f.setRange(0.10,1.0);
 	RooRealVar x("photoniso","photoniso",xMin,xMax) ;
 	//Import Histogram in RooFit
 	RooDataHist HistSig("sig","hist sig",x,sig);

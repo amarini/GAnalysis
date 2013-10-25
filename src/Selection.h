@@ -24,6 +24,8 @@ public:
 	int Fill(int iCut,float weight=1);
 	int getStats();
 	int Clear();
+	int setDir(std::string dir){dirName=dir;};
+	std::string getDir(){return dirName;};
 private:
 	std::string dirName;
 	int nCuts;

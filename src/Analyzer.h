@@ -39,6 +39,14 @@ public :
    double 	 PUWeight;
    double 	 PUWeightSysUp;
    double 	 PUWeightSysDown;
+	//HLT PUWeight
+   double 	 PUWeightHLT_Photon150,PUWeightHLT_Photon150SysUp,PUWeightHLT_Photon150SysDown;
+   double 	 PUWeightHLT_Photon135,PUWeightHLT_Photon135SysUp,PUWeightHLT_Photon135SysDown;
+   double 	 PUWeightHLT_Photon90,PUWeightHLT_Photon90SysUp,PUWeightHLT_Photon90SysDown;
+   double 	 PUWeightHLT_Photon75,PUWeightHLT_Photon75SysUp,PUWeightHLT_Photon75SysDown;
+   double 	 PUWeightHLT_Photon50,PUWeightHLT_Photon50SysUp,PUWeightHLT_Photon50SysDown;
+   double 	 PUWeightHLT_Photon30,PUWeightHLT_Photon30SysUp,PUWeightHLT_Photon30SysDown;
+
    ULong64_t       eventNum;
    Int_t           runNum;
    Int_t           lumi;
@@ -230,6 +238,14 @@ public :
    TBranch        *b_PUWeight;   //!
    TBranch        *b_PUWeightSysUp;   //!
    TBranch        *b_PUWeightSysDown;   //!
+
+   TBranch 	 *b_PUWeightHLT_Photon150,*b_PUWeightHLT_Photon150SysUp,*b_PUWeightHLT_Photon150SysDown;
+   TBranch 	 *b_PUWeightHLT_Photon135,*b_PUWeightHLT_Photon135SysUp,*b_PUWeightHLT_Photon135SysDown;
+   TBranch 	 *b_PUWeightHLT_Photon90,*b_PUWeightHLT_Photon90SysUp,*b_PUWeightHLT_Photon90SysDown;
+   TBranch 	 *b_PUWeightHLT_Photon75,*b_PUWeightHLT_Photon75SysUp,*b_PUWeightHLT_Photon75SysDown;
+   TBranch 	 *b_PUWeightHLT_Photon50,*b_PUWeightHLT_Photon50SysUp,*b_PUWeightHLT_Photon50SysDown;
+   TBranch 	 *b_PUWeightHLT_Photon30,*b_PUWeightHLT_Photon30SysUp,*b_PUWeightHLT_Photon30SysDown;
+   
    TBranch        *b_isRealData;   //!
    TBranch        *b_eventNum;   //!
    TBranch        *b_runNum;   //!
@@ -447,7 +463,13 @@ public :
 	};
    PHOTONID idvars;
 
+   //SYST SMEARINGS
+   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD};
+   enum SYST currentSyst; 
+   void Smear();
    string SystName();
+   //define a static version
+   static string SystName(enum SYST a);
 
    class CUTS{
 		public:
@@ -510,11 +532,8 @@ public :
 
    //Selection
 	Selection *Sel,*Sel2;	
-
-   //SYST SMEARINGS
-   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN};
-   enum SYST currentSyst; 
-   void Smear();
+   //
+   int usePUWeightHLT;
 
    //activate extra cout	
    int debug;
@@ -543,6 +562,7 @@ Analyzer::Analyzer() : fChain(0)
    loadMVA=0;
    useEffArea=0;
    effAreaFile="";
+   usePUWeightHLT=0;
    Sel=new Selection("selection");
    Sel2=new Selection("selectionAllGamma");
 }
@@ -852,11 +872,36 @@ void Analyzer::Init()
    lepSigmaIEtaIEta = 0;
    lepHadronicOverEm = 0;
    // Set branch addresses and branch pointers
+if(debug>1) printf("-> Check fChain is null\n");
+   if (fChain == 0) return;
 if(debug>1) printf("-> SetBranchAddress A\n");
    fChain->SetBranchAddress("isRealData", &isRealData, &b_isRealData);
+	fChain->GetEntry(0);
+  if(!isRealData){
+   if(debug>1) printf("-> SetBranchAddress for MC only\n");
    fChain->SetBranchAddress("PUWeight", &PUWeight, &b_PUWeight);
    fChain->SetBranchAddress("PUWeightSysUp", &PUWeightSysUp, &b_PUWeightSysUp);
    fChain->SetBranchAddress("PUWeightSysDown", &PUWeightSysDown, &b_PUWeightSysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon150",&PUWeightHLT_Photon150      ,&b_PUWeightHLT_Photon150);
+   fChain->SetBranchAddress("PUWeightHLT_Photon150SysUp",&PUWeightHLT_Photon150SysUp ,&b_PUWeightHLT_Photon150SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon150SysDown",&PUWeightHLT_Photon150SysDown,&b_PUWeightHLT_Photon150SysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon135",&PUWeightHLT_Photon135      ,&b_PUWeightHLT_Photon135);
+   fChain->SetBranchAddress("PUWeightHLT_Photon135SysUp",&PUWeightHLT_Photon135SysUp ,&b_PUWeightHLT_Photon135SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon135SysDown",&PUWeightHLT_Photon135SysDown,&b_PUWeightHLT_Photon135SysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon90",&PUWeightHLT_Photon90       ,&b_PUWeightHLT_Photon90);
+   fChain->SetBranchAddress("PUWeightHLT_Photon90SysUp",&PUWeightHLT_Photon90SysUp  ,&b_PUWeightHLT_Photon90SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon90SysDown",&PUWeightHLT_Photon90SysDown,&b_PUWeightHLT_Photon90SysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon75",&PUWeightHLT_Photon75       ,&b_PUWeightHLT_Photon75);
+   fChain->SetBranchAddress("PUWeightHLT_Photon75SysUp",&PUWeightHLT_Photon75SysUp  ,&b_PUWeightHLT_Photon75SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon75SysDown",&PUWeightHLT_Photon75SysDown,&b_PUWeightHLT_Photon75SysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon50",&PUWeightHLT_Photon50       ,&b_PUWeightHLT_Photon50);
+   fChain->SetBranchAddress("PUWeightHLT_Photon50SysUp",&PUWeightHLT_Photon50SysUp  ,&b_PUWeightHLT_Photon50SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon50SysDown",&PUWeightHLT_Photon50SysDown,&b_PUWeightHLT_Photon50SysDown);
+   fChain->SetBranchAddress("PUWeightHLT_Photon30",&PUWeightHLT_Photon30       ,&b_PUWeightHLT_Photon30);
+   fChain->SetBranchAddress("PUWeightHLT_Photon30SysUp",&PUWeightHLT_Photon30SysUp  ,&b_PUWeightHLT_Photon30SysUp);
+   fChain->SetBranchAddress("PUWeightHLT_Photon30SysDown",&PUWeightHLT_Photon30SysDown,&b_PUWeightHLT_Photon30SysDown);
+   }
+	 
 if(debug>1) printf("-> SetBranchAddress A1\n");
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
    fChain->SetBranchAddress("runNum", &runNum, &b_runNum);
