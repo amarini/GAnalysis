@@ -137,6 +137,7 @@ for h in range(0,len(HtCuts)):
 			H.GetYaxis().SetTitle("Purity");
 			H.GetXaxis().SetMoreLogLabels()
 			H.GetXaxis().SetNoExponent()
+			H.GetYaxis().SetRangeUser(0,1);
 			H.Draw("P")
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
@@ -146,6 +147,5 @@ for h in range(0,len(HtCuts)):
 
 		AllH[ (h,nj) ] = H
 L.Draw()
-wait = raw_input("PRESS ENTER TO CONTINUE.")
-C.SaveAs(WorkDir+"/fraction.pdf")		
-C.SaveAs(WorkDir+"/fraction.root")		
+C.SaveAs(WorkDir+"plots/fraction.pdf")		
+C.SaveAs(WorkDir+"plots/fraction.root")		

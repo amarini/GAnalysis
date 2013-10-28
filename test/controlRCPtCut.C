@@ -38,9 +38,9 @@ int controlRCPtCut(){
 
  cout<<"-->Load Trees"<<endl;
  TChain *t=new TChain("accepted/events");
- //t->Add("root://eoscms///store/user/amarini/zjets_V00-12_dontuse/GJets*.root");
- t->Add("root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root");
- t->Add("root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root");
+t->Add("root://eoscms///store/user/amarini/zjets_V00-12/GJets*.root");
+// t->Add("root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root");
+// t->Add("root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root");
  
  cout<<"-->Book Histo"<<endl;
  TH1F* h_jetPt=new TH1F("H_JetPt","Jet P_{T}",100,0,100);
@@ -112,7 +112,7 @@ try
 		{	
  		if(i<100)cout<<"---> iEntry:"<<i<<" phEta "<<long(photonEta)<<" phPt "<<long(photonPt)<<" phPhi "<<long(photonPhi)<<" phE " <<long(photonE)<<endl;
  		if(i<100)cout<<"---> iEntry:"<<i<<" photonIsoFPRPhoton "<<long(photonIsoFPRPhoton)<<" photonid_hadronicOverEm "<<long(photonid_hadronicOverEm)<<" photonPfIsoChargedHad "<<long(photonPfIsoChargedHad)<<" photonPfIsoNeutralHad " <<long(photonPfIsoNeutralHad)<<endl;
-		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
+		if(fabs( (*photonEta)[iGamma] )>=1. ) continue;
 		if( (*photonIsoFPRPhoton)[iGamma]>10) continue;  // loose 
                 if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue;
                 if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;

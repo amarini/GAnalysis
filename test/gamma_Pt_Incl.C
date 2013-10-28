@@ -1,5 +1,5 @@
 
-int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root",const char*histoName="gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1")
+int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root",const char*histoName="gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1",const char *outName=NULL)
 {
    float xFac=2.3,yFac=2.2 ;
    int txtSize=15;
@@ -145,4 +145,7 @@ int gamma_Pt_Incl(const char*fileName="../../V00-12/output.root",const char*hist
    Canvas_1->cd();
    Canvas_1->SetSelected(Canvas_1);
    Canvas_1->ToggleToolBar();
+	if(outName){
+	Canvas_1->SaveAs(outName);
+	}
 }

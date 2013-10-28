@@ -56,6 +56,8 @@ void Analyzer::Loop()
    for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
    	{nbinsForMatrix++;ptbinsForMatrix[nbinsForMatrix]=PtCuts[iPt];}
    //
+   const double EtaMax=1.4;
+	printf("ETA =1.0\n");
 
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
 	//select jobs
@@ -69,7 +71,6 @@ void Analyzer::Loop()
 	if(currentSyst==SYST::NONE)Sel->FillAndInit("All"); //Selection
 	//SYST SMEARINGS
 	Smear();
-	//error
      // if (ientry < 0) break;
 
 	int GammaIdxGEN=-1;
@@ -80,7 +81,7 @@ void Analyzer::Loop()
 	if(!isRealData) //only MC
 	{
 		//look for Gamma	
-			if( fabs(photonEtaGEN)<1.4 && photonPtGEN>=0  && photonIsoSumPtDR04GEN < 5) { // photonPtGEN=-999 initialized
+			if( fabs(photonEtaGEN)<EtaMax && photonPtGEN>=0  && photonIsoSumPtDR04GEN < 5) { // photonPtGEN=-999 initialized
 			//isolation at GEN LEVEL - tighter than the preselection abs = 10
 			//pass all selections
 			GammaIdxGEN=1;
@@ -119,6 +120,11 @@ void Analyzer::Loop()
 					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);histoContainer[name]->Sumw2();}
 				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
 			}
+			{
+				string name=string("gammaEtaGEN_")+cutsContainer[iCut].name()+SystName();
+					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1F(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);histoContainer[name]->Sumw2();}
+				histoContainer[name]->Fill(gGEN.Eta(),PUWeight);
+			}
 			//-----
 			} // iCut
 	} //isMC
@@ -150,7 +156,7 @@ void Analyzer::Loop()
 			GammaMVA = tmvaReaderID_Single_Barrel->EvaluateMVA("AdaBoost");
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
-		if(fabs( (*photonEta)[iGamma] )>=1.4 ) continue;
+		if(fabs( (*photonEta)[iGamma] )>=EtaMax ) continue;
 		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Eta"); //Selection
 		//loose iso req
 	//compute RhoCorrections
@@ -215,8 +221,8 @@ void Analyzer::Loop()
 				triggerMenu=it->first;
 				}
 			}
-		//if(isRealData) 
-		if(true)
+		if(isRealData) 
+		//if(true)
 		{
 		if(triggerMenu=="") continue; //doesn't have a trigger selection
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
@@ -247,10 +253,11 @@ void Analyzer::Loop()
 		//  	0100000000000 	2048 	HLT_Photon135_v*
 		//  	1000000000000 	4096 	HLT_Photon150_v* 
 		ScaleTrigger=triggerScales[triggerMenu];
-		}//DATA & MC
-		//else
-		//ScaleTrigger=1; //MC --> Check What we can do -- & for GEN?
-		if(usePUWeightHLT)
+		}//DATA
+		else
+		ScaleTrigger=1; //MC --> Check What we can do -- & for GEN?
+
+		if(usePUWeightHLT && !isRealData)
 			{
 			if(triggerMenu == "HLT_Photon150_v*") {PUWeight=PUWeightHLT_Photon150; PUWeightSysUp=PUWeightHLT_Photon150SysUp;PUWeightSysDown=PUWeightHLT_Photon150SysDown;}
 			if(triggerMenu == "HLT_Photon135_v*") {PUWeight=PUWeightHLT_Photon135; PUWeightSysUp=PUWeightHLT_Photon135SysUp;PUWeightSysDown=PUWeightHLT_Photon135SysDown;}

@@ -169,9 +169,13 @@ def Loop(systName=""):
 		M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
 		G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
 		R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-		Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
+		try:
+			Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
+		except TypeError:
+			print "ERROR Unable to construct Matrix"
+			continue;
 		## UNFOLD
-		(u,c)=Unfold(Response,H,10);
+		(u,c)=Unfold(Response,H,35);
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
 		hcov= ROOT.TH2D(c) # must be D because cov is a TMatrixD

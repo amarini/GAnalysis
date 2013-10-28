@@ -3,5 +3,5 @@ include=config.dat
 # CHANGE THIS TWO LINES FROM DATA 
 #DATATREE=root://eoscms///store/user/sandro/GammaJets/2013_09_13_reprocessed/samples/QCD*.root
 #DATATREE=root://eoscms///store/user/webermat/zgfiles_V00-12/GJet*.root
-DATATREE=root://eoscms///store/user/amarini/zjets_V00-12_dontuse/GJet*.root
+DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/GJet*.root
 WorkDir=/afs/cern.ch/user/a/amarini/work/V00-12_MC/
