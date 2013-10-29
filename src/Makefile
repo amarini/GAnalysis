@@ -44,8 +44,8 @@ AnalyzerDict.o: AnalyzerDict.cc
 AnalyzerDict.cc: Analyzer.cc AnalyzerLinkDef.h
 	@rootcint -v4 -f AnalyzerDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src Analyzer.h AnalyzerLinkDef.h
 
-fit.so: fit.o fitDict.o
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  fit.o fitDict.o -o fit.so
+fit.so: fit.o fitDict.o stat.o statDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  fit.o fitDict.o stat.o statDict.o -o fit.so
 
 fit.o: fit.cc fit.d fit.h
 	$(CXX) -c -o fit.o fit.cc $(LDFLAGS) $(CXXFLAGS) 

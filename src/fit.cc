@@ -34,14 +34,16 @@
 #include "RooLandau.h"
 
 #include "fit.h"
+#include "stat.h"
 
 
 using namespace std;
 using namespace RooFit;
 
 
-float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char *name)
+float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char *name,vector<float> *pars)
 {
+	printf("DEBUG: NAME=%s FILE=%s\n",name,fileName);
 	bool binned=false;
 	if(o->InheritsFrom("TH1") ) binned=true;
 	else if (o->InheritsFrom("TTree")) binned=false;
@@ -75,6 +77,12 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	bkgPar[1]=bkgR->Parameter(1);
 	bkgPar[2]=bkgR->Parameter(2);
 	cout<<"--> LANDAU PARS "<<bkgPar[0]<<" "<<bkgPar[1]<<" " <<bkgPar[2]<<endl;
+	if(pars!=NULL) {
+		pars->resize(10);	
+		(*pars)[0]=bkgPar[0];
+		(*pars)[1]=bkgPar[1];
+		(*pars)[2]=bkgPar[2];
+		}
 	//parameter estimation for binned
 	float fracEstimator=0;
 	if(binned){
@@ -236,54 +244,7 @@ void TOYS::RandomVar(TH1F*h,TRandom *r,int sumw2){
 	
 }
 
-float TOYS::GetMedian(std::vector<float> &v)
-{
-	sort(v.begin(),v.end());
-	int n=int(v.size()); //start from 0
-	if( (n&1)==0 )//even
-		{
-		return (v[n/2]+v[n/2-1])/2.;
-		}
-	else  //odd
-		return v[n/2];
-}
-float TOYS::GetMean(std::vector<float> &v){
-	float S=0;
-	int n=int(v.size()); //start from 0
-	if(n==0)return -1;
-	for(int i=0;i<n;++i)
-		S+=v[i];
-	return S/n;
-	}
-float TOYS::GetRMS(std::vector<float> &v){
-	float S=0;
-	float m=GetMean(v);
-	int n=int(v.size()); 
-	if(n<=1) return -1;
-	for(int i=0;i<n;++i)
-		S+=(v[i]-m)*(v[i]-m);
-	return sqrt(S/(n-1));
-}
-
-float TOYS::GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q){
-	sort(v.begin(),v.end());
-	int n=int(v.size()); 
-	int m=ceil(n*Q);
-	//Look for m consecutive bin such that the distance covered is minima
-	vector<float> d;
-	int min=0;
-	for(int i=0;i<n-m;i++)
-		{
-		d.push_back(v[i+m]-v[i]);
-		if(d[i]<d[min]) min=i;
-		}
-	r.first=v[min];
-	r.second=v[min+m];
-	return (r.second-r.first)/2.;
-}
-
-
-float TOYS::toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys,TRandom *random)
+float TOYS::toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys,TRandom *random,const char*fileName)
 {
 vector<float> r; //result
 	if(random==NULL){
@@ -295,7 +256,7 @@ vector<float> r; //result
 	for(int iToy=0;iToy<nToys;++iToy){
 	TH1F *h1=(TH1F*)h->Clone("tmp_h");
 	TH1F *s1=(TH1F*)sig->Clone("tmp_s");
-	TH1F *b1=(TH1F*)sig->Clone("tmp_b");
+	TH1F *b1=(TH1F*)bkg->Clone("tmp_b");
 	
 	RandomVar(h1,random,0);//poisson
 	RandomVar(s1,random,0);//poisson
@@ -306,8 +267,9 @@ vector<float> r; //result
 	
 	if(h1->Integral()==0 || s1->Integral()==0 || b1->Integral()==0)
 		{cout<<"SKIP TOY EVENT: INTEGRAL=0"<<endl;continue;}
-	
-	float a= FIT::fit(h1,s1,b1);
+
+	printf("DEBUG: PASSING %s as fileName\n",fileName);
+	float a= FIT::fit(h1,s1,b1,fileName,Form("toy%d_PT_0_0_HT_0_nJet_0\0",iToy)); //string should be formatted
 	
 	r.push_back(a);
 		
@@ -315,9 +277,9 @@ vector<float> r; //result
 	s1->Delete();
 	b1->Delete();	
 	}
-	return  GetRMS(r);
+	return  STAT::rms(r);
 	pair<float,float> b; //store low-hi for asymmetric
-	return  GetCI(r,b,0.68);
+	return  STAT::ConfidenceInterval(r,b,0.68);
 }
 
 

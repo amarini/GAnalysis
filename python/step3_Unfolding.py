@@ -175,7 +175,7 @@ def Loop(systName=""):
 			print "ERROR Unable to construct Matrix"
 			continue;
 		## UNFOLD
-		(u,c)=Unfold(Response,H,35);
+		(u,c)=Unfold(Response,H,20);
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
 		hcov= ROOT.TH2D(c) # must be D because cov is a TMatrixD
@@ -185,6 +185,7 @@ def Loop(systName=""):
 		b.SetTitle( "Unfolded And Bin Width Scaled" +Bin.replace("_"," "))
 		for i in range(1,b.GetNbinsX()+1 ):
 			b.SetBinContent(i, b.GetBinContent(i)/b.GetBinWidth(i) )
+			b.SetBinError  (i, b.GetBinError(i)/b.GetBinWidth(i) ) 
 		## SAVE OUTPUT
 		fUnfOut.cd()
 		u.Write()
@@ -207,6 +208,6 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN))
 #SIGSHAPE
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 #BKGSHAPE
-#Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
 		
 

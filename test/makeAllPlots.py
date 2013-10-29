@@ -17,8 +17,15 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+#parser.add_option("","--doPurityPlots" ,dest='doPurityPlots',action='store_true',help="Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
+
+doPurityPlots=True
+doInclusivePlots=True
+doFitPlots=True
+doParsPlots=True
+doUnfoldPlots=True
 
 print "inserting in path cwd"
 sys.path.insert(0,os.getcwd())
@@ -40,11 +47,9 @@ inputFileName=WorkDir+ReadFromDat(config,"outputFileName","output","-->Default O
 from subprocess import call
 from glob import glob
 
-doPurityPlots=True
-doInclusivePlots=True
-doFitPlots=True
 
-call(["mkdir",WorkDir+"plots"])
+call(["rm","-r",WorkDir+"plots"])
+call(["mkdir","-p",WorkDir+"plots"])
 #purityPlots
 if doPurityPlots:
 	cmd=["python","test/makePurityPlots.py","--inputDat="+options.inputDat]
@@ -63,4 +68,12 @@ if doInclusivePlots:
 if doFitPlots:
 	cmd=["python","test/makeFitPlots.py","--inputDat="+options.inputDat]
 	call(cmd)
-	
+#LandaPars
+if doParsPlots:
+	cmd=["python","test/makeLandauParsPlots.py","--inputDat="+options.inputDat]
+	call(cmd)
+#unfolded distributions
+if doUnfoldPlots:
+	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat]
+	call(cmd)
+		
