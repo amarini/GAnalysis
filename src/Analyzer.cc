@@ -47,6 +47,8 @@ void Analyzer::Loop()
    if(currentSyst == SYST::UNFOLD ) return;	
    if(currentSyst == SYST::SIGSHAPE ) return;	
    if(currentSyst == SYST::BKGSHAPE ) return;	
+   if(currentSyst == SYST::FIT ) return;	
+   if(currentSyst == SYST::LUMI ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -547,6 +549,12 @@ string Analyzer::SystName(enum SYST a){
 		break;
 	case SYST::UNFOLD: 
 		return string("_UNFOLD");
+		break;
+	case SYST::FIT: 
+		return string("_FIT");
+		break;
+	case SYST::LUMI: 
+		return string("_LUMI");
 		break;
 	default: return "";
 	}

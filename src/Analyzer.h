@@ -464,7 +464,7 @@ public :
    PHOTONID idvars;
 
    //SYST SMEARINGS
-   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD};
+   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD,LUMI,FIT};
    enum SYST currentSyst; 
    void Smear();
    string SystName();
