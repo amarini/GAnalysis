@@ -188,7 +188,8 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 	  cout << "-log(L) at minimum = " << r->minNll() << endl ;
 	  cout << "Error = "<<f.getError()<<endl;
 	  cout << "--> FractionFitted = "<<f.getVal()<<endl;
-	
+	if(pars!=NULL)	
+		(*pars)[3]=f.getError();
 	//
 	if(name[0]!='\0')
 		{

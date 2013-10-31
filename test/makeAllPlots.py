@@ -74,6 +74,6 @@ if doParsPlots:
 	call(cmd)
 #unfolded distributions
 if doUnfoldPlots:
-	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat]
+	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC=data/configMC.dat"]
 	call(cmd)
 		

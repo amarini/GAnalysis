@@ -134,7 +134,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 					TruthSig[-1].SetName("SigShapeCorrFit_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)  )
 					SigCorr.append( SigTemplate[-1].Clone("photonisoRC_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) );
 					SigCorr[-1].Multiply(TruthSig[-1])
-				except AttributeError:
+				except (AttributeError,TypeError):
 					print "SHAPECORR SIG: no Histo"
 					doShapeCorrFit=0 # Turn Off Local var
 			#BKG
@@ -144,8 +144,8 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )#Truth has Sig Id
 					TruthBkg[-1].Divide(BkgMC)
 					BkgCorr.append( BkgTemplate[-1].Clone("photoniso_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)))
-					BkgCorr[-1].Multply(TruthBkg[-1])
-				except AttributeError:
+					BkgCorr[-1].Multiply(TruthBkg[-1])
+				except (AttributeError,TypeError):
 					print "SHAPECORR BKG: no Histo"
 					print "-- histos: "+"photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)
 					print "-- histos: "+"photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)
@@ -242,15 +242,16 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 		if doShapeCorrFit:
 			SigCorr[Sbin].Scale(NormSigCorr/SigCorr[Sbin].Integral());
 			BkgCorr[Bbin].Scale(NormBkgCorr/BkgCorr[Bbin].Integral());
-		# TODO: the rms function implementation is wrong
-		if PtToFit[p] == 100 and nJets==1 and Ht==0:
-			try:
-				os.remove(WorkDir+"/toysresults.root")
-			except OSError: print "toy file doesn't exist: not removed"
-			rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20,0,WorkDir+"/toysresults.root");
-		else:
-			rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
-		o_txt.write(" ERROR= "+str(rms) +"\n");
+		# 
+		#if PtToFit[p] == 100 and nJets==1 and Ht==0:
+		#	try:
+		#		os.remove(WorkDir+"/toysresults.root")
+		#	except OSError: print "toy file doesn't exist: not removed"
+		#	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20,0,WorkDir+"/toysresults.root");
+		#else:
+		#	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
+		#o_txt.write(" ERROR= "+str(rms) +"\n");
+		o_txt.write(" ERROR= "+str( v[3]) +"\n"); ## ROOFIT ERROR
 		if doShapeCorrFit:
 			fOut=ROOT.TFile.Open(WorkDir+"/fitresults.root","UPDATE")
 			TruthSig[Sbin].Write("",ROOT.TObject.kOverwrite)	

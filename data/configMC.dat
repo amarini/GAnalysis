@@ -5,3 +5,4 @@ include=config.dat
 #DATATREE=root://eoscms///store/user/webermat/zgfiles_V00-12/GJet*.root
 DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/GJet*.root
 WorkDir=/afs/cern.ch/user/a/amarini/work/V00-12_MC/
+Lumi=1
