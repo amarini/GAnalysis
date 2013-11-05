@@ -114,9 +114,9 @@ def Unfold(Response,H,par):
 
 
 if DEBUG>0:print "--> Loop"
-#Float_t * is needed for TH1F
+#Float_t * is needed for TH1D
 ROOT.gROOT.ProcessLine("struct Bins{ \
-		Float_t PtBins[1023];\
+		Double_t PtBins[1023];\
 		};")
 
 from ROOT import Bins
@@ -135,7 +135,7 @@ def Loop(systName=""):
 			PtBins.PtBins[c]=PtCuts2[c]
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])+systName
 		#Will it work?
-		H=ROOT.TH1F("m_"+Bin,"Measured_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H=ROOT.TH1D("m_"+Bin,"Measured_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION

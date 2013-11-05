@@ -113,5 +113,11 @@ if ReadFromDat(config,"DoSyst",0,"--> Default No Syst") :
 	print "--- LOOP ON SYST ---- JES DN --"
 	A.currentSyst= ROOT.Analyzer.JESDN
 	A.Loop()
+	print "--- LOOP ON SYST ---- JES DN --"
+	A.currentSyst= ROOT.Analyzer.JERDN
+	A.Loop()
+	print "--- LOOP ON SYST ---- JER UP --"
+	A.currentSyst= ROOT.Analyzer.JERUP
+	A.Loop()
 
 if(DEBUG>0): print "----- END ------"

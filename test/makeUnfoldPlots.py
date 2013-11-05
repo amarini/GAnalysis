@@ -108,8 +108,8 @@ for h in range(0,len(HtCuts)):
 		H_BKGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)))
 		H_LUMIUP = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP)))
 		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
-		H_LUMIUP.Scale(1+0.0026)
-		H_LUMIDN.Scale(1-0.0026)
+		H_LUMIUP.Scale(1.+.026)
+		H_LUMIDN.Scale(1.-.026)
 	
 		H_PU=makeBands(H_PUUP,H_PUDN)
 		H_JES=makeBands(H_JESUP,H_JESDN)

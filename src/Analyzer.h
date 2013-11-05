@@ -9,8 +9,8 @@
 #define Analyzer_h
 
 
-#include "TH1F.h"
-#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -491,8 +491,8 @@ public :
 		};
 
    vector<int> JetIdx;
-   map<string,TH1F*> histoContainer;
-   map<string,TH2F*> histo2Container;
+   map<string,TH1D*> histoContainer;
+   map<string,TH2D*> histo2Container;
    map<string,TTree*> treeContainer;
    vector<CUTS> cutsContainer;
    map<string,BINS> binsContainer;

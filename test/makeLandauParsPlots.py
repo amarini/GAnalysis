@@ -83,9 +83,9 @@ for line in fFit:
 		Par2[ (ptmin,ptmax,ht,nj) ] = p2
 	except NameError: continue;
 
-#Float_t * is needed for TH1F
+#Float_t * is needed for TH1D
 ROOT.gROOT.ProcessLine("struct Bins{ \
-		Float_t PtBins[1023];\
+		Double_t PtBins[1023];\
 		};")
 
 from ROOT import Bins
@@ -110,9 +110,9 @@ for h in range(0,len(HtCuts)):
 			PtBins.PtBins[c]=PtCuts2[c]
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
-		H0=ROOT.TH1F("h0_"+Bin,"Par0_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
-		H1=ROOT.TH1F("h1_"+Bin,"Par1_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
-		H2=ROOT.TH1F("h2_"+Bin,"Par2_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H0=ROOT.TH1D("h0_"+Bin,"Par0_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H1=ROOT.TH1D("h1_"+Bin,"Par1_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H2=ROOT.TH1D("h2_"+Bin,"Par2_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts2)-1):
 			try:

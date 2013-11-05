@@ -77,9 +77,9 @@ for line in fFit:
 		Frac[ (ptmin,ptmax,ht,nj) ] = fr
 	except NameError: continue;
 
-#Float_t * is needed for TH1F
+#Float_t * is needed for TH1D
 ROOT.gROOT.ProcessLine("struct Bins{ \
-		Float_t PtBins[1023];\
+		Double_t PtBins[1023];\
 		};")
 
 from ROOT import Bins
@@ -104,7 +104,7 @@ for h in range(0,len(HtCuts)):
 			PtBins.PtBins[c]=PtCuts2[c]
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
-		H=ROOT.TH1F("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		H=ROOT.TH1D("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION
