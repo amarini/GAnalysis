@@ -106,11 +106,16 @@ for h in range(0,len(HtCuts)):
 		H_JESDN   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN)))
 		H_SIGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)))
 		H_BKGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)))
+		H_LUMIUP = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP)))
+		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
+		H_LUMIUP.Scale(1+0.0026)
+		H_LUMIDN.Scale(1-0.0026)
 	
 		H_PU=makeBands(H_PUUP,H_PUDN)
 		H_JES=makeBands(H_JESUP,H_JESDN)
 		H_SIG=makeBands(H,H_SIGSHAPE,"First")
 		H_BKG=makeBands(H,H_BKGSHAPE,"First")
+		H_LUM=makeBands(H_LUMIUP,H_LUMIDN)
 		
 		if doMC:
 			print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
@@ -128,6 +133,7 @@ for h in range(0,len(HtCuts)):
 		sqrtSum(H_TOT,H_JES)
 		sqrtSum(H_TOT,H_SIG)
 		sqrtSum(H_TOT,H_BKG)
+		sqrtSum(H_TOT,H_LUM)
 		
 		## CANVAS
 		C=ROOT.TCanvas("C","C")
@@ -163,6 +169,12 @@ for h in range(0,len(HtCuts)):
 		H_BKG.SetLineColor  (ROOT.kRed-4)
 		H_BKG.SetFillStyle(3005)
 
+		H_LUM.SetMarkerStyle(0)
+		H_LUM.SetFillColor  (ROOT.kOrange)
+		H_LUM.SetMarkerColor(ROOT.kOrange)
+		H_LUM.SetLineColor  (ROOT.kOrange)
+		H_LUM.SetFillStyle(3001)
+
 		H_TOT.SetLineColor(ROOT.kRed)
 		H_TOT.SetLineStyle(ROOT.kDashed)
 		H_TOT.SetLineWidth(2)
@@ -182,6 +194,8 @@ for h in range(0,len(HtCuts)):
 		H_PU.Draw("P E2 SAME")
 		H_JES.Draw("P E2 SAME")
 		H_SIG.Draw("P E2 SAME")
+		H_LUM.Draw("P E2 SAME")
+
 		if doMC:
 			H_MC.Draw("HIST SAME");
 
@@ -207,7 +221,7 @@ for h in range(0,len(HtCuts)):
 			Header="H_{T} > %.0f GeV, N_{jets} #geq %.0f"%(HtCuts[h],nJetsCuts[nj])
 			
 		
-		L=ROOT.TLegend(0.65,0.55,.89,.89,Header)
+		L=ROOT.TLegend(0.65,0.60,.89,.89,Header)
 		L.SetFillStyle(0)
 		L.SetBorderSize(0)
 		L.AddEntry(H,"Data")
@@ -215,6 +229,7 @@ for h in range(0,len(HtCuts)):
 		L.AddEntry(H_JES,"JES Syst")
 		L.AddEntry(H_SIG,"SIG shape Syst")
 		L.AddEntry(H_BKG,"BKG shape Syst")
+		L.AddEntry(H_LUM,"LUM shape Syst")
 		if doMC:
 			L.AddEntry(H_MC,"MC")
 
@@ -230,6 +245,7 @@ for h in range(0,len(HtCuts)):
 		R_H.GetYaxis().SetRangeUser(0.5,1.5)
 		R_SIG=Ratio(H,H_SIG);
 		R_BKG=Ratio(H,H_BKG);
+		R_LUM=Ratio(H,H_LUM);
 		R_PU=Ratio(H,H_PU);
 		R_JES=Ratio(H,H_JES);
 		R_TOT=Ratio(H,H_TOT);
@@ -240,6 +256,7 @@ for h in range(0,len(HtCuts)):
 		R_PU.Draw("P E2 SAME")
 		R_JES.Draw("P E2 SAME")
 		R_SIG.Draw("P E2 SAME")
+		R_LUM.Draw("P E2 SAME")
 		R_TOT.Draw("E3 SAME")
 
 		if doMC:

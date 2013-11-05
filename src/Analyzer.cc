@@ -48,7 +48,8 @@ void Analyzer::Loop()
    if(currentSyst == SYST::SIGSHAPE ) return;	
    if(currentSyst == SYST::BKGSHAPE ) return;	
    if(currentSyst == SYST::FIT ) return;	
-   if(currentSyst == SYST::LUMI ) return;	
+   if(currentSyst == SYST::LUMIUP ) return;	
+   if(currentSyst == SYST::LUMIDN ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -553,8 +554,11 @@ string Analyzer::SystName(enum SYST a){
 	case SYST::FIT: 
 		return string("_FIT");
 		break;
-	case SYST::LUMI: 
-		return string("_LUMI");
+	case SYST::LUMIUP: 
+		return string("_LUMIUP");
+		break;
+	case SYST::LUMIDN: 
+		return string("_LUMIDN");
 		break;
 	default: return "";
 	}
