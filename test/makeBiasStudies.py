@@ -76,14 +76,17 @@ if not ((SigBin==1 and BkgBin==1) or (SigBin==0 and BkgBin==0)):
 try:PtCuts2=PtCuts[PtCuts.index(-1)+1: ]
 except ValueError: PtCuts2=PtCuts
 
+print >>sys.stderr, "PtCuts1=" +str(PtCuts2)
+
 rand=ROOT.TRandom()
 
 def TOY(file,nJets,Ht,Pt1,Pt2,nToys=100):
 	if DEBUG>0: 
 		print "-> nJets=%d Ht=%.1f"%(nJets,Ht)
+		print >>sys.stderr, "STARTING TOYS for: nJets=%d Ht=%.0f Pt1=%.0f Pt2=%.0f"%(nJets,Ht,Pt1,Pt2)
 
-	BkgTemplate(file.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(Pt1,Pt2,Ht,8000,BkgPhId[0],BkgPhId[1],nJets)  ) )
-	SigTemplate(file.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(Pt1,Pt2,Ht,8000,SigPhId[0],SigPhId[1],nJets)  ) )
+	BkgTemplate=file.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(Pt1,Pt2,Ht,8000,BkgPhId[0],BkgPhId[1],nJets)  ) 
+	SigTemplate=file.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(Pt1,Pt2,Ht,8000,SigPhId[0],SigPhId[1],nJets)  ) 
 	try:
 		NormSig   = SigTemplate.Integral();
 		NormBkg   = BkgTemplate.Integral();
@@ -95,7 +98,7 @@ def TOY(file,nJets,Ht,Pt1,Pt2,nToys=100):
 		print "---> Sig Template:" + SigTemplate.GetName()
 		print "---> Bkg Template:" + BkgTemplate.GetName()
 
-	if NormToFit == 0 or NormSig == 0 or NormBkg == 0 :
+	if NormSig == 0 or NormBkg == 0 :
 		print "-> NUll INTEGRAL"
 		return {}	
 
@@ -118,11 +121,11 @@ def TOY(file,nJets,Ht,Pt1,Pt2,nToys=100):
 			ToFitTemplate.Add(BkgClone)
 	
 			for iBin in range(1,SigClone.GetNbinsX()+1):
-				#SigClone.SetBinContent(iBin,  rand->Gaus(SigClone.GetBinContent(iBin),SigClone.GetBinError(iBin)) ##TODO RANDOM GAUS
-				#BkgClone.SetBinContent(iBin,  rand->Gaus(BkgClone.GetBinContent(iBin),BkgClone.GetBinError(iBin)) ##TODO RANDOM GAUS 
-				SigClone.SetBinContent(iBin,  rand->Poisson(SigClone.GetBinContent(iBin)) ##TODO RANDOM  POISSON
-				BkgClone.SetBinContent(iBin,  rand->Poisson(BkgClone.GetBinContent(iBin)) ##TODO RANDOM  POISSON
-				ToFitTemplate.SetBinContent(iBin,ROOT.TMath.Max(rand->Gaus(ToFitTemplate.GetBinContent(iBin),ToFitTemplate.GetBinError(iBin),0))
+				SigClone.SetBinContent(iBin,  ROOT.TMath.Max(rand.Gaus(SigClone.GetBinContent(iBin),SigClone.GetBinError(iBin)),0) ) ##TODO RANDOM GAUS
+				BkgClone.SetBinContent(iBin,  ROOT.TMath.Max(rand.Gaus(BkgClone.GetBinContent(iBin),BkgClone.GetBinError(iBin)),0)) ##TODO RANDOM GAUS 
+				#SigClone.SetBinContent(iBin,  rand.Poisson(SigClone.GetBinContent(iBin))) ##TODO RANDOM  POISSON
+				#BkgClone.SetBinContent(iBin,  rand.Poisson(BkgClone.GetBinContent(iBin))) ##TODO RANDOM  POISSON
+				ToFitTemplate.SetBinContent(iBin,ROOT.TMath.Max(rand.Gaus(ToFitTemplate.GetBinContent(iBin),ToFitTemplate.GetBinError(iBin)),0) )
 				
 			#variation on Sig Bkg and Template	
 			f=ROOT.FIT.fit(ToFitTemplate,SigClone,BkgClone,"","")
@@ -130,48 +133,85 @@ def TOY(file,nJets,Ht,Pt1,Pt2,nToys=100):
 		##
 		P1=ROOT.std.pair(float,float)()
 		P2=ROOT.std.pair(float,float)()
-		ROOT.STAT.ConfidenceInterval(fractions,P1,0.68)
-		ROOT.STAT.ConfidenceInterval(fractions,P2,0.95)
-		mean=ROOT.STAT.mean(fractions)
-		rms=ROOT.STAT.rms(fractions)
+		vFractions=ROOT.std.vector(float)()
+		for f in fractions: vFractions.push_back(f)	
+		ROOT.STAT.ConfidenceInterval(vFractions,P1,0.68)
+		ROOT.STAT.ConfidenceInterval(vFractions,P2,0.95)
+		mean=ROOT.STAT.mean(vFractions)
+		rms=ROOT.STAT.rms(vFractions)
 		R[ (Pt1,Pt2,purity) ] = (mean,rms,P1.first,P1.second,P2.first,P2.second)
 	return R;
 
-C=ROOT.TCanvas("c","c")
-C.SetLogx()
-AllGraph=[]
+AllGraph={}
+tmp=ROOT.TCanvas("tmp","tmp")
 for h in HtCuts:
-	for n in nJetsCuts:
-		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
+	for nj in nJetsCuts:
+		if nj!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
 		ToysResults={}
+		tmp.cd()
 		for p in range(0,len(PtCuts2)-1):
-			R=TOYS(file,int(n),h,PtCuts2[p],PtCuts2[p+1],100) #num of toys
+			R=TOY(file,int(nj),h,PtCuts2[p],PtCuts2[p+1],1000) #num of toys
 			for key in R: ToysResults[ key ] = R[ key ];
-		g1=ROOT.TGraphAsymmetricErrors()
-		g1.SetName("biasPurity_Ht"+str(h)+"_nJets"+str(n))
-		g2=ROOT.TGraphAsymmetricErrors()
-		g2.SetName("biasPurity2_Ht"+str(h)+"_nJets"+str(n))
-		n=0
-		for (Pt1,Pt2,purity) in R:
-			(mean,rms,eyl,eyh,e2yl,e2yh)= R[ (Pt1,Pt2,purity) ]
+
+		for (Pt1,Pt2,purity) in ToysResults:
+			name="biasPurity1s_Ht"+str(h)+"_nJets"+str(nj)+"_Purity"+str(purity)
+			name2="biasPurity2s_Ht"+str(h)+"_nJets"+str(nj)+"_Purity"+str(purity)
+			try:
+				g1=AllGraph[name]
+				g2=AllGraph[name2]
+			except KeyError:
+				g1=ROOT.TGraphAsymmErrors()
+				g1.SetName(name)
+				g2=ROOT.TGraphAsymmErrors()
+				g2.SetName(name2)
+				AllGraph[g1.GetName()]=g1 ## Preserve histograms from delete
+				AllGraph[g2.GetName()]=g2
+			n=g1.GetN()
+			(mean,rms,eyl,eyh,e2yl,e2yh)= ToysResults[ (Pt1,Pt2,purity) ]
 			g1.SetPoint(n,(Pt1+Pt2)/2.0,mean)
 			g2.SetPoint(n,(Pt1+Pt2)/2.0,mean)
-			g1.SetPointError(n,Pt1,Pt2,eyl,eyh)
-			g2.SetPointError(n,Pt1,Pt2,e2yl,e2yh)
+			g1.SetPointError(n,(Pt2-Pt1)/2,(Pt2-Pt1)/2.,eyl,eyh)
+			g2.SetPointError(n,(Pt2-Pt1)/2.,(Pt2-Pt1)/2,e2yl,e2yh)
 			n+=1
-		g1.SetFillColor(kGreen)
-		g2.SetFillColor(kYellow)
-		g1.SetFillStyle(3001)
-		g2.SetFillStyle(3001)
+			print >>sys.stderr, "--- Pt=[%.0f,%.0f] Purity=%.1f%% values=[%.2f,%.2f,%.2f]%%"%(Pt1,Pt2,purity,mean,eyl,eyh)
 		
-		if n==1 and h==0:
-			g1.Draw("A");
+			print >> sys.stderr, "Graph "+g1.GetName()+" Has " + str(n) + " points"
 
-		g1.GetYaxis().SetRangeUser(0,1);
-
-		g2.Draw("P E2 SAME")
-		g1.Draw("P E2 SAME")
 			
+C=ROOT.TCanvas("c","c")
+C.SetLogx()
+for h in HtCuts:
+	for nj in nJetsCuts:
+		if nj!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
+		for purity in [ x/10. for x in range(1,10) ] :
+			g1=AllGraph["biasPurity1s_Ht"+str(h)+"_nJets"+str(nj)+"_Purity"+str(purity)]
+			g2=AllGraph["biasPurity2s_Ht"+str(h)+"_nJets"+str(nj)+"_Purity"+str(purity)]
+			if nj==1 and h==0 and purity==0.1:
+				g1.Draw("A P");
+	
+			g1.GetYaxis().SetRangeUser(0,1);
+			g1.GetYaxis().SetTitle("Purity");
+			g1.GetXaxis().SetTitle("p_{T}^{#gamma}");
+			g1.GetXaxis().SetNoExponent()
+			g1.GetXaxis().SetMoreLogLabels()
+	
+			g1.SetFillColor(ROOT.kGreen)
+			g2.SetFillColor(ROOT.kYellow)
+	
+			g1.SetFillStyle(3001)
+			g2.SetFillStyle(3001)
+	
+			g1.SetMarkerStyle(20)
+			
+			C.cd()
+	
+			g2.Draw("P 2 SAME")
+			g1.Draw("P 2 SAME")
+
 C.SaveAs(WorkDir+"/plots/Bias.pdf")
+f=ROOT.TFile.Open(WorkDir+"/plots/Bias.root","RECREATE")
+f.cd()
+C.Write()
+for key in AllGraph: AllGraph[key].Write()
 
 if(DEBUG>0): print "----- END ------"
