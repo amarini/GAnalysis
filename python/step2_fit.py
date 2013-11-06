@@ -182,7 +182,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 			if doShapeCorrFit:
 				NormSigCorr = SigCorr[Sbin].Integral();
 				NormBkgCorr = BkgCorr[Bbin].Integral();
-		except (ReferenceError, AttributeError) as e:
+		except (ReferenceError, AttributeError):
 			print "-> Going to fit PtBin %.0f-%.0f with sig %.0f-%.0f and bkg %.0f %.0f"%(PtToFit[p],PtToFit[p+1],PtSig[Sbin],PtSig[Sbin+1],PtBkg[Bbin],PtBkg[Bbin+1])
 			print "--> ERROR NULL HISTOS"
 			continue;

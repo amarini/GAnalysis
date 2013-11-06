@@ -150,7 +150,7 @@ for h in HtCuts:
 		ToysResults={}
 		tmp.cd()
 		for p in range(0,len(PtCuts2)-1):
-			R=TOY(file,int(nj),h,PtCuts2[p],PtCuts2[p+1],1000) #num of toys
+			R=TOY(file,int(nj),h,PtCuts2[p],PtCuts2[p+1],100) #num of toys
 			for key in R: ToysResults[ key ] = R[ key ];
 
 		for (Pt1,Pt2,purity) in ToysResults:
