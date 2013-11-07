@@ -1,5 +1,5 @@
 
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TFile.h"
 #include "TFitResultPtr.h"
 #include "TFitResult.h"
@@ -41,16 +41,16 @@ using namespace std;
 using namespace RooFit;
 
 
-float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char *name,vector<float> *pars)
+float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char *name,vector<float> *pars)
 {
 	printf("DEBUG: NAME=%s FILE=%s\n",name,fileName);
 	bool binned=false;
 	if(o->InheritsFrom("TH1") ) binned=true;
 	else if (o->InheritsFrom("TTree")) binned=false;
-	else printf("ERROR NO TREE OR TH1F provided\n");
+	else printf("ERROR NO TREE OR TH1D provided\n");
 	TTree *t;
-	TH1F *h;
-	if (binned) h=(TH1F*)o;
+	TH1D *h;
+	if (binned) h=(TH1D*)o;
 	else t=(TTree*)o;
 	
 	int nBins=sig->GetNbinsX();
@@ -221,7 +221,7 @@ float FIT::fit(TObject *o, TH1F* sig, TH1F* bkg,const char *fileName,const char 
 
 //namespace TOYS {
 
-void TOYS::RandomVar(TH1F*h,TRandom *r,int sumw2){
+void TOYS::RandomVar(TH1D*h,TRandom *r,int sumw2){
 	for(int i=1;i<=h->GetNbinsX();i++)
 		{
 		float bc=h->GetBinContent(i);
@@ -245,7 +245,7 @@ void TOYS::RandomVar(TH1F*h,TRandom *r,int sumw2){
 	
 }
 
-float TOYS::toy(TH1F*h, TH1F* sig, TH1F* bkg,int nToys,TRandom *random,const char*fileName)
+float TOYS::toy(TH1D*h, TH1D* sig, TH1D* bkg,int nToys,TRandom *random,const char*fileName)
 {
 vector<float> r; //result
 	if(random==NULL){
@@ -255,9 +255,9 @@ vector<float> r; //result
 			}
 		
 	for(int iToy=0;iToy<nToys;++iToy){
-	TH1F *h1=(TH1F*)h->Clone("tmp_h");
-	TH1F *s1=(TH1F*)sig->Clone("tmp_s");
-	TH1F *b1=(TH1F*)bkg->Clone("tmp_b");
+	TH1D *h1=(TH1D*)h->Clone("tmp_h");
+	TH1D *s1=(TH1D*)sig->Clone("tmp_s");
+	TH1D *b1=(TH1D*)bkg->Clone("tmp_b");
 	
 	RandomVar(h1,random,0);//poisson
 	RandomVar(s1,random,0);//poisson

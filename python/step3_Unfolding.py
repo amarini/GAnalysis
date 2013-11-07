@@ -203,8 +203,8 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN))
 #JER
-#Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP))
-#Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN))
 #SIGSHAPE
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 #BKGSHAPE

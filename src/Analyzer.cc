@@ -36,6 +36,7 @@ void Analyzer::Loop()
    if(!isRealData) {
 	if(debug>0)printf("Running on mc: activating branches\n");
     	fChain->SetBranchStatus("PUWeight*",1);  // activate branchname
+    	fChain->SetBranchStatus("eventWeight*",1);  // activate branchname
 	fChain->SetBranchStatus("photon*GEN",1);
 	fChain->SetBranchStatus("jet*GEN",1);
 	}
@@ -122,12 +123,12 @@ void Analyzer::Loop()
 			{
 				string name=string("gammaPtGEN_")+cutsContainer[iCut].name()+SystName();
 					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);histoContainer[name]->Sumw2();}
-				histoContainer[name]->Fill(gGEN.Pt(),PUWeight);
+				histoContainer[name]->Fill(gGEN.Pt(),eventWeight);
 			}
 			{
 				string name=string("gammaEtaGEN_")+cutsContainer[iCut].name()+SystName();
 					if(histoContainer[name]==NULL){ histoContainer[name]=new TH1D(name.c_str(),name.c_str(),binsContainer["gammaEta"].nBins,binsContainer["gammaEta"].xMin,binsContainer["gammaEta"].xMax);histoContainer[name]->Sumw2();}
-				histoContainer[name]->Fill(gGEN.Eta(),PUWeight);
+				histoContainer[name]->Fill(gGEN.Eta(),eventWeight);
 			}
 			//-----
 			} // iCut

@@ -36,6 +36,7 @@ public :
 
    // Declaration of leaf types
    Int_t           isRealData;
+   double 	 eventWeight;
    double 	 PUWeight;
    double 	 PUWeightSysUp;
    double 	 PUWeightSysDown;
@@ -235,6 +236,7 @@ public :
    vector<float>   *lepHadronicOverEm;
 
    // List of branches
+   TBranch        *b_eventWeight;   //!
    TBranch        *b_PUWeight;   //!
    TBranch        *b_PUWeightSysUp;   //!
    TBranch        *b_PUWeightSysDown;   //!
@@ -879,6 +881,7 @@ if(debug>1) printf("-> SetBranchAddress A\n");
 	fChain->GetEntry(0);
   if(!isRealData){
    if(debug>1) printf("-> SetBranchAddress for MC only\n");
+   fChain->SetBranchAddress("eventWeight", &eventWeight, &b_eventWeight);
    fChain->SetBranchAddress("PUWeight", &PUWeight, &b_PUWeight);
    fChain->SetBranchAddress("PUWeightSysUp", &PUWeightSysUp, &b_PUWeightSysUp);
    fChain->SetBranchAddress("PUWeightSysDown", &PUWeightSysDown, &b_PUWeightSysDown);

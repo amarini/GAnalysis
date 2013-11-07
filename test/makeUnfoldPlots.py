@@ -86,9 +86,14 @@ def sqrtSum(h1,h2):
 	for i in range (1,h2.GetNbinsX()+1):
 		h1.SetBinError(i, math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 ))
 
-def Ratio(H,H1):
+def Ratio(H,H1,NoErrorH=False):
 	R=H1.Clone(H1.GetName()+"_ratio")
-	R.Divide(H)
+	hTmp=H.Clone("tmp")
+	#in order to account error properly in ratios
+	if NoErrorH:
+		for i in range(1,hTmp.GetNbinsX()+1):
+			hTmp.SetBinError(i,0)
+	R.Divide(hTmp)
 	return R
 
 #LOOP OVER THE BINs
@@ -110,9 +115,12 @@ for h in range(0,len(HtCuts)):
 		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
 		H_LUMIUP.Scale(1.+.026)
 		H_LUMIDN.Scale(1.-.026)
+		H_JERUP   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP)))
+		H_JERDN   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN)))
 	
 		H_PU=makeBands(H_PUUP,H_PUDN)
 		H_JES=makeBands(H_JESUP,H_JESDN)
+		H_JER=makeBands(H_JERUP,H_JERDN)
 		H_SIG=makeBands(H,H_SIGSHAPE,"First")
 		H_BKG=makeBands(H,H_BKGSHAPE,"First")
 		H_LUM=makeBands(H_LUMIUP,H_LUMIDN)
@@ -131,6 +139,7 @@ for h in range(0,len(HtCuts)):
 		H_TOT=H.Clone("H_TOT")
 		sqrtSum(H_TOT,H_PU)
 		sqrtSum(H_TOT,H_JES)
+		sqrtSum(H_TOT,H_JER)
 		sqrtSum(H_TOT,H_SIG)
 		sqrtSum(H_TOT,H_BKG)
 		sqrtSum(H_TOT,H_LUM)
@@ -175,6 +184,12 @@ for h in range(0,len(HtCuts)):
 		H_LUM.SetLineColor  (ROOT.kOrange)
 		H_LUM.SetFillStyle(3001)
 
+		H_JER.SetMarkerStyle(0)
+		H_JER.SetFillColor  (ROOT.kCyan)
+		H_JER.SetMarkerColor(ROOT.kCyan)
+		H_JER.SetLineColor  (ROOT.kCyan)
+		H_JER.SetFillStyle(3006)
+
 		H_TOT.SetLineColor(ROOT.kRed)
 		H_TOT.SetLineStyle(ROOT.kDashed)
 		H_TOT.SetLineWidth(2)
@@ -193,6 +208,7 @@ for h in range(0,len(HtCuts)):
 		H_BKG.Draw("P E2 SAME")
 		H_PU.Draw("P E2 SAME")
 		H_JES.Draw("P E2 SAME")
+		H_JER.Draw("P E2 SAME")
 		H_SIG.Draw("P E2 SAME")
 		H_LUM.Draw("P E2 SAME")
 
@@ -227,6 +243,7 @@ for h in range(0,len(HtCuts)):
 		L.AddEntry(H,"Data")
 		L.AddEntry(H_PU,"PU Syst")
 		L.AddEntry(H_JES,"JES Syst")
+		L.AddEntry(H_JER,"JER Syst")
 		L.AddEntry(H_SIG,"SIG shape Syst")
 		L.AddEntry(H_BKG,"BKG shape Syst")
 		L.AddEntry(H_LUM,"LUM shape Syst")
@@ -243,21 +260,25 @@ for h in range(0,len(HtCuts)):
 
 		R_H=Ratio(H,H); R_H.SetMarkerStyle(0)
 		R_H.GetYaxis().SetRangeUser(0.5,1.5)
-		R_SIG=Ratio(H,H_SIG);
-		R_BKG=Ratio(H,H_BKG);
-		R_LUM=Ratio(H,H_LUM);
-		R_PU=Ratio(H,H_PU);
-		R_JES=Ratio(H,H_JES);
-		R_TOT=Ratio(H,H_TOT);
+		R_SIG=Ratio(H,H_SIG,NoErrorH=True);
+		R_BKG=Ratio(H,H_BKG,True);
+		R_LUM=Ratio(H,H_LUM,True);
+		R_PU=Ratio(H,H_PU,True);
+		R_JES=Ratio(H,H_JES,True);
+		R_JER=Ratio(H,H_JER,True);
+		R_TOT=Ratio(H,H_TOT,True);
 
 		R_H.Draw("P")
 		R_H.Draw("AXIS X+ Y+ SAME")
 		R_BKG.Draw("P E2 SAME")
 		R_PU.Draw("P E2 SAME")
 		R_JES.Draw("P E2 SAME")
+		R_JER.Draw("P E2 SAME")
 		R_SIG.Draw("P E2 SAME")
 		R_LUM.Draw("P E2 SAME")
 		R_TOT.Draw("E3 SAME")
+		
+		L.Draw("SAME")
 
 		if doMC:
 			R_MC=Ratio(H,H_MC);
