@@ -363,8 +363,9 @@ void Analyzer::Loop()
 				histo2Container[name]=new TH2D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix,nbinsForMatrix,ptbinsForMatrix);
 				histo2Container[name]->Sumw2();
 				}
-			//histo2Container[name]->Fill(gamma.Pt(),photonPtGEN,ScaleTrigger*PUWeight);
-			histo2Container[name]->Fill(gGEN.Pt(),gamma.Pt(),ScaleTrigger*PUWeight);
+			//"response" gives the response matrix, measured X truth.
+			// "measured" and "truth" give the projections of "response" onto the X-axis and Y-axis respectively,
+			histo2Container[name]->Fill(gamma.Pt(),gGEN.Pt(),ScaleTrigger*PUWeight);
 			} //only for the inclusive cuts
 			//-----
 			{
@@ -390,7 +391,7 @@ void Analyzer::Loop()
 			} //RECO & GEN (but NOT PHOTON)
 
 			// -- only for mc --
-			if( cutsContainer[iCut].VPt.first==0 && gamma.DeltaR(gGEN) <0.3 ){ // should match with the purity fraction
+			if( cutsContainer[iCut].VPt.first==0 && GammaIdxGEN>=0 && gamma.DeltaR(gGEN) <0.3 ){ // should match with the purity fraction
 				string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
 				if(histoContainer[name]==NULL) {
 					histoContainer[name]=new TH1D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);

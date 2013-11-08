@@ -17,10 +17,13 @@ parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file",default="")
 parser.add_option("-l","--libRooUnfold" ,dest='libRooUnfold',type='string',help="Shared RooUnfoldLibrary",default="/afs/cern.ch/user/a/amarini/work/RooUnfold-1.1.1/libRooUnfold.so")
+parser.add_option("","--doUnfoldStudies",dest='doUnfoldStudies',action='store_true',default=False)
 
 (options,args)=parser.parse_args()
 
 from common import *
+
+doUnfoldStudies=options.doUnfoldStudies
 
 if(DEBUG>0): print "--> load dat file: "+options.inputDat;
 
@@ -58,13 +61,15 @@ ROOT.gSystem.Load(options.libRooUnfold)
 
 #Analyzer is required just for SYSTNAMES AND TYPE
 if(DEBUG>0): print "-->Load Analyzer"
-ROOT.gSystem.Load("Analyzer.so")
+#ROOT.gSystem.Load("Analyzer.so")
+ROOT.gSystem.Load("libGAnalysis.so")
 
 if(DEBUG>0): print "--> Opening files"
 fFit= open(inputFileNameFit,"r")
 fRoot= ROOT.TFile.Open(inputFileNameRoot+".root");
 fRootMC= ROOT.TFile.Open(inputFileNameRootMC+".root");
 fUnfOut = ROOT.TFile.Open(WorkDir+"UnfoldedDistributions.root","RECREATE")
+fUnfStudiesOut = ROOT.TFile.Open(WorkDir+"UnfoldStudies.root","RECREATE")
 fUnfOut.cd()
 
 if DEBUG>0:print "--> Read Fraction"
@@ -171,11 +176,22 @@ def Loop(systName=""):
 		R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
 		try:
 			Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
+			#Response= ROOT.RooUnfoldResponse(0,0,M,"Response"+Bin,"Response"+Bin)
 		except TypeError:
 			print "ERROR Unable to construct Matrix"
 			continue;
+		if doUnfoldStudies and systName=="":
+			## UNFOLDSTUDIES
+			fUnfStudiesOut.mkdir(Bin)
+			fUnfStudiesOut.cd(Bin)
+			for UnfPar in range(5,H.GetNbinsX(),3):
+				H_us=Unfold(Response,H,UnfPar)[0]
+				H_us.SetName("u_par"+str(UnfPar)+Bin)
+				H_us.Write()
+			fUnfOut.cd()
 		## UNFOLD
 		(u,c)=Unfold(Response,H,20);
+
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
 		hcov= ROOT.TH2D(c) # must be D because cov is a TMatrixD

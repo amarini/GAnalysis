@@ -141,7 +141,7 @@ else: maxentries=-1
 H=Loop(data,40,0,40,PtBins,EtaBins,maxentries)
 
 #LOAD ANALYSIS stat - inside there is the regression method
-#ROOT.gSystem.Load("stat.so");
+#ROOT.gSystem.Load("libGAnalysis.so");
 
 print "Begin Analysis"
 #DO PROFILE

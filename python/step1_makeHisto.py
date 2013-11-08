@@ -28,7 +28,7 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 (options,args)=parser.parse_args()
 
 if(DEBUG>0):print "--LOAD ANALYZER--"
-ROOT.gSystem.Load("Analyzer.so");
+ROOT.gSystem.Load("libGAnalysis.so");
 
 if(DEBUG>0):print "--USE ANALYZER---"
 

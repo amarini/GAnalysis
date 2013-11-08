@@ -89,9 +89,10 @@ SigBin=1
 #Ht=0
 
 if(DEBUG>0): print "----- FIT ------"
-ROOT.gSystem.Load("fit.so")
+#ROOT.gSystem.Load("fit.so")
 if(DEBUG>0): print "----- Analyzer ------" #for syst name & type
-ROOT.gSystem.Load("Analyzer.so")
+#ROOT.gSystem.Load("Analyzer.so")
+ROOT.gSystem.Load("libGAnalysis.so")
 
 def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 	Bin=0

@@ -66,7 +66,7 @@ if doMC:
 	WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
 	inputFileMC=WorkDirMC+ReadFromDat(configMC,"outputFileName","output","-->Default Output Name") + ".root"
 
-ROOT.gSystem.Load("Analyzer.so") ##for syst names
+ROOT.gSystem.Load("libGAnalysis.so") ##for syst names
 file= ROOT.TFile.Open(inputFileNameUnfold)
 if doMC:
 	fileMC=ROOT.TFile.Open(inputFileMC)
@@ -258,7 +258,7 @@ for h in range(0,len(HtCuts)):
 		C2=ROOT.TCanvas("C2","C2")
 		C2.SetLogx()
 
-		R_H=Ratio(H,H); R_H.SetMarkerStyle(0)
+		R_H=Ratio(H,H,NoErrorH=True); R_H.SetMarkerStyle(0)
 		R_H.GetYaxis().SetRangeUser(0.5,1.5)
 		R_SIG=Ratio(H,H_SIG,NoErrorH=True);
 		R_BKG=Ratio(H,H_BKG,True);

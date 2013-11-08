@@ -50,6 +50,8 @@ inputFileNameFit=WorkDir + "/fitresults.root"
 
 file=ROOT.TFile.Open(inputFileNameFit)
 
+ROOT.gSystem.Load("libGAnalysis.so")
+
 for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
@@ -59,8 +61,18 @@ for h in range(0,len(HtCuts)):
 		for p in range(0,len(PtCuts2)-1):
 			try:
 				C=file.Get("Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_canvas"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) )
+				if not C.InheritsFrom("TCanvas"):raise ReferenceError
+				C.Draw()
+				plot=file.Get("Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_plot"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) )
+				plot.SetMaximum(plot.GetMaximum()*5)
+				plot.SetMinimum(0.001)
+				P=ROOT.TPad("newPad","LOG",.6,.6,.89,.89)
+				P.Draw("SAME")
+				P.cd()
+				plot.Draw()
+				P.SetLogy()
 				C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".pdf")
-			except ReferenceError: 
+			except (ReferenceError,TypeError): 
 				print "Error in Pt="+str(PtCuts2[p])+" HT="+str(HtCuts[h])+" nJets="+str(nJetsCuts[nj])
 				print "-- Name="+"Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_canvas"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 
