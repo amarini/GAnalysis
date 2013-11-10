@@ -120,8 +120,9 @@ for h in range(0,len(HtCuts)):
 		H_invert.SetMarkerColor(ROOT.kGray+2)
 		H_invert.SetLineColor(H_invert.GetMarkerColor())
 
-		H=file.Get(Dir+"r_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##FIXME: PAR in name
-		G=file.Get(Dir+"g_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##FIXME: PAR in name
+		H=file.Get(Dir+"r_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##
+		G=file.Get(Dir+"g_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##
+
 		
 		## CANVAS
 		C=ROOT.TCanvas("C","C")
@@ -178,7 +179,7 @@ for h in range(0,len(HtCuts)):
 		L.AddEntry(H_bayes[3],"bayes 3")
 		L.AddEntry(H_bayes[5],"bayes 5")
 		L.AddEntry(H_bayes[7],"bayes 7")
-		L.AddEntry(H,"Inversion")
+		L.AddEntry(H_invert,"Inversion")
 		L.Draw()
 		#SAVE
 		C.SaveAs(WorkDir+"plots/unfoldStudies_Ht%.0f_nJets%.0f.pdf"%(HtCuts[h],nJetsCuts[nj]))		
