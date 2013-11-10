@@ -109,9 +109,15 @@ for line in fFit:
 		FracBkgCorr[ (ptmin,ptmax,ht,nj) ] = fr_bkgcorr
 	except NameError: pass;
 
-def Unfold(Response,H,par):
+def Unfold(Response,H,par,type="SVD"):
 	#U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
-	U=ROOT.RooUnfoldSvd(Response,H,par,1000)
+	if type.lower() == "svd":
+		U=ROOT.RooUnfoldSvd(Response,H,par,1000)
+	elif type.lower() == "invert" or type.lower() == "inversion":
+		U=ROOT.RooUnfoldInvert(Response,H)
+	elif type.lower() == "bayes":
+		U=ROOT.RooUnfoldBayes(Response,H,par,False) # last= smooth
+		
 	U.SetNToys(1000)
 	u=U.Hreco(ROOT.RooUnfold.kCovToy)
 	c=U.Ereco(ROOT.RooUnfold.kCovToy)
@@ -185,9 +191,19 @@ def Loop(systName=""):
 			fUnfStudiesOut.mkdir(Bin)
 			fUnfStudiesOut.cd(Bin)
 			for UnfPar in range(5,H.GetNbinsX(),3):
-				H_us=Unfold(Response,H,UnfPar)[0]
-				H_us.SetName("u_par"+str(UnfPar)+Bin)
+				H_us=Unfold(Response,H,UnfPar,"SVD")[0]
+				H_us.SetName("u_svd_par"+str(UnfPar)+Bin)
 				H_us.Write()
+			for UnfPar in range(1,8,2):
+				H_us=Unfold(Response,H,UnfPar,"Bayes")[0]
+				H_us.SetName("u_bayes_par"+str(UnfPar)+Bin)
+				H_us.Write()
+			if True:
+				H_us=Unfold(Response,H,UnfPar,"Invert")[0]
+				H_us.SetName("u_invert_par"+str(UnfPar)+Bin)
+				H_us.Write()
+			H.Clone("r_"+Bin).Write()	
+			G.Clone("g_"+Bin).Write()
 			fUnfOut.cd()
 		## UNFOLD
 		(u,c)=Unfold(Response,H,20);
