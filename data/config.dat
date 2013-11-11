@@ -1,9 +1,10 @@
 #
 #
 # -- Tree Location
-DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root
+#DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root #V00-12
+DATATREE=root://eoscms///store/user/amarini/V00-13/SinglePhoton*.root root://eoscms///store/user/amarini/V00-13/Photon*.root
 # -- Directory where it will write output or search for input
-WorkDir=/afs/cern.ch/user/a/amarini/work/V00-12/
+WorkDir=/afs/cern.ch/user/a/amarini/work/V00-13/
 # -- output of Analyzer
 outputFileName=output
 # -- Pt/Ht/nJets Cuts Binning

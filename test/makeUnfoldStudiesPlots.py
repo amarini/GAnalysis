@@ -117,7 +117,7 @@ for h in range(0,len(HtCuts)):
 		H_invert=file.Get(Dir+"u_invert_par7Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##FIXME: PAR in name
 		H_invert.SetMarkerStyle(23);
 		H_invert.SetMarkerSize(0.5);
-		H_invert.SetMarkerColor(ROOT.kGray+2)
+		H_invert.SetMarkerColor(ROOT.kBlack)
 		H_invert.SetLineColor(H_invert.GetMarkerColor())
 
 		H=file.Get(Dir+"r_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])) ##
@@ -131,8 +131,9 @@ for h in range(0,len(HtCuts)):
 		
 		## PLOT STYLE
 		H.SetMarkerStyle(20)
-		H.SetMarkerColor(ROOT.kBlack)
-		H.SetLineColor(ROOT.kBlack)
+		H.SetMarkerColor(ROOT.kGray+3)
+		H.SetMarkerSize(0.4)
+		H.SetLineColor(ROOT.kGray+3)
 	
 		## AXIS
 		H.GetXaxis().SetTitle("p_{T}^{#gamma}");

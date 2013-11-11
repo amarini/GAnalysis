@@ -79,6 +79,7 @@ public :
    vector<float>   *photonPfIsoPhoton;
    vector<float>   *photonPfIsoPhoton03ForCic;
    vector<float>   *photonPfIsoNeutrals03ForCic;
+   vector<float>   *photonPfIsoCharged02ForCicVtx0;
    vector<float>   *photonPfIsoCharged03ForCicVtx0;
    vector<float>   *photonPfIsoCharged03BadForCic;
    vector<float>   *photonPfIsoPhoton04ForCic;
@@ -98,11 +99,13 @@ public :
    vector<float>   *photonid_hadronicOverEm;
    vector<float>   *photonid_hadronicOverEm2012;
    vector<float>   *photonhcalTowerSumEtConeDR04;
+   vector<float>   *photonhcalTowerSumEtConeDR03;
    vector<float>   *photonecalRecHitSumEtConeDR04;
    vector<float>   *photonnTrkSolidConeDR04;
    vector<float>   *photontrkSumPtSolidConeDR04;
    vector<float>   *photonnTrkHollowConeDR04;
    vector<float>   *photontrkSumPtHollowConeDR04;
+   vector<float>   *photontrkSumPtHollowConeDR03;
    vector<float>   *photonIsoFPRCharged;
    vector<float>   *photonIsoFPRNeutral;
    vector<float>   *photonIsoFPRPhoton;
@@ -281,6 +284,7 @@ public :
    TBranch        *b_photonPfIsoPhoton03ForCic;   //!
    TBranch        *b_photonPfIsoNeutrals03ForCic;   //!
    TBranch        *b_photonPfIsoCharged03ForCicVtx0;   //!
+   TBranch        *b_photonPfIsoCharged02ForCicVtx0;   //!
    TBranch        *b_photonPfIsoCharged03BadForCic;   //!
    TBranch        *b_photonPfIsoPhoton04ForCic;   //!
    TBranch        *b_photonPfIsoNeutrals04ForCic;   //!
@@ -299,11 +303,13 @@ public :
    TBranch        *b_photonid_hadronicOverEm;   //!
    TBranch        *b_photonid_hadronicOverEm2012;   //!
    TBranch        *b_photonhcalTowerSumEtConeDR04;   //!
+   TBranch        *b_photonhcalTowerSumEtConeDR03;   //!
    TBranch        *b_photonecalRecHitSumEtConeDR04;   //!
    TBranch        *b_photonnTrkSolidConeDR04;   //!
    TBranch        *b_photontrkSumPtSolidConeDR04;   //!
    TBranch        *b_photonnTrkHollowConeDR04;   //!
    TBranch        *b_photontrkSumPtHollowConeDR04;   //!
+   TBranch        *b_photontrkSumPtHollowConeDR03;   //!
    TBranch        *b_photonIsoFPRCharged;   //!
    TBranch        *b_photonIsoFPRNeutral;   //!
    TBranch        *b_photonIsoFPRPhoton;   //!
@@ -765,6 +771,7 @@ void Analyzer::Init()
    photonPfIsoPhoton03ForCic = 0;
    photonPfIsoNeutrals03ForCic = 0;
    photonPfIsoCharged03ForCicVtx0 = 0;
+   photonPfIsoCharged02ForCicVtx0 = 0;
    photonPfIsoCharged03BadForCic = 0;
    photonPfIsoPhoton04ForCic = 0;
    photonPfIsoNeutrals04ForCic = 0;
@@ -783,11 +790,13 @@ void Analyzer::Init()
    photonid_hadronicOverEm = 0;
    photonid_hadronicOverEm2012 = 0;
    photonhcalTowerSumEtConeDR04 = 0;
+   photonhcalTowerSumEtConeDR03 = 0;
    photonecalRecHitSumEtConeDR04 = 0;
    photonnTrkSolidConeDR04 = 0;
    photontrkSumPtSolidConeDR04 = 0;
    photonnTrkHollowConeDR04 = 0;
    photontrkSumPtHollowConeDR04 = 0;
+   photontrkSumPtHollowConeDR03 = 0;
    photonIsoFPRCharged = 0;
    photonIsoFPRNeutral = 0;
    photonIsoFPRPhoton = 0;
@@ -944,6 +953,7 @@ if(debug>1) printf("-> SetBranchAddress B - photon vectors\n");
    fChain->SetBranchAddress("photonPfIsoPhoton04ForCic", &photonPfIsoPhoton04ForCic, &b_photonPfIsoPhoton04ForCic);
    fChain->SetBranchAddress("photonPfIsoNeutrals04ForCic", &photonPfIsoNeutrals04ForCic, &b_photonPfIsoNeutrals04ForCic);
    fChain->SetBranchAddress("photonPfIsoCharged04ForCicVtx0", &photonPfIsoCharged04ForCicVtx0, &b_photonPfIsoCharged04ForCicVtx0);
+   fChain->SetBranchAddress("photonPfIsoCharged02ForCicVtx0", &photonPfIsoCharged02ForCicVtx0, &b_photonPfIsoCharged02ForCicVtx0);
    fChain->SetBranchAddress("photonPfIsoCharged04BadForCic", &photonPfIsoCharged04BadForCic, &b_photonPfIsoCharged04BadForCic);
    fChain->SetBranchAddress("photonid_sieie", &photonid_sieie, &b_photonid_sieie);
    fChain->SetBranchAddress("photonid_sieip", &photonid_sieip, &b_photonid_sieip);
@@ -958,11 +968,13 @@ if(debug>1) printf("-> SetBranchAddress B - photon vectors\n");
    fChain->SetBranchAddress("photonid_hadronicOverEm", &photonid_hadronicOverEm, &b_photonid_hadronicOverEm);
    fChain->SetBranchAddress("photonid_hadronicOverEm2012", &photonid_hadronicOverEm2012, &b_photonid_hadronicOverEm2012);
    fChain->SetBranchAddress("photonhcalTowerSumEtConeDR04", &photonhcalTowerSumEtConeDR04, &b_photonhcalTowerSumEtConeDR04);
+   fChain->SetBranchAddress("photonhcalTowerSumEtConeDR03", &photonhcalTowerSumEtConeDR03, &b_photonhcalTowerSumEtConeDR03);
    fChain->SetBranchAddress("photonecalRecHitSumEtConeDR04", &photonecalRecHitSumEtConeDR04, &b_photonecalRecHitSumEtConeDR04);
    fChain->SetBranchAddress("photonnTrkSolidConeDR04", &photonnTrkSolidConeDR04, &b_photonnTrkSolidConeDR04);
    fChain->SetBranchAddress("photontrkSumPtSolidConeDR04", &photontrkSumPtSolidConeDR04, &b_photontrkSumPtSolidConeDR04);
    fChain->SetBranchAddress("photonnTrkHollowConeDR04", &photonnTrkHollowConeDR04, &b_photonnTrkHollowConeDR04);
    fChain->SetBranchAddress("photontrkSumPtHollowConeDR04", &photontrkSumPtHollowConeDR04, &b_photontrkSumPtHollowConeDR04);
+   fChain->SetBranchAddress("photontrkSumPtHollowConeDR03", &photontrkSumPtHollowConeDR03, &b_photontrkSumPtHollowConeDR03);
    fChain->SetBranchAddress("photonIsoFPRCharged", &photonIsoFPRCharged, &b_photonIsoFPRCharged);
    fChain->SetBranchAddress("photonIsoFPRNeutral", &photonIsoFPRNeutral, &b_photonIsoFPRNeutral);
    fChain->SetBranchAddress("photonIsoFPRPhoton", &photonIsoFPRPhoton, &b_photonIsoFPRPhoton);

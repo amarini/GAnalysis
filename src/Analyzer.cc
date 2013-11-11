@@ -194,23 +194,28 @@ void Analyzer::Loop()
 		//PRESELECTION H-GG
 		if( (*photonid_sieie)[iGamma] >0.014) continue;
 		if(currentSyst==SYST::NONE)Sel2->FillAndInit("SieieLoose");
-		if( (*photonid_r9)[iGamma]>0.9){
+		if( (*photonid_r9)[iGamma]>=0.9){
 			if( (*photonid_hadronicOverEm)[iGamma] >0.082) continue; 
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
-			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
+			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
+			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 50 + 0.005*(*photonPt)[iGamma] )continue;
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
-			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
+			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
+			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 50 + 0.002*(*photonPt)[iGamma] )continue;
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
 		else{
 			if( (*photonid_hadronicOverEm)[iGamma] >0.075) continue; 
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
-			if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
+			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
+			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 4 + 0.005*(*photonPt)[iGamma] )continue;
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
-			if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
+			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
+			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 4 + 0.002*(*photonPt)[iGamma] )continue;
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
-		if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
+		//if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
+		if( (*photonPfIsoCharged02ForCicVtx0)[iGamma] > 4 ) continue;
 			if(currentSyst==SYST::NONE)Sel2->FillAndInit("chgIso"); //Selection
 		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
 		if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
@@ -271,7 +276,7 @@ void Analyzer::Loop()
 			if(triggerMenu == "HLT_Photon50_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon50; PUWeightSysUp=PUWeightHLT_Photon50SysUp;PUWeightSysDown=PUWeightHLT_Photon50SysDown;}
 			if(triggerMenu == "HLT_Photon30_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon30; PUWeightSysUp=PUWeightHLT_Photon30SysUp;PUWeightSysDown=PUWeightHLT_Photon30SysDown;}
 			}
-	
+
 		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Trigger"); //Selection
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
@@ -284,6 +289,14 @@ void Analyzer::Loop()
 
 	if(GammaIdx<0) continue; //--no gamma candidate found
 	if(currentSyst==SYST::NONE)Sel->FillAndInit("GammaSelection"); //Selection
+
+	if(!isRealData) //ScaleFactors
+			{
+			double sf1=0.997,sf2=0.978;
+			if((*photonid_r9)[GammaIdx]>=0.9){PUWeight*=sf1;PUWeightSysUp*=sf1;PUWeightSysDown*=sf1;}
+			else {PUWeight*=sf2; PUWeightSysUp*=sf2;PUWeightSysDown*=sf2;}
+			}
+				
 
 	TLorentzVector gamma;
 	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt

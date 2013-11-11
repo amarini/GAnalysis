@@ -205,8 +205,8 @@ def Loop(systName=""):
 			H.Clone("r_"+Bin).Write()	
 			G.Clone("g_"+Bin).Write()
 			fUnfOut.cd()
-		## UNFOLD
-		(u,c)=Unfold(Response,H,20);
+		## UNFOLD -- ONE USED IN THE ANALYSIS
+		(u,c)=Unfold(Response,H,3,"Bayes");
 
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
