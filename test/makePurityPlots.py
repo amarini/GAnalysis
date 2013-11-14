@@ -17,6 +17,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="MC Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
 
@@ -46,7 +47,20 @@ SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 
 BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
-inputFileNameFit=WorkDir + "/fit.txt"  
+inputFileNameFit=WorkDir + "/fit.txt" 
+
+doMC=False
+if not options.inputDatMC == "": 
+	doMC=True
+	if(DEBUG>0): print "--> load dat file: "+options.inputDatMC
+	configMC=read_dat(options.inputDatMC)
+	if(DEBUG>0):
+        	print "--------- MC CONFIG -----------"
+        	PrintDat(configMC)
+	WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default MC WDIR")
+	inputFile=WorkDirMC+ReadFromDat(configMC,"outputFileName","output","-->Set Default Output") + ".root"
+	fMC=ROOT.TFile.Open(inputFile)
+	
 
 
 if DEBUG>0 : print "--> Read File"
@@ -87,6 +101,7 @@ PtBins=ROOT.Bins()
 
 #LOOP OVER THE BINs
 AllH={}
+AllHMC={}
 C=ROOT.TCanvas("C","C")
 L=ROOT.TLegend(0.65,0.15,.89,.45)
 L.SetFillStyle(0)
@@ -105,6 +120,8 @@ for h in range(0,len(HtCuts)):
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
 		H=ROOT.TH1D("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		if doMC:
+			HMC=ROOT.TH1D("mc_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION
@@ -114,20 +131,45 @@ for h in range(0,len(HtCuts)):
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
 				fr=1	
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), fr )
+			if doMC:
+				RU= fMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+				RE= fMC.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+				try:
+					frmc= RU.GetBinContent( RU.FindBin((PtCuts[p]+PtCuts[p+1])/2.) ) / RE.Integral()
+				except AttributeError: 
+					print "--ERROR in MC Fraction: Pt %.0f Ht %.0f nJets %d"%(PtCuts[p],HtCuts[h],nJetsCuts[nj])
+					frmc=0
+				HMC.SetBinContent( HMC.FindBin((PtCuts[p]+PtCuts[p+1])/2.) , frmc)
 		## PLOT HISTOS
 		if   HtCuts[h] == 0 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kBlack)
 			H.SetMarkerStyle(20)
+			if doMC: 
+				HMC.SetLineColor(ROOT.kBlack)
+				HMC.SetLineWidth(2)
+				HMC.SetLineStyle(ROOT.kDashed)
 		elif HtCuts[h] == 100 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kRed+1)
 			H.SetMarkerStyle(33)
+			if doMC: 
+				HMC.SetLineColor(ROOT.kRed)
+				HMC.SetLineWidth(2)
+				HMC.SetLineStyle(ROOT.kDashed)
 		elif HtCuts[h] == 300 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kBlue-3)
 			H.SetMarkerStyle(29)
+			if doMC: 
+				HMC.SetLineColor(ROOT.kBlue-3)
+				HMC.SetLineWidth(2)
+				HMC.SetLineStyle(ROOT.kDashed)
 		elif HtCuts[h] == 0 and nJetsCuts[nj]==3:
 			H.SetMarkerColor(ROOT.kGreen+2)
 			H.SetMarkerStyle(21)
 			H.SetMarkerSize(0.8)
+			if doMC: 
+				HMC.SetLineColor(ROOT.kGreen+2)
+				HMC.SetLineWidth(2)
+				HMC.SetLineStyle(ROOT.kDashed)
 		else:
 			H.SetMarkerStyle(25)
 		#DRAW
@@ -142,6 +184,10 @@ for h in range(0,len(HtCuts)):
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
 			H.Draw("P SAME")
+
+		if doMC:
+			HMC.Draw("HIST SAME")
+			AllHMC[ (h,nj) ] = HMC
 
 		L.AddEntry(H,"H_{T}>"+str(HtCuts[h])+" N_{jets}#geq"+str(nJetsCuts[nj]))
 

@@ -26,6 +26,11 @@ doInclusivePlots=True
 doFitPlots=True
 doParsPlots=True
 doUnfoldPlots=True
+doUnfoldStudies=True
+isMC=False
+if "mc" in options.inputDat.lower():
+	doUnfoldStudies=False
+	isMC=True
 
 print "inserting in path cwd"
 sys.path.insert(0,os.getcwd())
@@ -53,6 +58,8 @@ call(["mkdir","-p",WorkDir+"plots"])
 #purityPlots
 if doPurityPlots:
 	cmd=["python","test/makePurityPlots.py","--inputDat="+options.inputDat]
+	if isMC:
+		cmd=["python","test/makePurityPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDat]
 	call(cmd)
 #inclusivePtPlots
 if doInclusivePlots:
@@ -76,4 +83,6 @@ if doParsPlots:
 if doUnfoldPlots:
 	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC=data/configMC.dat"]
 	call(cmd)
-		
+
+if doUnfoldStudies:
+	cmd=["python","test/makeUnfoldStudiesPlots.py","--inputDat="+options.inputDat]

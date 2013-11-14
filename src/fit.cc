@@ -98,7 +98,8 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		float targetTail=0;for(int i=0;i<nTailSum;i++) targetTail+= h->GetBinContent(targetN-i);
 		float frac1=(targetMax/targetInt)/(sigMax/sigInt);
 		float frac2=1.- (targetTail/targetInt)/(bkgTail/bkgInt);
-		fracEstimator=(frac1+frac2)/2.;
+		//fracEstimator=(frac1+frac2)/2.;
+		fracEstimator=frac1;
 		if(targetInt==0) fracEstimator=0.8;
 		else if(sigInt==0 && bkgInt==0) fracEstimator=0.8;
 		else if(sigInt==0) fracEstimator=frac2;
@@ -113,7 +114,8 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		}
 
 	//create real var
-	RooRealVar f("f","fraction",fracEstimator,0.01,10.) ;
+		if(fracEstimator>1.0 || fracEstimator<0.4)fracEstimator=0.8;
+	RooRealVar f("f","fraction",fracEstimator,0.4,1.) ;
 		//f.setRange(0.10,1.0);
 	RooRealVar x("photoniso","photoniso",xMin,xMax) ;
 	//Import Histogram in RooFit
@@ -121,15 +123,15 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	RooDataHist HistBkg("bkg","hist bkg",x,bkg);
 	//Convert histogram in pdfs - build model	
 	RooHistPdf PdfSig("pdfsig","pdfsig",x,HistSig,0);
-	RooHistPdf PdfBkg("pdfbkg","pdfbkg",x,HistBkg,0);
+	RooHistPdf PdfBkg("pdfbkg","pdfbkg",x,HistBkg,0); //last number is interpolation
 		RooRealVar bkgPar1("bkgPar1","bkgPar1",bkgPar[1]);
 		RooRealVar bkgPar2("bkgPar2","bkgPar2",bkgPar[2]);
 	RooLandau PdfBkgL("pdfbkgL","pdfbkgL",x,bkgPar1,bkgPar2);
 
 	//Use template	
-	//RooAddPdf PdfModel("model","model",RooArgList(PdfSig,PdfBkg),f);
+	RooAddPdf PdfModel("model","model",RooArgList(PdfSig,PdfBkg),f);
 	//Use Landau model for bkg
-	RooAddPdf PdfModel("model","model",RooArgList(PdfSig,PdfBkgL),f);
+	//RooAddPdf PdfModel("model","model",RooArgList(PdfSig,PdfBkgL),f);
 
 	//----FIT---
 	RooFitResult *r;
@@ -137,9 +139,9 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	if(binned){
 		printf("----> Going to create RooDataHist\n");
 		RooDataHist HistToFit("hist","hist",x,h); 
-		//r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save());
 		printf("----> Going to fit\n");
-		r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE));
+		//r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(),Range(xMin,xMax));
+		r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
 		printf("----> Going to plot\n");
 		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
 		}
@@ -150,8 +152,9 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		}
 	//----SAVE---
 	PdfModel.plotOn(frame);
-	PdfModel.plotOn(frame,Components(PdfBkgL),LineColor(kRed)); // Landau
-	PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
+	PdfModel.plotOn(frame,Components(PdfBkg),LineColor(kRed)); // template
+	//PdfModel.plotOn(frame,Components(PdfBkgL),LineColor(kRed)); // Landau
+	//PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
 	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
 	
 	TCanvas *c=new TCanvas((string(name)+"_canvas").c_str(),"Canvas");
