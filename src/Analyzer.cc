@@ -42,16 +42,16 @@ void Analyzer::Loop()
 	}
 
    //exit if syst does not make sense for data or mc	
-   if(currentSyst == SYST::PUUP && isRealData) return;	
-   if(currentSyst == SYST::PUDN && isRealData) return;	
-   if(currentSyst == SYST::JERUP && isRealData) return;	
-   if(currentSyst == SYST::JERDN && isRealData) return;	
-   if(currentSyst == SYST::UNFOLD ) return;	
-   if(currentSyst == SYST::SIGSHAPE ) return;	
-   if(currentSyst == SYST::BKGSHAPE ) return;	
-   if(currentSyst == SYST::FIT ) return;	
-   if(currentSyst == SYST::LUMIUP ) return;	
-   if(currentSyst == SYST::LUMIDN ) return;	
+   if(currentSyst == PUUP && isRealData) return;	
+   if(currentSyst == PUDN && isRealData) return;	
+   if(currentSyst == JERUP && isRealData) return;	
+   if(currentSyst == JERDN && isRealData) return;	
+   if(currentSyst == UNFOLD ) return;	
+   if(currentSyst == SIGSHAPE ) return;	
+   if(currentSyst == BKGSHAPE ) return;	
+   if(currentSyst == FIT ) return;	
+   if(currentSyst == LUMIUP ) return;	
+   if(currentSyst == LUMIDN ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -72,7 +72,7 @@ void Analyzer::Loop()
      // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
-	if(currentSyst==SYST::NONE)Sel->FillAndInit("All"); //Selection
+	if(currentSyst==NONE)Sel->FillAndInit("All"); //Selection
 	//SYST SMEARINGS
 	Smear();
      // if (ientry < 0) break;
@@ -140,7 +140,7 @@ void Analyzer::Loop()
 	if(debug>1)printf("-> Starting GammaLoop\n");
 	for(Int_t iGamma=0;iGamma<Int_t(photonPt->size());++iGamma)
 		{
-		if(currentSyst==SYST::NONE)Sel2->FillAndInit("All"); //Selection
+		if(currentSyst==NONE)Sel2->FillAndInit("All"); //Selection
 		//TODO Gamma ID with CiC
 		//if( photonid_hadronicOverEm2012->at(iGamma) >0.1 ) continue;	
 			//set variables for tmva
@@ -161,7 +161,7 @@ void Analyzer::Loop()
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=EtaMax ) continue;
-		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Eta"); //Selection
+		if(currentSyst==NONE)Sel2->FillAndInit("Eta"); //Selection
 		//loose iso req
 	//compute RhoCorrections
 	if(useEffArea){
@@ -183,41 +183,41 @@ void Analyzer::Loop()
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 		//---- OLD
 		//if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
-		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
+		//if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
 		//if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoCharged"); //Selection
+		//if(currentSyst==NONE)Sel2->FillAndInit("IsoCharged"); //Selection
 		//if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		//if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
+		//if(currentSyst==NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
 		////if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
 		
 		//PRESELECTION H-GG
 		if( (*photonid_sieie)[iGamma] >0.014) continue;
-		if(currentSyst==SYST::NONE)Sel2->FillAndInit("SieieLoose");
+		if(currentSyst==NONE)Sel2->FillAndInit("SieieLoose");
 		if( (*photonid_r9)[iGamma]>=0.9){
 			if( (*photonid_hadronicOverEm)[iGamma] >0.082) continue; 
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
 			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
 			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 50 + 0.005*(*photonPt)[iGamma] )continue;
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
 			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
 			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 50 + 0.002*(*photonPt)[iGamma] )continue;
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
 		else{
 			if( (*photonid_hadronicOverEm)[iGamma] >0.075) continue; 
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("HoE"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
 			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
 			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 4 + 0.005*(*photonPt)[iGamma] )continue;
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("hcalIso"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
 			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
 			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 4 + 0.002*(*photonPt)[iGamma] )continue;
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("trkIso"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
 		}
 		//if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
 		if( (*photonPfIsoCharged02ForCicVtx0)[iGamma] > 4 ) continue;
-			if(currentSyst==SYST::NONE)Sel2->FillAndInit("chgIso"); //Selection
+			if(currentSyst==NONE)Sel2->FillAndInit("chgIso"); //Selection
 		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
-		if(currentSyst==SYST::NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
+		if(currentSyst==NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
 		
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -276,7 +276,7 @@ void Analyzer::Loop()
 			if(triggerMenu == "HLT_Photon30_CaloIdVL_v*") {PUWeight=PUWeightHLT_Photon30; PUWeightSysUp=PUWeightHLT_Photon30SysUp;PUWeightSysDown=PUWeightHLT_Photon30SysDown;}
 			}
 
-		if(currentSyst==SYST::NONE)Sel2->FillAndInit("Trigger"); //Selection
+		if(currentSyst==NONE)Sel2->FillAndInit("Trigger"); //Selection
 		
 		if( (jentry%10000)==0 && debug>0) printf("--> Trigger %s Prescale %f Pt: %f\n",triggerMenu.c_str(),ScaleTrigger,(*photonPt)[iGamma]);
 
@@ -287,7 +287,7 @@ void Analyzer::Loop()
 
 
 	if(GammaIdx<0) continue; //--no gamma candidate found
-	if(currentSyst==SYST::NONE)Sel->FillAndInit("GammaSelection"); //Selection
+	if(currentSyst==NONE)Sel->FillAndInit("GammaSelection"); //Selection
 
 	if(!isRealData) //ScaleFactors
 			{
@@ -326,7 +326,7 @@ void Analyzer::Loop()
 	mynJets=JetIdx.size();
 	//my selection 
 	if(mynJets<1) continue; 
-	if(currentSyst==SYST::NONE)Sel->FillAndInit("OneJet"); //Selection
+	if(currentSyst==NONE)Sel->FillAndInit("OneJet"); //Selection
 
 
 	if( (jentry%10000 ==0) && debug>0)fprintf(stderr,"RhoCorr=%f photonRC=%f\n",RhoCorr,(*photonIsoFPRPhoton)[GammaIdx]);
@@ -491,8 +491,8 @@ void Analyzer::Smear()
 	float newPt,newE;
 	switch (currentSyst)
 	{
-	case SYST::NONE : return;
-	case SYST::JESUP : 
+	case NONE : return;
+	case JESUP : 
 		for(int i=0;i<int(jetPt->size());i++){
 			if(i>=int(jetE->size())) printf("ERROR JETE SIZE < JETPT SIZE\n");
 			if(i>=int(jetUNC->size())) printf("ERROR JETUNC SIZE < JETPT SIZE\n");
@@ -505,7 +505,7 @@ void Analyzer::Smear()
 			}
 		}
 		break;
-	case SYST::JESDN:
+	case JESDN:
 		for(int i=0;i<int(jetPt->size());i++){
 			newPt= (*jetPt)[i]*(1-(*jetUNC)[i]);
 			newE= (*jetE)[i]*(1-(*jetUNC)[i]);
@@ -516,20 +516,20 @@ void Analyzer::Smear()
 			}
 		}
 		break;
-	case SYST::PUUP: 
+	case PUUP: 
 		PUWeight=PUWeightSysUp;
 		//TODO -- PUHLT
 		break;
-	case SYST::PUDN: 
+	case PUDN: 
 		PUWeight=PUWeightSysDown;
 		break;
-	case SYST::JERUP: 
+	case JERUP: 
 		for(int i=0;i<int(jetPt->size());i++){
 			(*jetPt)[i]=(*jetPtRESup)[i] ;
 		}
 		
 		break;
-	case SYST::JERDN: 
+	case JERDN: 
 		for(int i=0;i<int(jetPt->size());i++){
 			(*jetPt)[i]=(*jetPtRESdown)[i] ;
 		}
@@ -545,41 +545,41 @@ string Analyzer::SystName(){
 string Analyzer::SystName(enum SYST a){
 	switch (a)
 	{
-	case SYST::NONE : return string("");
-	case SYST::JESUP : 
+	case NONE : return string("");
+	case JESUP : 
 		return string("_JESUP");
 		break;
-	case SYST::JESDN:
+	case JESDN:
 		return string("_JESDN");
 		break;
-	case SYST::PUUP: 
+	case PUUP: 
 		return string("_PUUP");
 		break;
-	case SYST::PUDN: 
+	case PUDN: 
 		return string("_PUDN");
 		break;
-	case SYST::JERUP: 
+	case JERUP: 
 		return string("_JERUP");
 		break;
-	case SYST::JERDN: 
+	case JERDN: 
 		return string("_JERDN");
 		break;
-	case SYST::SIGSHAPE: 
+	case SIGSHAPE: 
 		return string("_SIGSHAPE");
 		break;
-	case SYST::BKGSHAPE: 
+	case BKGSHAPE: 
 		return string("_BKGSHAPE");
 		break;
-	case SYST::UNFOLD: 
+	case UNFOLD: 
 		return string("_UNFOLD");
 		break;
-	case SYST::FIT: 
+	case FIT: 
 		return string("_FIT");
 		break;
-	case SYST::LUMIUP: 
+	case LUMIUP: 
 		return string("_LUMIUP");
 		break;
-	case SYST::LUMIDN: 
+	case LUMIDN: 
 		return string("_LUMIDN");
 		break;
 	default: return "";
