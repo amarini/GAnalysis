@@ -39,8 +39,7 @@
 using namespace std;
 using namespace RooFit;
 
-//TODO change last parameter to map, and access through strings to the pars
-float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char *name,vector<float> *pars)
+float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char *name,map<string,float> *pars)
 {
 	printf("DEBUG: NAME=%s FILE=%s\n",name,fileName);
 	bool binned=false;
@@ -77,10 +76,9 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	bkgPar[2]=bkgR->Parameter(2);
 	cout<<"--> LANDAU PARS "<<bkgPar[0]<<" "<<bkgPar[1]<<" " <<bkgPar[2]<<endl;
 	if(pars!=NULL) {
-		pars->resize(10);	
-		(*pars)[0]=bkgPar[0];
-		(*pars)[1]=bkgPar[1];
-		(*pars)[2]=bkgPar[2];
+		(*pars)["bkg0"]=bkgPar[0];
+		(*pars)["bkg1"]=bkgPar[1];
+		(*pars)["bkg2"]=bkgPar[2];
 		}
 	//parameter estimation for binned
 	float fracEstimator=0;
@@ -190,8 +188,12 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	  cout << "-log(L) at minimum = " << r->minNll() << endl ;
 	  cout << "Error = "<<f.getError()<<endl;
 	  cout << "--> FractionFitted = "<<f.getVal()<<endl;
-	if(pars!=NULL)	
-		(*pars)[3]=f.getError();
+	if(pars!=NULL){
+		(*pars)["error"]=f.getError();
+		(*pars)["f"]=f.getVal();
+		(*pars)["minNll"]=r->minNll();
+		(*pars)["edm"]=r->edm();
+		}
 	//
 	if(name[0]!='\0')
 		{
@@ -272,7 +274,7 @@ vector<float> r; //result
 		{cout<<"SKIP TOY EVENT: INTEGRAL=0"<<endl;continue;}
 
 	printf("DEBUG: PASSING %s as fileName\n",fileName);
-	float a= FIT::fit(h1,s1,b1,fileName,Form("toy%d_PT_0_0_HT_0_nJet_0\0",iToy)); //string should be formatted
+	float a= FIT::fit(h1,s1,b1,fileName,Form("toy%d_PT_0_0_HT_0_nJet_0",iToy)); //string should be formatted
 	
 	r.push_back(a);
 		

@@ -33,7 +33,7 @@ using namespace RooFit;
 
 class FIT{
 public:
-static float fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName="",const char *name="",vector<float> *pars=NULL); //o=TH1D or TTre to be fitted , fileName=.root , pars: push back extra floats
+static float fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName="",const char *name="",map<string,float> *pars=NULL); //o=TH1D or TTre to be fitted , fileName=.root , pars: push back extra floats
 };
 
 #include "TRandom3.h"
