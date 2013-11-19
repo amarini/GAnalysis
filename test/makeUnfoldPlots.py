@@ -82,9 +82,23 @@ def makeBands(h1,h2,type="Mean"):
 			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) )/2.0)
 	return H
 
+epsilon=0.0001
 def sqrtSum(h1,h2):
 	for i in range (1,h2.GetNbinsX()+1):
-		h1.SetBinError(i, math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 ))
+		if h1.GetBinError(i)  > epsilon and h2.GetBinError(i)  > epsilon:
+			e=math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 )
+		elif h1.GetBinError(i) <= epsilon and h2.GetBinError(i) <= epsilon:
+			e=epsilon
+		elif h1.GetBinError(i) > epsilon:
+			e=h1.GetBinError(i)
+		elif h2.GetBinError(i) > epsilon:
+			e=h2.GetBinError(i)
+		elif ROOT.TMath.IsNaN( h1.GetBinError(i) ) or ROOT.TMath.IsNaN( h2.GetBinError(i) ):
+			e=epsilon
+		else:
+			print "-- assertion error -- %f -- %f -- %f"%(h1.GetBinError(i),h2.GetBinError(i),epsilon)
+			e=epsilon
+		h1.SetBinError(i, e)
 
 def Ratio(H,H1,NoErrorH=False):
 	R=H1.Clone(H1.GetName()+"_ratio")
@@ -143,6 +157,15 @@ for h in range(0,len(HtCuts)):
 		sqrtSum(H_TOT,H_SIG)
 		sqrtSum(H_TOT,H_BKG)
 		sqrtSum(H_TOT,H_LUM)
+		for i in range(0,H_TOT.GetNbinsX()+1):
+			print "H_TOT: Bin=%d Content=%f Error=%f "%(i,H_TOT.GetBinContent(i),H_TOT.GetBinError(i))
+			print "H_PU: Bin=%d Content=%f Error=%f "%(i,H_PU.GetBinContent(i),H_PU.GetBinError(i))
+			print "H_JES: Bin=%d Content=%f Error=%f "%(i,H_JES.GetBinContent(i),H_JES.GetBinError(i))
+			print "H_JER: Bin=%d Content=%f Error=%f "%(i,H_JER.GetBinContent(i),H_JER.GetBinError(i))
+			print "H_SIG: Bin=%d Content=%f Error=%f "%(i,H_SIG.GetBinContent(i),H_SIG.GetBinError(i))
+			print "H_BKG: Bin=%d Content=%f Error=%f "%(i,H_BKG.GetBinContent(i),H_BKG.GetBinError(i))
+			print "H_LUM: Bin=%d Content=%f Error=%f "%(i,H_LUM.GetBinContent(i),H_LUM.GetBinError(i))
+			print "H: Bin=%d Content=%f Error=%f "%(i,H.GetBinContent(i),H.GetBinError(i))
 		
 		## CANVAS
 		C=ROOT.TCanvas("C","C")

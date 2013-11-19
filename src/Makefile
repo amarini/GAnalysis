@@ -29,8 +29,8 @@ ROOTLIBS=`root-config --libs`
 all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so
 #all: Analyzer.so
 
-libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o 
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o fit.o fitDict.o -o libGAnalysis.so
+libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o stat.o statDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o fit.o fitDict.o stat.o statDict.o -o libGAnalysis.so
 
 Analyzer.d: Analyzer.cc Analyzer.h
 	$(CXX) -o Analyzer.$(DepSuf) -M Analyzer.$(SrcSuf) $(CXXFLAGS) $(LDFLAGS)

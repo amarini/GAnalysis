@@ -140,8 +140,8 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		printf("----> Going to create RooDataHist\n");
 		RooDataHist HistToFit("hist","hist",x,h); 
 		printf("----> Going to fit\n");
-		//r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(),Range(xMin,xMax));
-		r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
+		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(),Range(xMin,xMax));
+		//r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
 		printf("----> Going to plot\n");
 		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
 		}

@@ -132,6 +132,9 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 					SigMC=fileMC.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) )
 					TruthSig.append(fileMC.Get("photoniso_MATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )
 					TruthSig[-1].Divide(SigMC)
+					for iHbin in range(1,TruthSig[-1].GetNbinsX()+1):
+						if( TruthSig[-1].GetBinContent(iHbin) >100 and TruthSig[-1].GetBinError(iHbin)> TruthSig[-1].GetBinContent(iHbin)*.5 ):
+							TruthSig[-1].SetBinContent(iHbin,1) #small numbers correction
 					TruthSig[-1].SetName("SigShapeCorrFit_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)  )
 					SigCorr.append( SigTemplate[-1].Clone("photonisoRC_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) );
 					SigCorr[-1].Multiply(TruthSig[-1])
@@ -144,6 +147,9 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 					BkgMC=fileMC.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets) )
 					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )#Truth has Sig Id
 					TruthBkg[-1].Divide(BkgMC)
+					for iHbin in range(1,TruthBkg[-1].GetNbinsX()+1):
+						if( TruthBkg[-1].GetBinContent(iHbin) >100 and TruthBkg[-1].GetBinError(iHbin)> TruthBkg[-1].GetBinContent(iHbin)*.5 ):
+							TruthBkg[-1].SetBinContent(iHbin,1) #small numbers correction
 					BkgCorr.append( BkgTemplate[-1].Clone("photoniso_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)))
 					BkgCorr[-1].Multiply(TruthBkg[-1])
 				except (AttributeError,TypeError):

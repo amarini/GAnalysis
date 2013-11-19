@@ -17,6 +17,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file",default="data/configMC.dat")
 #parser.add_option("","--doPurityPlots" ,dest='doPurityPlots',action='store_true',help="Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
@@ -81,7 +82,7 @@ if doParsPlots:
 	call(cmd)
 #unfolded distributions
 if doUnfoldPlots:
-	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC=data/configMC.dat"]
+	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
 	call(cmd)
 
 if doUnfoldStudies:
