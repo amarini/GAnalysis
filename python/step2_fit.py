@@ -271,8 +271,8 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 				 Bin="Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) 
 				 os.remove(WorkDir+"/biasresults"+Bin+".root")
 			except OSError: print "bias file doesn't exist: not removed"
-			BiasStudySig[Sbin].Scale( 1./BiasStudySig[Sbin].Integral)
-			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral)
+			BiasStudySig[Sbin].Scale( 1./BiasStudySig[Sbin].Integral() )
+			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral() )
 			ToFitBias=BiasStudySig[Sbin].Clone("ToFitBias"+Bin)
 			ToFitBias.Scale(f)
 			ToFitBias.Add(BiasStudy[Bbin],(1-f))

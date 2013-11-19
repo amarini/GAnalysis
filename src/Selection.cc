@@ -75,13 +75,13 @@ int Selection::Read(TFile *f)
 		string name2(name);
 		int pos=name2.rfind("_"); name2[pos]=' ';
 		char cutName[1023];int iCut;
-		sscanf(name2.c_str(),"%s %d",&cutName,&iCut);
+		sscanf(name2.c_str(),"%s %d",cutName,&iCut);
 		cuts[iCut]=pair<string,TH1F*>(string(cutName),(TH1F*)h->Clone());
 		names[cutName]=iCut;
 		nCuts++;
 		}
 
-	for(int i=0;i<nCuts;i++) if( cuts.count(i) ==0 ) {fprintf(stderr,"READING ERROR:%s\n");return 1;}
+	for(int i=0;i<nCuts;i++) if( cuts.count(i) ==0 ) {fprintf(stderr,"READING ERROR\n");return 1;}
 	return 0;
 	}
 int Selection::getStats()
