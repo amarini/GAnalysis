@@ -43,7 +43,7 @@ config=read_dat(options.inputDat)
 if(DEBUG>0):
 	PrintDat(config)
 
-A.usePUWeightHLT=ReadFromDat(config,"usePUWeightHLT",0,"--> Default usePUWeightHLT=0")
+A.usePUWeightHLT=ReadFromDat(config,"UsePUWeightHLT",0,"--> Default usePUWeightHLT=0")
 
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
