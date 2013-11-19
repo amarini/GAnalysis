@@ -224,11 +224,12 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 					BkgCorr[Bbin].SetBinContent(x,0.0000000001)
 	
 		#BINNED
-		v=ROOT.std.vector(float)()
+		#v=ROOT.std.vector(float)()
+		fitR=ROOT.std.map(string,float)()
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],
 				WorkDir+"/fitresults.root",
 				"Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) ,
-				v
+				fitR
 				)
 
 		if doShapeCorrFit:
@@ -245,7 +246,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 		else:
 			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Fraction= "+str(f))
 	
-		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Par0 "+str(v[0])+" Par1 "+str(v[1]) + " Par2 "+str(v[2])+"\n")
+		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Par0 "+str(fitR["bkg0"])+" Par1 "+str(fitR["bkg1"]) + " Par2 "+str(fitR["bkg2"])+"\n")
 
 		rms=-1
 		#make sure Normalization didn't change ->Poisson
@@ -280,7 +281,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 			o_txt.write("BIAS= "+str(b["mean"]))
 			
 
-		o_txt.write(" ERROR= "+str( v[3]) +"\n"); ## ROOFIT ERROR
+		o_txt.write(" ERROR= "+str( fitR["error"]) +"\n"); ## ROOFIT ERROR
 		
 		if doShapeCorrFit:
 			fOut=ROOT.TFile.Open(WorkDir+"/fitresults.root","UPDATE")
