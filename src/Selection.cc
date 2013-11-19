@@ -11,6 +11,7 @@
 #include "TStyle.h"
 
 #include <cstdio>
+#include <iostream>
 
 #ifdef SEL_cxx
 using namespace std;
@@ -44,12 +45,18 @@ int Selection::Fill(int iCut,float weight)
 	}
 int Selection::Write(TFile *f)
 	{
+	cerr<<" -- STARTING WRITING SELECTION TO FILE --"<<endl;
+	if(f==NULL) cerr<<" -> File is not opened"<<endl;
 	f->mkdir(dirName.c_str());
 	f->cd(dirName.c_str());
+	cerr<<" -> going to write selection"<<endl;
 	for( map<int,pair<string,TH1F*> >::iterator it=cuts.begin();it!=cuts.end();it++)
 		{
+		cerr<<" --> Writing histogram: "<<it->second.first<<endl;
+		if(it->second.second==NULL)cerr<<" --->  histogram doesn't exist "<<endl;
 		it->second.second->Write();
 		}
+	cerr<<" -- END WRITING --"<<endl;
 	}
 int Selection::Read(TFile *f)
 	{
