@@ -36,11 +36,10 @@
 #include "fit.h"
 #include "stat.h"
 
-
 using namespace std;
 using namespace RooFit;
 
-
+//TODO change last parameter to map, and access through strings to the pars
 float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char *name,vector<float> *pars)
 {
 	printf("DEBUG: NAME=%s FILE=%s\n",name,fileName);
@@ -248,7 +247,7 @@ void TOYS::RandomVar(TH1D*h,TRandom *r,int sumw2){
 	
 }
 
-float TOYS::toy(TH1D*h, TH1D* sig, TH1D* bkg,int nToys,TRandom *random,const char*fileName)
+map<string,float> TOYS::toy(TH1D*h, TH1D* sig, TH1D* bkg,int nToys,TRandom *random,const char*fileName)
 {
 vector<float> r; //result
 	if(random==NULL){
@@ -262,12 +261,12 @@ vector<float> r; //result
 	TH1D *s1=(TH1D*)sig->Clone("tmp_s");
 	TH1D *b1=(TH1D*)bkg->Clone("tmp_b");
 	
-	RandomVar(h1,random,0);//poisson
-	RandomVar(s1,random,0);//poisson
-	RandomVar(b1,random,0);//poisson
-	//RandomVar(h1,random,1);//gaus
-	//RandomVar(s1,random,1);//gaus
-	//RandomVar(b1,random,1);//gaus
+//	RandomVar(h1,random,0);//poisson
+//	RandomVar(s1,random,0);//poisson
+//	RandomVar(b1,random,0);//poisson
+	RandomVar(h1,random,1);//gaus
+	RandomVar(s1,random,1);//gaus
+	RandomVar(b1,random,1);//gaus
 	
 	if(h1->Integral()==0 || s1->Integral()==0 || b1->Integral()==0)
 		{cout<<"SKIP TOY EVENT: INTEGRAL=0"<<endl;continue;}
@@ -281,9 +280,20 @@ vector<float> r; //result
 	s1->Delete();
 	b1->Delete();	
 	}
-	return  STAT::rms(r);
-	pair<float,float> b; //store low-hi for asymmetric
-	return  STAT::ConfidenceInterval(r,b,0.68);
+		
+	map<string,float> Results;
+		Results["rms"]=STAT::rms(r);
+		Results["mean"]=STAT::mean(r);
+		Results["median"]=STAT::median(r);
+		pair<float,float> b; //store low-hi for asymmetric
+		STAT::ConfidenceInterval(r,b,0.68);	
+		Results["CIUp"]=b.first;
+		Results["CIDn"]=b.second;
+		STAT::ConfidenceInterval(r,b,0.95);	
+		Results["CI95Up"]=b.first;
+		Results["CI95Dn"]=b.second;
+	return Results;
+	//	return  STAT::rms(r);
 }
 
 

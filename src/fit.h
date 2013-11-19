@@ -26,6 +26,8 @@
 #include "RooWorkspace.h"
 
 
+#include <map>
+#include <string>
 using namespace std;
 using namespace RooFit;
 
@@ -49,7 +51,7 @@ static void RandomVar(TH1D*h,TRandom *r,int sumw2=0);
 //static float GetMean(std::vector<float> &v);
 //static float GetRMS(std::vector<float> &v);
 //static float GetCI(std::vector<float> &v,std::pair<float,float>&r,float Q=.68);
-static float toy(TH1D*h, TH1D* sig, TH1D* bkg,int nToys=100,TRandom *random=NULL,const char *fileName=""); //fileName will save output to the toys
+static map<string,float> toy(TH1D*h, TH1D* sig, TH1D* bkg,int nToys=100,TRandom *random=NULL,const char *fileName=""); //fileName will save output to the toys
 
 
 };//END OF TOYS

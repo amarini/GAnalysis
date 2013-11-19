@@ -29,6 +29,8 @@ def read_dat(filename):
 			Dat["DoSyst"]=int(parts[1])
 		elif(parts[0] == "DoShapeCorrFit"):
 			Dat["DoShapeCorrFit"]=int(parts[1])
+		elif(parts[0] == "DoBiasStudies"):
+			Dat["DoBiasStudies"]=int(parts[1])
 		elif(parts[0] == "UsePUWeightHLT"):
 			Dat["UsePUWeightHLT"]=int(parts[1])
 		elif(parts[0] == "DATATREE"):

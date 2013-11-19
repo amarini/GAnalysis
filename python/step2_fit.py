@@ -44,6 +44,8 @@ BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 	
 DoShapeCorrFit=ReadFromDat(config,"DoShapeCorrFit",0,"--> Set Shape Corr For Fit to 0");
 
+DoBiasStudies=ReadFromDat(config,"DoBiasStudies",0,"--> Set Do Bias Studies to 0");
+
 configMC={}
 WorkDirMC=""
 inputFileNameMC=""
@@ -105,6 +107,8 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 	PtToFit=[]
 	TruthSig=[]
 	TruthBkg=[]
+	BiasStudySig=[]
+	BiasStudyBkg=[]
 	SigCorr=[]
 	BkgCorr=[]
 	for p in range(0,len(PtCuts)-1):
@@ -131,6 +135,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 				try:
 					SigMC=fileMC.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) )
 					TruthSig.append(fileMC.Get("photoniso_MATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )
+					BiasStudySig.append(fileMC.Get("photoniso_MATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )
 					TruthSig[-1].Divide(SigMC)
 					for iHbin in range(1,TruthSig[-1].GetNbinsX()+1):
 						if( TruthSig[-1].GetBinContent(iHbin) >100 and TruthSig[-1].GetBinError(iHbin)> TruthSig[-1].GetBinContent(iHbin)*.5 ):
@@ -146,6 +151,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 				try:
 					BkgMC=fileMC.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets) )
 					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )#Truth has Sig Id
+					BiasStudyBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )#Truth has Sig Id
 					TruthBkg[-1].Divide(BkgMC)
 					for iHbin in range(1,TruthBkg[-1].GetNbinsX()+1):
 						if( TruthBkg[-1].GetBinContent(iHbin) >100 and TruthBkg[-1].GetBinError(iHbin)> TruthBkg[-1].GetBinContent(iHbin)*.5 ):
@@ -249,16 +255,33 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 		if doShapeCorrFit:
 			SigCorr[Sbin].Scale(NormSigCorr/SigCorr[Sbin].Integral());
 			BkgCorr[Bbin].Scale(NormBkgCorr/BkgCorr[Bbin].Integral());
-		# 
-		#if PtToFit[p] == 100 and nJets==1 and Ht==0:
-		#	try:
-		#		os.remove(WorkDir+"/toysresults.root")
-		#	except OSError: print "toy file doesn't exist: not removed"
-		#	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20,0,WorkDir+"/toysresults.root");
-		#else:
-		#	rms=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
-		#o_txt.write(" ERROR= "+str(rms) +"\n");
+		 
+		if PtToFit[p] == 100 and nJets==1 and Ht==0:
+			try:
+				os.remove(WorkDir+"/toysresults.root")
+			except OSError: print "toy file doesn't exist: not removed"
+			t=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20,0,WorkDir+"/toysresults.root");
+		else:
+			t=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
+
+		o_txt.write(" TOYS= "+str( t["rms"] ) );
+
+		if DoBiasStudies:
+			try:
+				 Bin="Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) 
+				 os.remove(WorkDir+"/biasresults"+Bin+".root")
+			except OSError: print "bias file doesn't exist: not removed"
+			BiasStudySig[Sbin].Scale( 1./BiasStudySig[Sbin].Integral)
+			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral)
+			ToFitBias=BiasStudySig[Sbin].Clone("ToFitBias"+Bin)
+			ToFitBias.Scale(f)
+			ToFitBias.Add(BiasStudy[Bbin],(1-f))
+			b=ROOT.TOYS.toy(ToFitBias,SigTemplate[Sbin],BkgTemplate[Bbin],100);
+			o_txt.write("BIAS= "+str(b["mean"]))
+			
+
 		o_txt.write(" ERROR= "+str( v[3]) +"\n"); ## ROOFIT ERROR
+		
 		if doShapeCorrFit:
 			fOut=ROOT.TFile.Open(WorkDir+"/fitresults.root","UPDATE")
 			TruthSig[Sbin].Write("",ROOT.TObject.kOverwrite)	

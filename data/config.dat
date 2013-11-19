@@ -43,5 +43,6 @@ UsePUWeightHLT=0
 
 # not completely impl  - Residual correction predicted by MC
 DoShapeCorrFit=1
+DoBiasStudies=1
 Lumi=19.7
 
