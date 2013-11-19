@@ -225,7 +225,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 	
 		#BINNED
 		#v=ROOT.std.vector(float)()
-		fitR=ROOT.std.map(string,float)()
+		fitR=ROOT.std.map(ROOT.std.string,float)()
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],
 				WorkDir+"/fitresults.root",
 				"Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) ,
@@ -276,7 +276,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral() )
 			ToFitBias=BiasStudySig[Sbin].Clone("ToFitBias"+Bin)
 			ToFitBias.Scale(f)
-			ToFitBias.Add(BiasStudy[Bbin],(1-f))
+			ToFitBias.Add(BiasStudyBkg[Bbin],(1-f))
 			b=ROOT.TOYS.toy(ToFitBias,SigTemplate[Sbin],BkgTemplate[Bbin],100);
 			o_txt.write("BIAS= "+str(b["mean"]))
 			
