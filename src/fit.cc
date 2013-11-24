@@ -275,7 +275,9 @@ vector<float> r; //result
 		{cout<<"SKIP TOY EVENT: INTEGRAL=0"<<endl;continue;}
 
 	printf("DEBUG: PASSING %s as fileName\n",fileName);
-	float a= FIT::fit(h1,s1,b1,fileName,Form("toy%d_PT_0_0_HT_0_nJet_0",iToy)); //string should be formatted
+	char name[1023];
+	sprintf(name,"toy%d_PT_0_0_HT_0_nJet_0",iToy);
+	float a= FIT::fit(h1,s1,b1,fileName,name); //string should be formatted
 	
 	r.push_back(a);
 		

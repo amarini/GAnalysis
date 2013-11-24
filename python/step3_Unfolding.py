@@ -78,6 +78,7 @@ if DEBUG>0:print "--> Read Fraction"
 Frac={};
 FracSigCorr={};
 FracBkgCorr={};
+FracErr={};
 for line in fFit:
 	#exclude not well done lines
 	if '#' in line : continue
@@ -93,7 +94,7 @@ for line in fFit:
 			nj=float(l[iWord+1])
 		elif "Fraction" in l[iWord]:
 			fr=float(l[iWord+1])
-		elif "ERROR" in l[iWord]:
+		elif "TOYS" in l[iWord]: #read error from toys
 			er=float(l[iWord+1])
 		elif ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) in l[iWord]:
 			fr_sigcorr=float(l[iWord+1])
@@ -108,6 +109,9 @@ for line in fFit:
 	try:
 		FracBkgCorr[ (ptmin,ptmax,ht,nj) ] = fr_bkgcorr
 	except NameError: pass;
+	try:
+		FracErr[ (ptmin,ptmax,ht,nj) ] = er;
+	except NameError: pass
 
 def Unfold(Response,H,par,type="SVD"):
 	#U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
@@ -161,6 +165,13 @@ def Loop(systName=""):
 			except (IndexError,KeyError): 
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])+" SYST="+systName
 				fr=1	
+				
+			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.NONE) :
+				try:
+					er= FracErr[  (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				except (IndexError,KeyError):
+					er=1
+			else : er=0
 			## TAKE HISTO WITH YIELDS
 			systNameForHisto=systName
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD):
@@ -169,13 +180,17 @@ def Loop(systName=""):
 			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
 			try:
 				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
-				rawYield=hBin.Integral()
+				rawError= ROOT.Double(0)
+				rawYield=hBin.IntegralAndError(1,hBin.GetNbinsX(),rawError)
 			except AttributeError:
 				print "ERROR HISTO NOT FOUND: Setting yield to 0"
 				rawYield=0
+				rawError=1
 			## FILL HISTO CORRECTED
 			corYield=rawYield*fr
+			corErr= corYield*math.sqrt( (rawError/rawYield)**2 + (er/fr)**2)
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
+			H.SetBinError(   H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corErr )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
 		M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
 		G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
