@@ -11,6 +11,12 @@ void Analyzer::MakeTree(string name){
 	treeContainer[name]->Branch("photoniso",&TreeVar.photoniso,"photoniso/F");
 
 }
+int Analyzer::SetCutsJetPtThreshold(){
+	for (int i=0;i<int(cutsContainer.size());i++)
+		{
+		cutsContainer[i].JetPtThreshold=JetPtThreshold;
+		}
+	}
 
 void Analyzer::Loop()
 {
@@ -95,7 +101,7 @@ void Analyzer::Loop()
 		//look for Jets
 		for(int iJetGEN=0;iJetGEN< int(jetPtGEN->size());iJetGEN++)
 			{
-			if((*jetPtGEN)[iJetGEN]<30) continue;
+			if((*jetPtGEN)[iJetGEN]<JetPtThreshold) continue;
 			TLorentzVector jGEN;
 				jGEN.SetPtEtaPhiE((*jetPtGEN)[iJetGEN],(*jetEtaGEN)[iJetGEN],(*jetPhiGEN)[iJetGEN],(*jetEGEN)[iJetGEN]);
 			if(jGEN.DeltaR(gGEN)<0.5) continue;
@@ -310,7 +316,7 @@ void Analyzer::Loop()
 		{
 		//construct TLV
 		TLorentzVector j;
-		if( (*jetPt)[iJet]<30)continue;
+		if( (*jetPt)[iJet]<JetPtThreshold)continue;
 		j.SetPtEtaPhiE((*jetPt)[iJet],(*jetEta)[iJet],(*jetPhi)[iJet],(*jetE)[iJet]);
 		//Delta R Cut wrt the leading selected photon
 		if(j.DeltaR(gamma)<0.5) continue;	

@@ -50,6 +50,10 @@ def read_dat(filename):
 			Dat["nJetsCuts"]=[]
 			for nj in parts[1].split(" "):
 				Dat["nJetsCuts"].append(float(nj))
+		elif(parts[0] == "JetPt"):
+			Dat["JetPt"]=[]
+			for pt in parts[1].split(" "):
+				Dat["JetPt"].append(float(pt))
 		elif(parts[0] == "SigPhId"):
 			Dat["SigPhId"]=[]
 			for id in parts[1].split(" "):

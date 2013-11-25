@@ -65,6 +65,8 @@ SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 
 BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
+JetPtThr=ReadFromDat(config,"JetPt",[30],"-->Default JetPT")
+
 try:
 	for iT in range(0,len(config["TriggerMenus"]) ):
 		A.LoadTrigger(config["TriggerMenus"][iT],config["PtTriggers"][iT][0],config["PtTriggers"][iT][1],config["PreScale"][iT]);
@@ -96,28 +98,31 @@ A.jobId=options.jobId
 if(DEBUG>0): print "--> Init"
 A.Init()
 
-if(DEBUG>0): print "----- LOOP -----"
-A.Loop()
-
-if ReadFromDat(config,"DoSyst",0,"--> Default No Syst") :
-	print "--- LOOP ON SYST ---- PU UP--"
-	#A.currentSyst=ROOT.Analyzer.SYST.PUUP  -- dont work
-	A.currentSyst= ROOT.Analyzer.PUUP
+for jetpt in JetPtThr:
+	A.JetPtThreshold=jetpt	
+	if DEBUG>): print "-->Setting jetPt threshold to "+str(jetpt)
+	if(DEBUG>0): print "----- LOOP -----"
 	A.Loop()
-	print "--- LOOP ON SYST ---- PU DN --"
-	A.currentSyst= ROOT.Analyzer.PUDN
-	A.Loop()
-	print "--- LOOP ON SYST ---- JES UP--"
-	A.currentSyst= ROOT.Analyzer.JESUP
-	A.Loop()
-	print "--- LOOP ON SYST ---- JES DN --"
-	A.currentSyst= ROOT.Analyzer.JESDN
-	A.Loop()
-	print "--- LOOP ON SYST ---- JES DN --"
-	A.currentSyst= ROOT.Analyzer.JERDN
-	A.Loop()
-	print "--- LOOP ON SYST ---- JER UP --"
-	A.currentSyst= ROOT.Analyzer.JERUP
-	A.Loop()
-
-if(DEBUG>0): print "----- END ------"
+	
+	if ReadFromDat(config,"DoSyst",0,"--> Default No Syst") :
+		print "--- LOOP ON SYST ---- PU UP--"
+		#A.currentSyst=ROOT.Analyzer.SYST.PUUP  -- dont work
+		A.currentSyst= ROOT.Analyzer.PUUP
+		A.Loop()
+		print "--- LOOP ON SYST ---- PU DN --"
+		A.currentSyst= ROOT.Analyzer.PUDN
+		A.Loop()
+		print "--- LOOP ON SYST ---- JES UP--"
+		A.currentSyst= ROOT.Analyzer.JESUP
+		A.Loop()
+		print "--- LOOP ON SYST ---- JES DN --"
+		A.currentSyst= ROOT.Analyzer.JESDN
+		A.Loop()
+		print "--- LOOP ON SYST ---- JES DN --"
+		A.currentSyst= ROOT.Analyzer.JERDN
+		A.Loop()
+		print "--- LOOP ON SYST ---- JER UP --"
+		A.currentSyst= ROOT.Analyzer.JERUP
+		A.Loop()
+	
+	if(DEBUG>0): print "----- END ------"
