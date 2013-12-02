@@ -3,6 +3,7 @@ import sys,os
 import array
 import ROOT
 import time
+import math
 from optparse import OptionParser
 
 DEBUG=1
@@ -188,7 +189,10 @@ def Loop(systName=""):
 				rawError=1
 			## FILL HISTO CORRECTED
 			corYield=rawYield*fr
-			corErr= corYield*math.sqrt( (rawError/rawYield)**2 + (er/fr)**2)
+			if rawYield !=0 and fr !=0:
+				corErr= corYield*math.sqrt( (rawError/rawYield)**2 + (er/fr)**2)
+			else:
+				corErr=1
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
 			H.SetBinError(   H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corErr )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX

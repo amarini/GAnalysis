@@ -265,7 +265,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 		else:
 			t=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
 
-		o_txt.write(" TOYS= "+str( t["rms"] ) );
+		o_txt.write(" TOYS= "+str( t["rms"] )+ " TMEAN= "+str(t["mean"]) );
 
 		if DoBiasStudies:
 			try:
