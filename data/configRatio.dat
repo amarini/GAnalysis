@@ -1,0 +1,29 @@
+### Z ###
+file1 /afs/cern.ch/user/a/amarini/work/V00-13/UnfoldedDistributions.root 
+
+#### Gamma ###
+file2 /afs/cern.ch/user/a/amarini/work/V00-13/UnfoldedDistributions.root
+
+### histo name1
+histoName1 b_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
+### histo name2
+histoName2 b_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
+
+### Load cuts
+Cut Ht=0 nJets=1 ptJet=30
+Cut Ht=300 nJets=1 ptJet=30
+Cut Ht=0 nJets=3 ptJet=30
+
+### syst
+Up UP UP
+Down DOWN DOWN
+PrePendSyst "_" "_"
+Syst JES ++ - -
+Syst JER ++ - -
+Syst PU ++ - -
+Syst SIG :: - - 
+Syst BKG :: - - 
+#Syst LUM .. - - #equivalently . means ignore
+Syst LUM :: None None
+
+Out /afs/cern.ch/user/a/amarini/work/V00-13/
