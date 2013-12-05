@@ -100,7 +100,7 @@ A.Init()
 
 for jetpt in JetPtThr:
 	A.JetPtThreshold=jetpt	
-	if DEBUG>): print "-->Setting jetPt threshold to "+str(jetpt)
+	if DEBUG>0: print "-->Setting jetPt threshold to "+str(jetpt)
 	if(DEBUG>0): print "----- LOOP -----"
 	A.Loop()
 	
