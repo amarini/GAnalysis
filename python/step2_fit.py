@@ -46,6 +46,8 @@ DoShapeCorrFit=ReadFromDat(config,"DoShapeCorrFit",0,"--> Set Shape Corr For Fit
 
 DoBiasStudies=ReadFromDat(config,"DoBiasStudies",0,"--> Set Do Bias Studies to 0");
 
+JetPtThr=ReadFromDat(config,"JetPt",[30],"-->Default JetPT")
+
 configMC={}
 WorkDirMC=""
 inputFileNameMC=""
@@ -96,7 +98,7 @@ if(DEBUG>0): print "----- Analyzer ------" #for syst name & type
 #ROOT.gSystem.Load("Analyzer.so")
 ROOT.gSystem.Load("libGAnalysis.so")
 
-def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
+def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),jetPt=30.):
 	Bin=0
 	SigTemplate=[]
 	BkgTemplate=[]
@@ -112,36 +114,39 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 	SigCorr=[]
 	BkgCorr=[]
 	for p in range(0,len(PtCuts)-1):
+		cutSig=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets);
+		cutSig.JetPtThreshold=jetPt;
+		cutBkg=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets);
+		cutBkg.JetPtThreshold=jetPt;
 		if( PtCuts[p] <0 ): 
 			Bin+=1		
 			continue
 		if( PtCuts[p+1] <0 ): continue
 		if( Bin == ToFitBin):
-			ToFitTemplate.append(file.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1] ,nJets ) ) )
-			#ToFitTree.append(file.Get("tree_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)  ) )
+			ToFitTemplate.append(file.Get("photoniso_"+cutSig.name() ) )
 			if(len(PtToFit)==0): PtToFit.append(PtCuts[p]);
 			PtToFit.append(PtCuts[p+1])
 		if( Bin == BkgBin ):
-			BkgTemplate.append(file.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)  ) )
+			BkgTemplate.append(file.Get("photoniso_"+cutBkg.name()  ) )
 			if(len(PtBkg)==0): PtBkg.append(PtCuts[p]);
 			PtBkg.append(PtCuts[p+1])
 		if( Bin == SigBin ):
-			SigTemplate.append(file.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)  ) )
+			SigTemplate.append(file.Get("photonisoRC_"+cutSig.name() ) )
 			if(len(PtSig)==0): PtSig.append(PtCuts[p]);
 			PtSig.append(PtCuts[p+1])
 		if doShapeCorrFit:
 			#SIG
 			if Bin == SigBin:
 				try:
-					SigMC=fileMC.Get("photonisoRC_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) )
-					TruthSig.append(fileMC.Get("photoniso_MATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )
-					BiasStudySig.append(fileMC.Get("photoniso_MATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ).Clone("BiasStudySig") )
+					SigMC=fileMC.Get("photonisoRC_"+ cutSig.name() )
+					TruthSig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ) )
+					BiasStudySig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ).Clone("BiasStudySig") )
 					TruthSig[-1].Divide(SigMC)
 					for iHbin in range(1,TruthSig[-1].GetNbinsX()+1):
 						if( TruthSig[-1].GetBinContent(iHbin) >100 and TruthSig[-1].GetBinError(iHbin)> TruthSig[-1].GetBinContent(iHbin)*.5 ):
 							TruthSig[-1].SetBinContent(iHbin,1) #small numbers correction
-					TruthSig[-1].SetName("SigShapeCorrFit_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)  )
-					SigCorr.append( SigTemplate[-1].Clone("photonisoRC_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) );
+					TruthSig[-1].SetName("SigShapeCorrFit_"+cutSig.name() ) 
+					SigCorr.append( SigTemplate[-1].Clone("photonisoRC_MCCOR_"+cutSig.name()) ) 
 					SigCorr[-1].Multiply(TruthSig[-1])
 				except (AttributeError,TypeError):
 					print "SHAPECORR SIG: no Histo"
@@ -149,19 +154,19 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 			#BKG
 			if Bin == BkgBin:
 				try:
-					BkgMC=fileMC.Get("photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets) )
-					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ) )#Truth has Sig Id
-					BiasStudyBkg.append( fileMC.Get("photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets) ).Clone("BiasStudyBkg") )#Truth has Sig Id
+					BkgMC=fileMC.Get("photoniso_"+cutBkg.name() )
+					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name() ) )#Truth has Sig Id
+					BiasStudyBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name()).Clone("BiasStudyBkg") )#Truth has Sig Id
 					TruthBkg[-1].Divide(BkgMC)
 					for iHbin in range(1,TruthBkg[-1].GetNbinsX()+1):
 						if( TruthBkg[-1].GetBinContent(iHbin) >100 and TruthBkg[-1].GetBinError(iHbin)> TruthBkg[-1].GetBinContent(iHbin)*.5 ):
 							TruthBkg[-1].SetBinContent(iHbin,1) #small numbers correction
-					BkgCorr.append( BkgTemplate[-1].Clone("photoniso_MCCOR_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)))
+					BkgCorr.append( BkgTemplate[-1].Clone("photoniso_MCCOR_"+cutBkg.name()))
 					BkgCorr[-1].Multiply(TruthBkg[-1])
 				except (AttributeError,TypeError):
 					print "SHAPECORR BKG: no Histo"
-					print "-- histos: "+"photoniso_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets)
-					print "-- histos: "+"photoniso_NOTMATCHED_VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets)
+					print "-- histos: "+"photoniso_"+cutBkg.name()
+					print "-- histos: "+"photoniso_NOTMATCHED_"+cutSig.name()
 					doShapeCorrFit=0 # Turn Off Local var
 	
 	if nJets == 1 and Ht ==0:
@@ -296,6 +301,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 			BkgCorr[Bbin].Write("",ROOT.TObject.kOverwrite)	
 			fOut.Close();
 
+#TODO ADD JetPTThr here
 for h in HtCuts:
 	for n in nJetsCuts:
 		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
