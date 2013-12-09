@@ -14,16 +14,20 @@ echo "Analysis base Dir=$CWD"
 cd $CWD
 
 mkdir -p $PWD/log
-rm $PWD/log/logMC*.txt || true
+rm -v log/logMC*.txt || true
+rm -v log/logMC_*.txt.gz || true
+rm -v log/logMC_*.log || true
+rm -v log/logMC_*.done || true
+rm -v log/logMC_*.fail || true
 
 for i in `seq 0 100` ; do
-bsub -q 8nh -o $PWD/log/logMC_$i.txt <<EOF
+bsub -q 8nh -o $PWD/log/logMC_$i.log <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
 echo "*** MC ***"
 rm $PWD/log/logMC_$i.done || true
-python python/step1_makeHisto.py --inputDat=data/configMC.dat --nJobs=100 --jobId=$i && touch $PWD/log/logMC_$i.done || exit 1
+python python/step1_makeHisto.py --inputDat=data/configMC.dat --nJobs=100 --jobId=$i 2>&1 | gzip >$PWD/log/logMC_$i.txt.gz && touch $PWD/log/logMC_$i.done || {touch $PWD/log/logMC_$i.fail; exit 1; }
 
 echo "************************"
 echo "*          DONE        *"

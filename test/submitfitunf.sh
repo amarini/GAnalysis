@@ -14,18 +14,22 @@ echo "Analysis base Dir=$CWD"
 cd $CWD
 
 mkdir -p $PWD/log
-rm log/log_unf*.txt || true
-rm log/logMC_unf*.txt || true
-rm log/log_fit*.txt || true
-rm log/logMC_fit*.txt || true
+rm -v log/log_unf*.txt || true
+rm -v log/logMC_unf*.txt || true
+rm -v log/log_fit*.txt || true
+rm -v log/logMC_fit*.txt || true
 
+rm -v log/log_unf*.txt.gz || true
+rm -v log/logMC_unf*.txt.gz || true
+rm -v log/log_fit*.txt.gz || true
+rm -v log/logMC_fit*.txt.gz || true
 
 bsub -q 1nd -o $PWD/log/log_submit.txt <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
- python python/step2_fit.py --inputDat=data/config.dat --inputDatMC=data/configMC.dat &> log/log_fit.txt ;
- python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/config.dat --inputDatMC=data/configMC.dat &>log/log_unf.txt
+ python python/step2_fit.py --inputDat=data/config.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/log_fit.txt.gz ;
+ python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/config.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/log_unf.txt.gz
  python test/makeAllPlots.py --inputDat=data/config.dat
 
 echo *********************
@@ -37,8 +41,8 @@ bsub -q 1nd -o $PWD/log/logMC_submit.txt <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
- python python/step2_fit.py --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat &> log/logMC_fit.txt ;
- python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat &>log/logMC_unf.txt
+ python python/step2_fit.py --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/logMC_fit.txt.gz ;
+ python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip >log/logMC_unf.txt
  python test/makeAllPlots.py --inputDat=data/configMC.dat
 
 echo *********************
