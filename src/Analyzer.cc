@@ -20,6 +20,9 @@ int Analyzer::SetCutsJetPtThreshold(){
 
 void Analyzer::Loop()
 {
+    //
+    if(debug>0)printf("Reset Pt Threshold in all cuts\n");
+	SetCutsJetPtThreshold();
     if(debug>0)printf("start loop\n");
     fChain->SetBranchStatus("*",0);  // disable all branches
     fChain->SetBranchStatus("photon*",1);  // activate branchname
