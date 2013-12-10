@@ -133,6 +133,7 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	//----FIT---
 	RooFitResult *r;
 	RooPlot *frame=x.frame();
+	RooPlot *frame2=f.frame();
 	if(binned){
 		printf("----> Going to create RooDataHist\n");
 		RooDataHist HistToFit("hist","hist",x,h); 
@@ -142,6 +143,9 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		//r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
 		printf("----> Going to plot\n");
 		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
+		//Plot LogNLL
+		RooAbsReal* nll = PdfModel.createNLL(HistToFit,SumW2Error(kTRUE),Range(xMin,xMax)) ; 
+		nll->plotOn(frame2);
 		}
 	else {
 		RooDataSet  DataToFit("data","data",RooArgSet(x),Import(*t));
@@ -154,6 +158,11 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	//PdfModel.plotOn(frame,Components(PdfBkgL),LineColor(kRed)); // Landau
 	//PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
 	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
+
+	TCanvas *c2=new TCanvas((string(name)+"_NLL").c_str(),"LogNL");
+	c2->cd();
+	c2->Draw();
+	frame2->Draw();
 	
 	TCanvas *c=new TCanvas((string(name)+"_canvas").c_str(),"Canvas");
 	c->cd();
@@ -200,6 +209,7 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		{
 		TFile file(fileName,"UPDATE") ;
 		c->Write();
+		c2->Write();
 		RooWorkspace *ws=NULL;
 			ws=(RooWorkspace*)file.Get("fit_ws");
 		if(ws==NULL) {ws=new RooWorkspace("fit_ws");}
