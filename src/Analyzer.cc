@@ -40,6 +40,7 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
     fChain->SetBranchStatus("jetPtRES*",1);  // activate branchname
+    fChain->SetBranchStatus("lep*",1);  // activate branchname
     if (fChain == 0) return;
 //	fChain->GetEntry(0); done in init
    if(!isRealData) {
@@ -298,6 +299,10 @@ void Analyzer::Loop()
 	if(GammaIdx<0) continue; //--no gamma candidate found
 	if(currentSyst==NONE)Sel->FillAndInit("GammaSelection"); //Selection
 
+	TLorentzVector gamma;
+	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
+	gamma.SetPtEtaPhiE(photonPt->at(GammaIdx),photonEta->at(GammaIdx),photonPhi->at(GammaIdx),photonE->at(GammaIdx));	
+
 	if(!isRealData) //ScaleFactors
 			{
 			double sf1=0.997,sf2=0.978;
@@ -306,9 +311,34 @@ void Analyzer::Loop()
 			}
 				
 
-	TLorentzVector gamma;
-	if(photonPt->at(GammaIdx)<10) {fprintf(stderr,"Error: Photon pT too low\n");continue;}// minimum check on photon pt
-	gamma.SetPtEtaPhiE(photonPt->at(GammaIdx),photonEta->at(GammaIdx),photonPhi->at(GammaIdx),photonE->at(GammaIdx));	
+	if(useEGscaleFactors && !isRealData){
+		//check if e is matched to G	
+		for( int iLep=0;iLep<lepPtGEN->size();iLep++ )
+			{
+			//is e?
+			if( abs(lepChIdGEN->at(iLep)) != 11) continue;
+			TLorentzVector e;
+			e.SetPtEtaPhiE( (*lepPtGEN)[iLep],(*lepEtaGEN)[iLep],(*lepPhiGEN)[iLep],(*lepEGEN)[iLep] );
+			if (gamma.DeltaR(e) < 0.3)
+				{ //match to an electron -gen
+   				for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
+				  {
+				  string name=it->first;
+				  float ptmin,ptmax,etamin,etamax;
+  				  sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
+				  if( (*photonPt)[GammaIdx]>ptmin && (*photonPt)[GammaIdx]<ptmax && fabs((*photonEta)[GammaIdx])> etamin && fabs((*photonEta)[GammaIdx]) <etamax)
+					{
+		
+					PUWeight*=it->second;
+					PUWeightSysUp*=it->second;
+					PUWeightSysDown*=it->second;
+					}
+				  break;
+				  }
+				break;
+				}
+			}
+		}
 	//--- jet founding -------------
 	JetIdx.clear();
 	Int_t mynJets=jetPt->size();
