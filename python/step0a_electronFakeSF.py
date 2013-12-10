@@ -12,15 +12,16 @@ parser = OptionParser(usage=usage)
 parser.add_option("-i","--inputDat" ,dest='inputDat',type='string',help="Configuration file",default="data/config.dat")
 parser.add_option("-j","--inputDatMC" ,dest='inputDatMC',type='string',help="Configuration file for MC",default="data/configMC.dat")
 parser.add_option("-f","--fast",dest='fast',action='store_true',help="Run on limited n. of entries",default=False)
+parser.add_option("-d","--debug" ,dest='debug',type='int',help="Debug Level 0 - 1. Default=%default",default=1)
 
 (options,args)=parser.parse_args()
 
 
 import ROOT
 
-DEBUG=1
+DEBUG=options.debug
 
-print "BEGIN"
+if DEBUG>0:print "BEGIN"
 
 WorkDir="./"
 
@@ -40,7 +41,12 @@ def UniqName(PtBins,iPt,EtaBins,iEta):
 PtTriggers=[]
 TriggerMenus=[]
 
-def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxentries=-1):
+def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxentries=-1,Extra=""):
+	if DEBUG>0:
+		print "PtCuts"
+		print PtCuts
+		print "EtaCuts"
+		print EtaCuts
 	entry=Entry()
 	photonIsoFPRRandomConePhoton=ROOT.std.vector(float)()
 	photonPt=ROOT.std.vector(float)()
@@ -90,8 +96,11 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 
 	#H=ROOT.std.map(ROOT.std.pair(string,ROOT.TH2D))()
 	if maxentries < 0:
-		maxentries=t.GetEntries()
-	for iEntry in range(0,maxentries):
+		ment=t.GetEntries()
+	else:
+		print "Max Entries Set to " + str(maxentries)
+		ment=maxentries
+	for iEntry in range(0,ment):
 		t.GetEntry(iEntry)
 		if lepPt.size() <=0 : continue; #No Electron
 	
@@ -149,28 +158,30 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 		# ELECTRON - GAMMA
 		if isEG:
 			eg=electron+gamma
-			print "EG Mass="+str(eg.M())
+			if DEBUG >1:print "EG Mass="+str(eg.M())
 			if eg.M() < mass-mw or eg.M()>mass+mw: continue
-			print "Mass Pass"
+			if DEBUG >1:print "Mass Pass"
 			p=-1
 			e=-1
-			for pp in range(0,len(PtCuts)):
-				if gamma.Pt() >= PtCuts[pp] and gamma.Pt() < PtCuts[pp]: 
+			for pp in range(0,len(PtCuts)-1):
+				if gamma.Pt() >= PtCuts[pp] and gamma.Pt() < PtCuts[pp+1]: 
 					p=pp
-			for ee in range(0,len(EtaCuts)):
-				if math.fabs(gamma.Eta()) >= EtaCuts[ee] and math.fabs(gamma.Eta()) < EtaCuts[ee]: 
+					break
+			for ee in range(0,len(EtaCuts)-1):
+				if math.fabs(gamma.Eta()) >= EtaCuts[ee] and math.fabs(gamma.Eta()) < EtaCuts[ee+1]: 
 					e=ee
-			print "Pt="+str(gamma.Pt())
+					break;
+			if DEBUG >1:print "Pt="+str(gamma.Pt()) + " bin = " + str(p)
 			if p<0: continue;
-			print "Eta="+str(gamma.Eta())
-			print "PT Pass"
+			if DEBUG >1:print "Eta="+str(gamma.Eta()) + " bin = " + str(e)
+			if DEBUG >1:print "PT Pass"
 			if e<0: continue;
-			print "Eta Pass"
-			Name="Mass_EG_"+"Pt_"+str(PtCuts[p])+"_"+str(PtCuts[p+1])+"_Eta_"+str(EtaCuts[e])+"_"+str(EtaCuts[e+1])
+			if DEBUG >1:print "Eta Pass"
+			Name=Extra+"Mass_EG_"+"Pt_"+str(PtCuts[p])+"_"+str(PtCuts[p+1])+"_Eta_"+str(EtaCuts[e])+"_"+str(EtaCuts[e+1])
 			try:
 				H[Name].Integral()
 			except KeyError,TypeError:
-				print "Creating histo with Name " + Name
+				if DEBUG >0:print "Creating histo with Name " + Name
 				H[Name]=ROOT.TH1F(Name,Name,nBins,mass-mw,mass+mw)	
 				
 			
@@ -180,12 +191,10 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 
 
 
-print "Adding Files"
-
 data=ROOT.TChain("accepted/events")
 mc=ROOT.TChain("accepted/events")
 
-print "Load Configuration"
+if DEBUG>0:print "Load Configuration"
 from common import *
 config=read_dat(options.inputDat);
 configMC=read_dat(options.inputDatMC);
@@ -197,10 +206,10 @@ if DEBUG>0:
 
 try:	
 	for tree in config["DataTree"]: 
-		print "Added Tree "+tree
+		if DEBUG>0:print "Added Tree "+tree
 		data.Add(tree) 
 	for tree in configMC["DataTree"]: 
-		print "Added Tree to MC "+tree
+		if DEBUG>0:print "Added Tree to MC "+tree
 		mc.Add(tree) 
 except KeyError: 
 	print "Going To Exit"
@@ -226,25 +235,34 @@ mZ=91
 mw=30 #mass window
 EtaCuts=[0,.5,1.,1.5]
 PtCuts=[0,30,50,100,200,8000]
-print "Begin LOOP"
+if DEBUG>0:print "Begin LOOP"
 H=Loop(data,PtCuts,EtaCuts,nBins,mZ,mw,maxentries)
-print "Begin LOOP MC"
-HMC=Loop(mc,PtCuts,EtaCuts,nBins,mZ,mw,maxentries)
+if DEBUG>0:print "Begin LOOP MC"
+HMC=Loop(mc,PtCuts,EtaCuts,nBins,mZ,mw,maxentries,"MC_")
 
-print "Begin Fit"
+if DEBUG>0:print "Begin Fit"
 f=open(WorkDirMC+"electrongamma.txt","w")
 f.write( "# ptmin ptmax etamin etamax s.f. (data/mc)\n" )
 
 ##FIT
 for name in H:
-	print "Doing Histos "+name
+	if DEBUG>0:print "Doing Histos "+name
 	H[name].Write();
-	HMC[name].Write(name+"_MC")
+
+	try:
+		isTH1=HMC["MC_"+name].InheritsFrom("TH1")
+	except (TypeError,KeyError):
+		isTH1=0
+	if not isTH1:
+		print "MC Histo "+name +" is not TH1"
+		continue;
+	
+	HMC["MC_"+name].Write()
 
 	llM=ROOT.RooRealVar("llM","llM",mZ-mw,mZ+mw);
 	#construct targets to fit
-	h_mc  =  ROOT.RooDataHist("mc_"+name,"hist mc",llM,HMC[name])
-	h_data=  ROOT.RooDataHist("data_"+name,"hist data",llM,H[name])
+	h_data=  ROOT.RooDataHist("data_"+name,"hist data",ROOT.RooArgList(llM),H[name])
+	h_mc  =  ROOT.RooDataHist("mc_"+name,"hist mc",ROOT.RooArgList(llM),HMC["MC_"+name])
 	
 	#construct signal model
 	mass =  ROOT.RooRealVar("mass","mass",mZ,mZ-mw,mZ+mw) ;
@@ -255,11 +273,11 @@ for name in H:
 	#construct bkg Model
         a    =  ROOT.RooRealVar("a","a",0,100000) ;
         b    =  ROOT.RooRealVar("b","b",-10,10) ;
-        bkg  =  ROOT.RooGenericPdf("bkg","a+b*llM",RooArgSet(llM,a,b));
+        bkg  =  ROOT.RooGenericPdf("bkg","a+b*llM",ROOT.RooArgList(llM,a,b));
 
 	#construct fit model	
         frac =  ROOT.RooRealVar("frac","fraction",0.01,1.) ;
-        model=  ROOT.RooAddPdf("model","model",RooArgList(sig,bkg),frac);
+        model=  ROOT.RooAddPdf("model","model",sig,bkg,frac);
 
 	#fit
         r_data=model.fitTo(h_data);
@@ -267,18 +285,21 @@ for name in H:
 	C=ROOT.TCanvas("C_"+name,"C_"+name)
 	frame= llM.frame()
 	model.plotOn(frame)
-	model.plotOn(frame,ROOT.Components(bkg))
+	#model.plotOn(ROOT.RooArgSet(ROOT.RooArgList(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg))) )))
+	model.plotOn(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg) )))
 	h_data.plotOn(frame)
 	C.Write()
+	frame.Write("frame_"+name)
 	
         r_mc=model.fitTo(h_mc);
 	fr_mc=frac.getVal()
-	C=ROOT.TCanvas("C_"+name+"_MC","C_"+name+"_MC")
+	C=ROOT.TCanvas("C_MC_"+name,"C_"+name+"_MC")
 	frame= llM.frame()
 	model.plotOn(frame)
-	model.plotOn(frame,ROOT.Components(bkg))
+	model.plotOn(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg))))
 	h_mc.plotOn(frame)
 	C.Write()
+	frame.Write("frame_MC_"+name)
 	
 	#name="Mass_EG_"+"Pt_"+str(PtCuts[p])+"_"+str(PtCuts[p+1])+"_Eta_"+str(EtaCuts[e])+"_"+str(EtaCuts[e+1])	
 	s=name.replace('Mass_EG_Pt_','')
