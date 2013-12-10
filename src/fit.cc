@@ -55,6 +55,16 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	float xMin=sig->GetBinLowEdge(1);
 	float xMax=sig->GetBinLowEdge(nBins+1);
 	
+	//Make Sure overflow & underflow=0
+	if(binned){
+		h->SetBinContent(0,0);
+		sig->SetBinContent(0,0);
+		bkg->SetBinContent(0,0);
+		h->SetBinContent(h->GetNbinsX()+1,0);
+		sig->SetBinContent(sig->GetNbinsX()+1,0);
+		bkg->SetBinContent(bkg->GetNbinsX()+1,0);
+		}
+	
 	//Normalization
 	sig->Sumw2();
 	bkg->Sumw2();
@@ -85,6 +95,8 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	if(binned){
 		int nTailSum=5;
 		float sigMax= sig->GetMaximum();// get the peak
+		int sigBinMax= sig->GetMaximumBin();
+		float bkgUnderMax=bkg->GetBinContent(sigBinMax);
 		float sigInt= sig->Integral();
 		int bkgN=bkg->GetNbinsX();
 		float bkgTail=0;for(int i=0;i<nTailSum;i++) bkgTail+= bkg->GetBinContent(bkgN-i);
@@ -93,7 +105,7 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		float targetInt = h->Integral();
 		int targetN=h->GetNbinsX();
 		float targetTail=0;for(int i=0;i<nTailSum;i++) targetTail+= h->GetBinContent(targetN-i);
-		float frac1=(targetMax/targetInt)/(sigMax/sigInt);
+		float frac1=(targetMax/targetInt)/( (sigMax-bkgUnderMax)/sigInt);
 		float frac2=1.- (targetTail/targetInt)/(bkgTail/bkgInt);
 		//fracEstimator=(frac1+frac2)/2.;
 		fracEstimator=frac1;
@@ -137,15 +149,23 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	if(binned){
 		printf("----> Going to create RooDataHist\n");
 		RooDataHist HistToFit("hist","hist",x,h); 
+		//	//Plot LogNLL - too slow
+		//	printf("----> Going to plot NLL\n");
+		//	if( name[0]!='\0' && fileName[0]!='\0')
+		//		{
+		//		RooDataHist HistToFit2(HistToFit); 
+		//		RooAddPdf PdfModel2(PdfModel);
+		//		RooAbsReal* nll ;
+		//		nll=PdfModel2.createNLL(HistToFit2,Range(xMin,xMax),NumCPU(8)) ; 
+		//		nll->plotOn(frame2,Range(xMin,xMax));
+		//		}
 		printf("----> Going to fit\n");
 		RooMsgService::instance().setSilentMode(true); 
 		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(),Range(xMin,xMax), PrintEvalErrors(-1));
 		//r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
 		printf("----> Going to plot\n");
-		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
-		//Plot LogNLL
-		RooAbsReal* nll = PdfModel.createNLL(HistToFit,SumW2Error(kTRUE),Range(xMin,xMax)) ; 
-		nll->plotOn(frame2);
+		//f.setVal(fracEstimator);
+		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2),Range(xMin,xMax));
 		}
 	else {
 		RooDataSet  DataToFit("data","data",RooArgSet(x),Import(*t));
@@ -153,16 +173,16 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		DataToFit.plotOn(frame);
 		}
 	//----SAVE---
-	PdfModel.plotOn(frame);
-	PdfModel.plotOn(frame,Components(PdfBkg),LineColor(kRed)); // template
+	PdfModel.plotOn(frame,Range(xMin,xMax));
+	PdfModel.plotOn(frame,Components(PdfBkg),LineColor(kRed),Range(xMin,xMax)); // template
 	//PdfModel.plotOn(frame,Components(PdfBkgL),LineColor(kRed)); // Landau
 	//PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
-	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
+	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed),Range(xMin,xMax));
 
-	TCanvas *c2=new TCanvas((string(name)+"_NLL").c_str(),"LogNL");
-	c2->cd();
-	c2->Draw();
-	frame2->Draw();
+	//TCanvas *c2=new TCanvas((string(name)+"_NLL").c_str(),"-LogNNL");
+	//c2->cd();
+	//c2->Draw();
+	//frame2->Draw();
 	
 	TCanvas *c=new TCanvas((string(name)+"_canvas").c_str(),"Canvas");
 	c->cd();
@@ -209,7 +229,7 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		{
 		TFile file(fileName,"UPDATE") ;
 		c->Write();
-		c2->Write();
+		//c2->Write();
 		RooWorkspace *ws=NULL;
 			ws=(RooWorkspace*)file.Get("fit_ws");
 		if(ws==NULL) {ws=new RooWorkspace("fit_ws");}
