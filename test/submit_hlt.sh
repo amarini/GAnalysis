@@ -21,7 +21,7 @@ rm -v log/logHLT_*.done || true
 rm -v log/logHLT_*.fail || true
 
 for i in `seq 0 100` ; do
-bsub -q 8nh -o $PWD/log/logHLT_$i.log <<EOF
+bsub -q 8nh -J Job_HLT_$i  -o $PWD/log/logHLT_$i.log <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
@@ -42,7 +42,7 @@ rm -v log/logHLTMC_*.log || true
 rm -v log/logHLTMC_*.done || true
 
 for i in `seq 0 100` ; do
-bsub -q 8nh -o $PWD/log/logHLTMC_$i.log <<EOF
+bsub -q 8nh -J Job_HLT_MC_$i -o $PWD/log/logHLTMC_$i.log <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`

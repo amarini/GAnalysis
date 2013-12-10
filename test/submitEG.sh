@@ -20,7 +20,7 @@ rm -v log/logEG.log || true
 rm -v log/logEG.done || true
 rm -v log/logEG.fail || true
 
-bsub -q 1nd -o $PWD/log/logEG.log <<EOF
+bsub -q 1nd -J Job_EG -o $PWD/log/logEG.log <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`

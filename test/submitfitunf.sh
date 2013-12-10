@@ -24,7 +24,7 @@ rm -v log/logMC_unf*.txt.gz || true
 rm -v log/log_fit*.txt.gz || true
 rm -v log/logMC_fit*.txt.gz || true
 
-bsub -q 1nd -o $PWD/log/log_submit.txt <<EOF
+bsub -q 1nd -J FIT_UNF -o $PWD/log/log_submit.txt <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
@@ -37,7 +37,7 @@ echo *      DONE         *
 echo *********************
 EOF
 
-bsub -q 1nd -o $PWD/log/logMC_submit.txt <<EOF
+bsub -q 1nd -J FIT_UNF_MC -o $PWD/log/logMC_submit.txt <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
