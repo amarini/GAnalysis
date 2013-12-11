@@ -12,7 +12,8 @@ parser = OptionParser(usage=usage)
 parser.add_option("-i","--inputDat" ,dest='inputDat',type='string',help="Configuration file",default="data/config.dat")
 parser.add_option("-j","--inputDatMC" ,dest='inputDatMC',type='string',help="Configuration file for MC",default="data/configMC.dat")
 parser.add_option("-f","--fast",dest='fast',action='store_true',help="Run on limited n. of entries",default=False)
-parser.add_option("-d","--debug" ,dest='debug',type='int',help="Debug Level 0 - 1. Default=%default",default=1)
+parser.add_option("-d","--debug" ,dest='debug',type='int',help="Debug Level 0 - 3. Default=%default",default=1)
+parser.add_option("-r","--refit" ,dest='refit',type='string',help="Refit fileName",default="")
 
 (options,args)=parser.parse_args()
 
@@ -20,6 +21,8 @@ parser.add_option("-d","--debug" ,dest='debug',type='int',help="Debug Level 0 - 
 import ROOT
 
 DEBUG=options.debug
+Refit=options.refit!=""
+RefitFile=options.refit
 
 if DEBUG>0:print "BEGIN"
 
@@ -30,6 +33,7 @@ ROOT.gROOT.SetBatch()
 ROOT.gROOT.ProcessLine (\
 "struct Entry{ \
 float rho;\
+double PUWeight;\
 int nVtx;\
 bool isRealData;\
 };" )
@@ -91,6 +95,8 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 	t.SetBranchAddress("lepEta"	,ROOT.AddressOf(lepEta) )
 	t.SetBranchAddress("lepPhi"	,ROOT.AddressOf(lepPhi) )
 	t.SetBranchAddress("lepE"	,ROOT.AddressOf(lepE) )
+	if not isRealData:
+		t.SetBranchAddress("PUWeight",ROOT.AddressOf(entry,'PUWeight'))
 
 	H={}
 
@@ -184,8 +190,10 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 				if DEBUG >0:print "Creating histo with Name " + Name
 				H[Name]=ROOT.TH1F(Name,Name,nBins,mass-mw,mass+mw)	
 				
-			
-			H[Name].Fill(eg.M())	
+			if isRealData:
+				weight=1
+			else: weight=PUWeight
+			H[Name].Fill(eg.M(),weight)	
 		#END OF FOR iEntries LOOP
 	return H
 
@@ -204,16 +212,17 @@ if(DEBUG>0):
 if DEBUG>0:
 	PrintDat(configMC)
 
-try:	
-	for tree in config["DataTree"]: 
-		if DEBUG>0:print "Added Tree "+tree
-		data.Add(tree) 
-	for tree in configMC["DataTree"]: 
-		if DEBUG>0:print "Added Tree to MC "+tree
-		mc.Add(tree) 
-except KeyError: 
-	print "Going To Exit"
-	exit
+if not Refit:
+	try:	
+		for tree in config["DataTree"]: 
+			if DEBUG>0:print "Added Tree "+tree
+			data.Add(tree) 
+		for tree in configMC["DataTree"]: 
+			if DEBUG>0:print "Added Tree to MC "+tree
+			mc.Add(tree) 
+	except KeyError: 
+		print "Going To Exit"
+		exit
 
 #PtCuts=ReadFromDat(config,"PtCuts",[0,100,150,200,250,300,400,500,1000,2000],"--> Default PtBins")
 
@@ -223,7 +232,11 @@ WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
 PtTriggers=ReadFromDat(config,"PtTriggers",[],"-->No Triggers Pt")
 TriggerMenus=ReadFromDat(config,"TriggerMenus",[],"--> No Trigger Menus")
 
-
+if Refit:
+	if os.path.abspath(RefitFile) == os.path.abspath(WorkDirMC+"electrongamma.root"):
+		print "-- ERROR input file and output file should be different"	
+		print "-- " + os.path.abspath(RefitFile) 
+		sys.exit(1)
 tf=ROOT.TFile.Open(WorkDirMC+"electrongamma.root","RECREATE")
 tf.cd()
 
@@ -235,19 +248,39 @@ mZ=91
 mw=30 #mass window
 EtaCuts=[0,.5,1.,1.5]
 PtCuts=[0,30,50,100,200,8000]
-if DEBUG>0:print "Begin LOOP"
-H=Loop(data,PtCuts,EtaCuts,nBins,mZ,mw,maxentries)
-if DEBUG>0:print "Begin LOOP MC"
-HMC=Loop(mc,PtCuts,EtaCuts,nBins,mZ,mw,maxentries,"MC_")
+
+if not Refit:
+	if DEBUG>0:print "Begin LOOP"
+	H=Loop(data,PtCuts,EtaCuts,nBins,mZ,mw,maxentries)
+if not Refit:
+	if DEBUG>0:print "Begin LOOP MC"
+	HMC=Loop(mc,PtCuts,EtaCuts,nBins,mZ,mw,maxentries,"MC_")
+
+if Refit:
+	if DEBUG>0:print "Open File To Be Refit"
+	iFile=ROOT.TFile.Open(RefitFile)
+	H={}
+	HMC={}
+	for e in range(0,len(EtaCuts)-1):	
+		for p in range(0,len(EtaCuts)-1):	
+			Name="Mass_EG_"+"Pt_"+str(PtCuts[p])+"_"+str(PtCuts[p+1])+"_Eta_"+str(EtaCuts[e])+"_"+str(EtaCuts[e+1])
+			H[Name]=iFile.Get(Name)
+			Name="MC_Mass_EG_"+"Pt_"+str(PtCuts[p])+"_"+str(PtCuts[p+1])+"_Eta_"+str(EtaCuts[e])+"_"+str(EtaCuts[e+1])
+			HMC[Name]=iFile.Get(Name)
 
 if DEBUG>0:print "Begin Fit"
 f=open(WorkDirMC+"electrongamma.txt","w")
 f.write( "# ptmin ptmax etamin etamax s.f. (data/mc)\n" )
 
-##FIT
+tf.cd()
+############## FIT ###########################
 for name in H:
 	if DEBUG>0:print "Doing Histos "+name
-	H[name].Write();
+	try:
+		H[name].Write();
+	except TypeError:
+		print "Data Histo "+name+" does not exist"
+		continue
 
 	try:
 		isTH1=HMC["MC_"+name].InheritsFrom("TH1")
@@ -261,43 +294,51 @@ for name in H:
 
 	llM=ROOT.RooRealVar("llM","llM",mZ-mw,mZ+mw);
 	#construct targets to fit
+	#Normalize
+	H[name].Sumw2();
+	HMC["MC_"+name].Sumw2();
+	H[name].Scale(1./H[name].Integral());
+	HMC["MC_"+name].Scale(1./HMC["MC_"+name].Integral());
 	h_data=  ROOT.RooDataHist("data_"+name,"hist data",ROOT.RooArgList(llM),H[name])
 	h_mc  =  ROOT.RooDataHist("mc_"+name,"hist mc",ROOT.RooArgList(llM),HMC["MC_"+name])
 	
 	#construct signal model
 	mass =  ROOT.RooRealVar("mass","mass",mZ,mZ-mw,mZ+mw) ;
-        sigma=  ROOT.RooRealVar("sigma","sigma",1,0.1,20) ;
-        width=  ROOT.RooRealVar("width","width",1,0.5,20) ;
+        width=  ROOT.RooRealVar("width","width",5,.1,10) ;
+        sigma=  ROOT.RooRealVar("sigma","sigma",5,0.1,8) ;
         
         sig  =  ROOT.RooVoigtian("sig","sig",llM,mass,sigma,width) ; 
 	#construct bkg Model
-        a    =  ROOT.RooRealVar("a","a",0,100000) ;
-        b    =  ROOT.RooRealVar("b","b",-10,10) ;
-        bkg  =  ROOT.RooGenericPdf("bkg","a+b*llM",ROOT.RooArgList(llM,a,b));
+        a    =  ROOT.RooRealVar("a","a",1,0,100000) ;
+        b    =  ROOT.RooRealVar("b","b",10,-100,100) ;
+        c    =  ROOT.RooRealVar("c","c",10,-100,100) ;
+        bkg  =  ROOT.RooGenericPdf("bkg","a+b*llM + c*llM*llM",ROOT.RooArgList(llM,a,b,c));
+        #bkg  =  ROOT.RooGenericPdf("bkg","a+b*llM",ROOT.RooArgList(llM,a,b));
 
 	#construct fit model	
         frac =  ROOT.RooRealVar("frac","fraction",0.01,1.) ;
         model=  ROOT.RooAddPdf("model","model",sig,bkg,frac);
 
 	#fit
-        r_data=model.fitTo(h_data);
+        r_data=model.fitTo(h_data,ROOT.RooFit.SumW2Error(ROOT.kTRUE));
 	fr_data=frac.getVal()
 	C=ROOT.TCanvas("C_"+name,"C_"+name)
 	frame= llM.frame()
-	model.plotOn(frame)
-	#model.plotOn(ROOT.RooArgSet(ROOT.RooArgList(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg))) )))
-	model.plotOn(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg) )))
 	h_data.plotOn(frame)
+	model.plotOn(frame)
+	model.plotOn(frame,ROOT.RooFit.Components("bkg"),ROOT.RooFit.LineStyle(ROOT.kDashed))
+	frame.Draw();
 	C.Write()
 	frame.Write("frame_"+name)
 	
-        r_mc=model.fitTo(h_mc);
+        r_mc=model.fitTo(h_mc,ROOT.RooFit.SumW2Error(ROOT.kTRUE));
 	fr_mc=frac.getVal()
 	C=ROOT.TCanvas("C_MC_"+name,"C_"+name+"_MC")
 	frame= llM.frame()
-	model.plotOn(frame)
-	model.plotOn(frame,ROOT.RooFit.Components(ROOT.RooArgSet(ROOT.RooArgList(bkg))))
 	h_mc.plotOn(frame)
+	model.plotOn(frame)
+	model.plotOn(frame,ROOT.RooFit.Components("bkg"),ROOT.RooFit.LineStyle(ROOT.kDashed))
+	frame.Draw();
 	C.Write()
 	frame.Write("frame_MC_"+name)
 	
