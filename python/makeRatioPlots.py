@@ -1,16 +1,12 @@
 #!/usr/bin/python
 import sys,os
 import array
-import ROOT
 import time
 import math
 from optparse import OptionParser
 
 DEBUG=1
 
-ROOT.gROOT.SetBatch()
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptTitle(0)
 
 if(DEBUG>0):print "----- BEGIN -----"
 
@@ -18,8 +14,14 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file for Ratio",default="data/configRatio.dat")
+parser.add_option("-b","--batch" ,dest='batch',action='store_true',help="ROOT Batch",default=False)
 
 (options,args)=parser.parse_args()
+import ROOT
+if options.batch:
+	ROOT.gROOT.SetBatch()
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptTitle(0)
 
 ###
 print "inserting in path cwd"
@@ -243,6 +245,8 @@ for cut in config['Cut']:
 	R.Draw("P SAME")
 	R.Draw("AXIS X+ Y+ SAME")
 	R.Draw("AXIS SAME")
+	if options.batch:
+		a=raw_input("Press Enter");
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
 	print "Going to save "+ name
 	C.SaveAs( name )	

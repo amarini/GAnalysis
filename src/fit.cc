@@ -161,11 +161,11 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		//		}
 		printf("----> Going to fit\n");
 		RooMsgService::instance().setSilentMode(true); 
-		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(),Range(xMin,xMax), PrintEvalErrors(-1));
+		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(), PrintEvalErrors(-1));
 		//r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
 		printf("----> Going to plot\n");
 		//f.setVal(fracEstimator);
-		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2),Range(xMin,xMax));
+		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
 		}
 	else {
 		RooDataSet  DataToFit("data","data",RooArgSet(x),Import(*t));
@@ -173,11 +173,11 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		DataToFit.plotOn(frame);
 		}
 	//----SAVE---
-	PdfModel.plotOn(frame,Range(xMin,xMax));
-	PdfModel.plotOn(frame,Components(PdfBkg),LineColor(kRed),Range(xMin,xMax)); // template
+	PdfModel.plotOn(frame);
+	PdfModel.plotOn(frame,Components(PdfBkg),LineColor(kRed)); // template
 	//PdfModel.plotOn(frame,Components(PdfBkgL),LineColor(kRed)); // Landau
 	//PdfBkg.plotOn(frame,LineStyle(kDashed),LineColor(kBlue),Normalization(1.-f.getVal(),RooAbsReal::Relative)); // Landau
-	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed),Range(xMin,xMax));
+	PdfModel.plotOn(frame,Components(PdfSig),LineColor(kGreen+2),LineStyle(kDashed));
 
 	//TCanvas *c2=new TCanvas((string(name)+"_NLL").c_str(),"-LogNNL");
 	//c2->cd();

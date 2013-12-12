@@ -95,7 +95,7 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 	t.SetBranchAddress("lepEta"	,ROOT.AddressOf(lepEta) )
 	t.SetBranchAddress("lepPhi"	,ROOT.AddressOf(lepPhi) )
 	t.SetBranchAddress("lepE"	,ROOT.AddressOf(lepE) )
-	if not isRealData:
+	if not entry.isRealData:
 		t.SetBranchAddress("PUWeight",ROOT.AddressOf(entry,'PUWeight'))
 
 	H={}
@@ -190,7 +190,7 @@ def Loop(t,PtCuts=[0,100,200,2000],EtaCuts=[0,1.5],nBins=30,mass=91,mw=30,maxent
 				if DEBUG >0:print "Creating histo with Name " + Name
 				H[Name]=ROOT.TH1F(Name,Name,nBins,mass-mw,mass+mw)	
 				
-			if isRealData:
+			if entry.isRealData:
 				weight=1
 			else: weight=PUWeight
 			H[Name].Fill(eg.M(),weight)	
