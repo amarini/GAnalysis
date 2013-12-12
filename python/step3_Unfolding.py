@@ -79,6 +79,7 @@ if DEBUG>0:print "--> Read Fraction"
 Frac={};
 FracSigCorr={};
 FracBkgCorr={};
+FracBias={};
 FracErr={};
 for line in fFit:
 	#exclude not well done lines
@@ -97,6 +98,8 @@ for line in fFit:
 			fr=float(l[iWord+1])
 		elif "TOYS" in l[iWord]: #read error from toys
 			er=float(l[iWord+1])
+		elif "BIAS" in l[iWord]: #read error from toys
+			bias=float(l[iWord+1])
 		elif ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) in l[iWord]:
 			fr_sigcorr=float(l[iWord+1])
 		elif ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) in l[iWord]:
@@ -112,6 +115,9 @@ for line in fFit:
 	except NameError: pass;
 	try:
 		FracErr[ (ptmin,ptmax,ht,nj) ] = er;
+	except NameError: pass
+	try:
+		FracBias[ (ptmin,ptmax,ht,nj) ] = bias;
 	except NameError: pass
 
 def Unfold(Response,H,par,type="SVD"):
@@ -160,6 +166,8 @@ def Loop(systName=""):
 					fr=FracSigCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				elif systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE):
 					fr=FracBkgCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				elif  systName == "_BIAS" :
+					fr=FracBias[  (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				else: ##DEFAULT
 					fr=Frac[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
 
@@ -260,5 +268,7 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 #BKGSHAPE
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
+#
+Loop(ROOT.Analyzer.SystName("_BIAS"))
 		
 

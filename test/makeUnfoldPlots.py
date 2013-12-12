@@ -125,6 +125,7 @@ for h in range(0,len(HtCuts)):
 		H_JESDN   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN)))
 		H_SIGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)))
 		H_BKGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)))
+		H_BIAS   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],"_BIAS"))
 		H_LUMIUP = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP)))
 		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
 		H_LUMIUP.Scale(1.+.026)
@@ -137,6 +138,7 @@ for h in range(0,len(HtCuts)):
 		H_JER=makeBands(H_JERUP,H_JERDN)
 		H_SIG=makeBands(H,H_SIGSHAPE,"First")
 		H_BKG=makeBands(H,H_BKGSHAPE,"First")
+		H_BIAS=makeBands(H,H_BIAS,"First")
 		H_LUM=makeBands(H_LUMIUP,H_LUMIDN)
 		
 		if doMC:
@@ -154,8 +156,9 @@ for h in range(0,len(HtCuts)):
 		sqrtSum(H_TOT,H_PU)
 		sqrtSum(H_TOT,H_JES)
 		sqrtSum(H_TOT,H_JER)
-		sqrtSum(H_TOT,H_SIG)
-		sqrtSum(H_TOT,H_BKG)
+		#sqrtSum(H_TOT,H_SIG)
+		#sqrtSum(H_TOT,H_BKG)
+		sqrtSum(H_TOT,H_BIAS)
 		sqrtSum(H_TOT,H_LUM)
 		for i in range(0,H_TOT.GetNbinsX()+1):
 			print "H_TOT: Bin=%d Content=%f Error=%f "%(i,H_TOT.GetBinContent(i),H_TOT.GetBinError(i))
@@ -163,6 +166,7 @@ for h in range(0,len(HtCuts)):
 			print "H_JES: Bin=%d Content=%f Error=%f "%(i,H_JES.GetBinContent(i),H_JES.GetBinError(i))
 			print "H_JER: Bin=%d Content=%f Error=%f "%(i,H_JER.GetBinContent(i),H_JER.GetBinError(i))
 			print "H_SIG: Bin=%d Content=%f Error=%f "%(i,H_SIG.GetBinContent(i),H_SIG.GetBinError(i))
+			print "H_BIAS: Bin=%d Content=%f Error=%f "%(i,H_BIAS.GetBinContent(i),H_BIAS.GetBinError(i))
 			print "H_BKG: Bin=%d Content=%f Error=%f "%(i,H_BKG.GetBinContent(i),H_BKG.GetBinError(i))
 			print "H_LUM: Bin=%d Content=%f Error=%f "%(i,H_LUM.GetBinContent(i),H_LUM.GetBinError(i))
 			print "H: Bin=%d Content=%f Error=%f "%(i,H.GetBinContent(i),H.GetBinError(i))
@@ -201,6 +205,12 @@ for h in range(0,len(HtCuts)):
 		H_BKG.SetLineColor  (ROOT.kRed-4)
 		H_BKG.SetFillStyle(3005)
 
+		H_BIAS.SetMarkerStyle(0)
+		H_BIAS.SetFillColor  (ROOT.kGray+2)
+		H_BIAS.SetMarkerColor(ROOT.kGray+2)
+		H_BIAS.SetLineColor  (ROOT.kGray+2)
+		H_BIAS.SetFillStyle(3001)
+
 		H_LUM.SetMarkerStyle(0)
 		H_LUM.SetFillColor  (ROOT.kOrange)
 		H_LUM.SetMarkerColor(ROOT.kOrange)
@@ -233,6 +243,7 @@ for h in range(0,len(HtCuts)):
 		H_JES.Draw("P E2 SAME")
 		H_JER.Draw("P E2 SAME")
 		H_SIG.Draw("P E2 SAME")
+		H_BIAS.Draw("P E2 SAME")
 		H_LUM.Draw("P E2 SAME")
 
 		if doMC:
@@ -269,6 +280,7 @@ for h in range(0,len(HtCuts)):
 		L.AddEntry(H_JER,"JER Syst")
 		L.AddEntry(H_SIG,"SIG shape Syst")
 		L.AddEntry(H_BKG,"BKG shape Syst")
+		L.AddEntry(H_BIAS,"BIAS shape Syst")
 		L.AddEntry(H_LUM,"LUM shape Syst")
 		if doMC:
 			L.AddEntry(H_MC,"MC")
@@ -285,6 +297,7 @@ for h in range(0,len(HtCuts)):
 		R_H.GetYaxis().SetRangeUser(0.5,1.5)
 		R_SIG=Ratio(H,H_SIG,NoErrorH=True);
 		R_BKG=Ratio(H,H_BKG,True);
+		R_BIAS=Ratio(H,H_BIAS,NoErrorH=True);
 		R_LUM=Ratio(H,H_LUM,True);
 		R_PU=Ratio(H,H_PU,True);
 		R_JES=Ratio(H,H_JES,True);
@@ -298,6 +311,7 @@ for h in range(0,len(HtCuts)):
 		R_JES.Draw("P E2 SAME")
 		R_JER.Draw("P E2 SAME")
 		R_SIG.Draw("P E2 SAME")
+		R_BIAS.Draw("P E2 SAME")
 		R_LUM.Draw("P E2 SAME")
 		R_TOT.Draw("E3 SAME")
 		
