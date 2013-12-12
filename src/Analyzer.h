@@ -542,6 +542,19 @@ public :
    string EGscaleFactorsFile;
    map<string,float> EGscaleFactors;
    void InitEGscaleFactors();
+   
+   //
+   bool useEnergyScale;
+   string energyScaleFile;
+   map<string,float> energyScale;
+   void InitEnergyScale();
+   void ApplyEnergyScale();
+   //
+   bool useEnergySmear;
+   string energySmearFile;
+   map<string,pair<float,float> > energySmear;
+   void InitEnergySmear();
+   void ApplyEnergySmear();
 	
    //TRIGGER MENUS
    map<string,pair<float,float> > triggerMenus; 
@@ -584,6 +597,12 @@ Analyzer::Analyzer() : fChain(0)
    Sel=new Selection("selection");
    Sel2=new Selection("selectionAllGamma");
    JetPtThreshold = 30;
+   useEGscaleFactors=0;
+   EGscaleFactorsFile="";
+   useEnergyScale=0;
+   energyScaleFile="";
+   useEnergySmear=0;
+   energySmearFile="";
 }
 void Analyzer::InitCuts()
 {
@@ -645,42 +664,6 @@ void Analyzer::InitCuts()
 		}
 }
 
-void Analyzer::InitEGscaleFactors(){
-   //e->g s.f.
-//   int useEGscaleFactors;
-//   string EGscaleFactorsFile;
-//   map<string,float> EGsf;
-  FILE *fr=fopen(EGscaleFactorsFile.c_str(),"r"); 
-  if(fr==NULL) fprintf(stderr,"Error opening: %s",EGscaleFactorsFile.c_str());
-  char what[1023],buf[2048];
-  float ptmin,ptmax,etamin,etamax,value;
-  while(fgets(buf,2048,fr)!=NULL)
-	{
-	if(buf[0]=='#') continue;
-	if(buf[0]=='\n') continue;
-	if(buf[0]=='\0') continue;
-	int i=0;
-	while(buf[i]!='\n' && buf[i]!='\0') i++;
-	buf[i]='\0';
-  	sscanf(buf,"%f %f %f %f %f",&ptmin,&ptmax,&etamin,&etamax,&value);
-
-	if(debug>0){
-	fprintf(stderr,"Buffer is %s\n",buf);
-	fprintf(stderr,"Going to scan %f %f %f %f %f\n",ptmin,ptmax,etamin,etamax,value);
-	}
-
-	string name=Form("%.1f_%.1f_%.1f_%.1f",ptmin,ptmax,etamin,etamax);
-	EGscaleFactors[name]=value;
-	
-	}
-   for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
-	{
-	string name=it->first;
-	fprintf(stderr,"Loaded %s in EGScaleFactors Corrections with val %f - \n",name.c_str(), EGscaleFactors[name] );
-	}
-  return;
-	
-}
 
 void Analyzer::InitEffArea()
 {

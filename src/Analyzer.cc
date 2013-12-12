@@ -5,7 +5,6 @@
 #include <TCanvas.h>
 #include "TDirectory.h"
 
-//
 void Analyzer::MakeTree(string name){
 	treeContainer[name]=new TTree(name.c_str(),name.c_str());
 	treeContainer[name]->Branch("photoniso",&TreeVar.photoniso,"photoniso/F");
@@ -92,6 +91,8 @@ void Analyzer::Loop()
 	int mynJetsGEN=0;
 	vector<int> JetIdxGEN;
 
+	if (useEnergyScale) ApplyEnergyScale();
+	if (useEnergySmear) ApplyEnergySmear();
 	if(!isRealData) //only MC
 	{
 		//look for Gamma	
@@ -524,6 +525,131 @@ void Analyzer::Loop()
 	*/
 return;
 }//Analyzer::Loop
+
+void Analyzer::ApplyEnergyScale()
+{
+if( !isRealData) return;
+for(unsigned int i=0;i < photonPt->size();i++)
+	{
+	float pt = photonPt->at(i);
+	float eta= fabs(photonEta->at(i));
+	float r9 = photonid_r9->at(i);
+	for( map<string,float>::iterator it=energyScale.begin();it!=energyScale.end();it++)
+		{
+		float ptmin,ptmax,etamin,etamax,r9min,r9max;
+		long runmin,runmax;
+		sscanf(it->first.c_str(),"%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
+		if (!(pt>=ptmin && pt<ptmax)	) continue;
+		if (!(eta>=etamin && eta<etamax)	) continue;
+		if (!(r9>=r9min && r9<r9max) 	)continue;
+		if (!(runNum>=runmin && runNum<runmax)	) continue;
+		photonPt->at(i)*=it->second;
+		photonE->at(i)*=it->second;
+		break;
+		}
+	}
+}
+
+void Analyzer::InitEnergyScale(){
+	FILE *fr=fopen(energyScaleFile.c_str(),"r");
+  if(fr==NULL) fprintf(stderr,"Error opening: %s",energyScaleFile.c_str());
+  char name[1023],buf[2048];
+  float ptmin,ptmax,etamin,etamax,value,err,r9min,r9max;
+  long runmin,runmax,type;
+  while(fgets(buf,2048,fr)!=NULL)
+	{
+	if(buf[0]=='#') continue;
+	if(buf[0]=='\n') continue;
+	if(buf[0]=='\0') continue;
+	int i=0;
+	while(buf[i]!='\n' && buf[i]!='\0') i++;
+	buf[i]='\0';
+  	sscanf(buf,"%s %d %f %f %f %f %f %f %ld %ld %f %f",&name,&type,&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&value,&err);
+
+
+	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
+	energyScale[name]=value;
+	
+	}
+   for(map<string,float>::iterator it=energyScale.begin();it!=energyScale.end();it++)
+	{
+	string name=it->first;
+	fprintf(stderr,"Loaded %s in EGScaleFactors Corrections with val %f - \n",name.c_str(), energyScale[name] );
+	}
+  return;
+	
+}
+void Analyzer::ApplyEnergySmear()
+{
+if(isRealData)return;
+}
+
+void Analyzer::InitEnergySmear(){
+	FILE *fr=fopen(energySmearFile.c_str(),"r");
+  if(fr==NULL) fprintf(stderr,"Error opening: %s",energySmearFile.c_str());
+  char name[1023],buf[2048];
+  float ptmin,ptmax,etamin,etamax,rho,rhoerr,phi,phierr,r9min,r9max;
+  long runmin,runmax,type;
+  while(fgets(buf,2048,fr)!=NULL)
+	{
+	if(buf[0]=='#') continue;
+	if(buf[0]=='\n') continue;
+	if(buf[0]=='\0') continue;
+	int i=0;
+	while(buf[i]!='\n' && buf[i]!='\0') i++;
+	buf[i]='\0';
+  	sscanf(buf,"%s %d %f %f %f %f %ld %ld %f %f %f %f",&name,&type,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&rho,&rhoerr,&phi,&phierr);
+
+
+	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
+	energySmear[name]=pair<float,float>(rho,phi);
+	
+	}
+   for(map<string,pair<float,float>>::iterator it=energySmear.begin();it!=energySmear.end();it++)
+	{
+	string name=it->first;
+	fprintf(stderr,"Loaded %s in EGSmearFactors Corrections with val %f %f - \n",name.c_str(), energySmear[name].first ,energySmear[name].second );
+	}
+  return;
+	
+}
+
+void Analyzer::InitEGscaleFactors(){
+   //e->g s.f.
+//   int useEGscaleFactors;
+//   string EGscaleFactorsFile;
+//   map<string,float> EGsf;
+  FILE *fr=fopen(EGscaleFactorsFile.c_str(),"r"); 
+  if(fr==NULL) fprintf(stderr,"Error opening: %s",EGscaleFactorsFile.c_str());
+  char what[1023],buf[2048];
+  float ptmin,ptmax,etamin,etamax,value;
+  while(fgets(buf,2048,fr)!=NULL)
+	{
+	if(buf[0]=='#') continue;
+	if(buf[0]=='\n') continue;
+	if(buf[0]=='\0') continue;
+	int i=0;
+	while(buf[i]!='\n' && buf[i]!='\0') i++;
+	buf[i]='\0';
+  	sscanf(buf,"%f %f %f %f %f",&ptmin,&ptmax,&etamin,&etamax,&value);
+
+	if(debug>0){
+	fprintf(stderr,"Buffer is %s\n",buf);
+	fprintf(stderr,"Going to scan %f %f %f %f %f\n",ptmin,ptmax,etamin,etamax,value);
+	}
+
+	string name=Form("%.1f_%.1f_%.1f_%.1f",ptmin,ptmax,etamin,etamax);
+	EGscaleFactors[name]=value;
+	
+	}
+   for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
+	{
+	string name=it->first;
+	fprintf(stderr,"Loaded %s in EGScaleFactors Corrections with val %f - \n",name.c_str(), EGscaleFactors[name] );
+	}
+  return;
+	
+}
 
 void Analyzer::Smear()
 {
