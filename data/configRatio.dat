@@ -1,8 +1,10 @@
 ### Z ###
 file1 /afs/cern.ch/user/a/amarini/work/V00-13/UnfoldedDistributions.root 
+#eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 
 #### Gamma ###
 file2 /afs/cern.ch/user/a/amarini/work/V00-13/UnfoldedDistributions.root
+#eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 
 ### histo name1
 histoName1 b_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}

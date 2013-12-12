@@ -87,14 +87,14 @@ void Bin::Dump(string name,gzFile fz){
 
 void Event::Dump(string name,double x, double y,FILE *fw){
 	if (fw == NULL) return;
-	fprintf(fw,"name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
+	fprintf(fw,"name:%s\tlow:%lf\thigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
 	return;
 	}
 
 #ifndef __CINT__
 void Event::Dump(string name,double x, double y,gzFile fz){
 	if (fz == NULL) return;
-	string str=Form("name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
+	string str=Form("name:%s\tlow:%lf\thigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
 	gzwrite(fz,str.c_str(),strlen(str.c_str()));
 	return;
 	}

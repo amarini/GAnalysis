@@ -45,8 +45,30 @@ def ReadRatioDat( inputDat ):
 		if len(parts) == 0 : continue;
 		if   parts[0] == 'file1': 
 			R["file1"]=parts[1]
+			if 'eventList1' not in R: R['eventList1']=''
 		elif parts[0] == 'file2': 
 			R["file2"]=parts[1]
+			if 'eventList2' not in R: R['eventList2']=''
+		elif parts[0] == 'eventList1': 
+			R['eventList1Compress']=0
+			R['eventList1HistoName']=''
+			for i in range(1,len(parts)):
+				if parts[i].split('=')[0] == 'file':
+					R['eventList1']=parts[i].split('=')[1]
+				elif parts[i].split('=')[0] == 'compress':
+					R['eventList1Compress']=int(parts[i].split('=')[1])
+				elif parts[i].split('=')[0] == 'histoName':
+					R['eventList1HistoName']=parts[i].split('=')[1]
+		elif parts[0] == 'eventList2': 
+			R['eventList2Compress']=0
+			R['eventList2HistoName']=''
+			for i in range(1,len(parts)):
+				if parts[i].split('=')[0] == 'file':
+					R['eventList2']=parts[i].split('=')[1]
+				elif parts[i].split('=')[0] == 'compress':
+					R['eventList2Compress']=int(parts[i].split('=')[1])
+				elif parts[i].split('=')[0] == 'histoName':
+					R['eventList2HistoName']=parts[i].split('=')[1]
 		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
 		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
 		elif parts[0] == 'Cut':
@@ -124,6 +146,71 @@ def Ratio(H,H1,NoErrorH=False):
 	R.Divide(hTmp)
 	return R
 
+import gzip
+def computeOverlap(eventList1,compress1,name1,pt1,eventList2,compress2,name2,pt2):
+	if eventList1=='' or eventList2=='': return (0,1,1);
+	l1=glob(eventList1);
+	l2=glob(eventList2);
+	EventList1={}
+	EventList2={}
+	for fileName in l1:
+		if compress1:file1 = gzip.open(fileName,"r")
+		else:        file1 =      open(fileName,"r")
+		
+		for l in file1:
+			parts=l.split();
+			run = -1 
+			lumi= -1
+			event= -1
+			name=''
+			high=-1
+			low=-1
+			for p in parts:
+				if p.split(':')[0]=='run':run = int (p.split(':')[1] )
+				elif p.split(':')[0]=='lumi':lumi = int (p.split(':')[1] )
+				elif p.split(':')[0]=='event':event = int (p.split(':')[1] )
+				elif p.split(':')[0]=='name':name = str (p.split(':')[1] )
+				elif p.split(':')[0]=='high':high = float (p.split(':')[1] )
+				elif p.split(':')[0]=='low':low = float (p.split(':')[1] )
+			if (not (pt1>=low and pt1<high)) and pt1>=0:continue;
+			if name1 != "" and name != name1:continue;
+			EventList1[ (run,lumi,event) ] = 1
+		file1.close();
+	for fileName in l2:
+		if compress2:file2 = gzip.open(fileName,"r")
+		else:        file2 =      open(fileName,"r")
+		
+		for l in file2:
+			parts=l.split();
+			run = -1 
+			lumi= -1
+			event= -1
+			name=''
+			high=-1
+			low=-1
+			for p in parts:
+				if p.split(':')[0]=='run':run = int (p.split(':')[1] )
+				elif p.split(':')[0]=='lumi':lumi = int (p.split(':')[1] )
+				elif p.split(':')[0]=='event':event = int (p.split(':')[1] )
+				elif p.split(':')[0]=='name':name = str (p.split(':')[1] )
+				elif p.split(':')[0]=='high':high = float (p.split(':')[1] )
+				elif p.split(':')[0]=='low':low = float (p.split(':')[1] )
+			if (not (pt2>=low and pt2<high)) and pt2>=0:continue;
+			if name2 != "" and name != name2:continue;
+			EventList2[ (run,lumi,event) ] = 1
+		file2.close();
+	common=0;
+	only1=0;
+	only2=0
+	for (run,lumi,event) in EventList1:
+		if (run,lumi,event) in EventList2:
+			common+=1	
+			EventList2[(run,lumi,event)]=0
+		else: only1+=1
+	for (run,lumi,event) in EventList2:
+		if EventList2[(run,lumi,event)] == 0: only2+=1
+	return (common,only1,only2)				
+
 def FixNames(histoName,cut,syst=''):
 	n=histoName.find('$')
 	if n<0: return histoName;
@@ -178,6 +265,16 @@ for cut in config['Cut']:
 	hn1=FixNames( hn1,cut)
 	hn2=FixNames( hn2,cut)
 	
+	##compute overlap
+	El1Files=config['eventList1']
+	El2Files=config['eventList2']
+	## PER PT
+	if El1Files != '' and El2Files !='':
+		El1Compress=config['eventList1Compress']
+		El1HistoName=config['eventList1HistoName']
+		El2Compress=config['eventList2Compress']
+		El2HistoName=config['eventList2HistoName']
+	
 	print "Going to Get Histo :"+hn1 + ": from file " + config["file1"]
 	h1=file1.Get(hn1) 
 	print "Going to Get Histo :"+hn2 + ": from file " + config["file2"]
@@ -187,6 +284,27 @@ for cut in config['Cut']:
 	print "Taken Histo "+ h1.GetName()
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	R=Ratio(h1,h2,True)
+	if El1Files != '' and El2Files !='':
+	   for i in range(1,h1.GetNbinsX()+1):
+		e1=h1.GetBinError(i)
+		c1=h1.GetBinContent(i)
+		e2=h2.GetBinError(i)
+		c2=h2.GetBinContent(i)
+		pt1=h1.GetBinCenter(i);
+		pt2=h2.GetBinCenter(i);
+		(common,only1,only2)=computeOverlap(El1Files,El1Compress,El1HistoName,pt1,El2Files,El2Compress,El2HistoName,pt2);
+		# r = N1* (a+b) / N2* (a+c)
+		(a,b,c) = (common,only1,only2)
+		N1=c1/(common+only1)
+		N2=c2/(common+only2)
+		# Dr= N1/N2 * sqrt ( D(a+b/a+c) )
+		da2= float(common)
+		db2= float(only1)
+		dc2= float(only2)
+		if math.abs( da2+db2 - e1**2/N1**2 )> 0.01:print "Error don't match 1"
+		if math.abs( da2+dc2 - e2**2/N2**2 )> 0.01:print "Error don't match 1"
+		dr= N1/N2 * math.sqrt( ((a+b)/(a+c)) * ( (a/(a+b))**2 * db2 + (a/(a+c))**2 * dc2 + ( a*(b-c)/((a+c)*(a+b)) )**2 * da2  ))
+		R.SetBinError(i,dr)
 	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	for s in config['Syst']:
 		hns1=s[2]	
@@ -245,7 +363,7 @@ for cut in config['Cut']:
 	R.Draw("P SAME")
 	R.Draw("AXIS X+ Y+ SAME")
 	R.Draw("AXIS SAME")
-	if options.batch:
+	if not options.batch:
 		a=raw_input("Press Enter");
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
 	print "Going to save "+ name
