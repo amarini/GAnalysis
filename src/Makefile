@@ -26,7 +26,7 @@ CXXFLAGS+= -O -fPIC
 ROOTLIBS=`root-config --libs`
 
 .PHONY: all
-all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so
+all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so DumpAscii.so
 #all: Analyzer.so
 
 libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o stat.o statDict.o
@@ -61,6 +61,21 @@ fitDict.cc: fit.h fitLinkDef.h
 
 fitDict.o: fitDict.cc
 	$(CXX) -c -o fitDict.o fitDict.cc $(LDFLAGS) $(CXXFLAGS)
+#####################---DUMPASCII
+DumpAscii.so: DumpAscii.o DumpAsciiDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  DumpAscii.o DumpAsciiDict.o -o DumpAscii.so
+
+DumpAscii.o: DumpAscii.cc DumpAscii.d DumpAscii.h
+	$(CXX) -c -o DumpAscii.o DumpAscii.cc $(LDFLAGS) $(CXXFLAGS) 
+
+DumpAscii.d: DumpAscii.cc DumpAscii.h
+	$(CXX) -o DumpAscii.$(DepSuf) -M DumpAscii.cc -I$(ROOFIT_BASE)/include $(CXXFLAGS) $(LDFLAGS) 
+
+DumpAsciiDict.cc: DumpAscii.h DumpAsciiLinkDef.h
+	@rootcint -v4 -f DumpAsciiDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src DumpAscii.h DumpAsciiLinkDef.h
+
+DumpAsciiDict.o: DumpAsciiDict.cc
+	$(CXX) -c -o DumpAsciiDict.o DumpAsciiDict.cc $(LDFLAGS) $(CXXFLAGS)
 ####################---STAT----
 stat.so: stat.o statDict.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  stat.o statDict.o -o stat.so
@@ -96,9 +111,9 @@ SelectionDict.cc: Selection.cc SelectionLinkDef.h
 ##EOF
 
 .PHONY: clean	
-clean: clean_Selection clean_Analyzer clean_Fit clean_Stat
+clean: clean_Selection clean_Analyzer clean_Fit clean_Stat clean_DumpAscii
 
-.PHONY: clean_Selection clean_Analyzer clean_Fit clean_Stat
+.PHONY: clean_Selection clean_Analyzer clean_Fit clean_Stat clean_DumpAscii
 clean_Analyzer:
 	[ -f Analyzer.d      ] && rm Analyzer.d || true
 	[ -f Analyzer.o      ] && rm Analyzer.o || true
@@ -123,3 +138,9 @@ clean_Selection:
 	[ -f Selection.d           ] && rm Selection.d || true
 	[ -f SelectionDict.cc      ] && rm SelectionDict.cc || true
 	[ -f SelectionDict.o       ] && rm SelectionDict.o || true
+clean_DumpAscii:
+	[ -f DumpAscii.so          ] && rm DumpAscii.so || true
+	[ -f DumpAscii.o           ] && rm DumpAscii.o || true
+	[ -f DumpAscii.d           ] && rm DumpAscii.d || true
+	[ -f DumpAsciiDict.cc      ] && rm DumpAsciiDict.cc || true
+	[ -f DumpAsciiDict.o       ] && rm DumpAsciiDict.o || true
