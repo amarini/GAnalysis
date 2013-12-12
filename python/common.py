@@ -25,6 +25,8 @@ def read_dat(filename):
 			continue
 		elif(parts[0] == "Lumi"):
 			Dat["Lumi"]=float(parts[1])
+		elif(parts[0] == "dumpAscii"):
+			Dat["dumpAscii"]=int(parts[1])
 		elif(parts[0] == "DoSyst"):
 			Dat["DoSyst"]=int(parts[1])
 		elif(parts[0] == "DoShapeCorrFit"):

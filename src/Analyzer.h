@@ -17,6 +17,7 @@
 #include "TLorentzVector.h"
 
 #include "Selection.h"
+#include "DumpAscii.h"
 
 // Header file for the classes stored in the TTree if any.
 #include <vector>
@@ -566,6 +567,8 @@ public :
    //
    int usePUWeightHLT;
 
+   //DumpAscii
+   DumpAscii dump;
    //activate extra cout	
    int debug;
 
@@ -603,6 +606,9 @@ Analyzer::Analyzer() : fChain(0)
    energyScaleFile="";
    useEnergySmear=0;
    energySmearFile="";
+   dump.compress=1;
+   dump.maxn=10000;
+   dump.fileName="";
 }
 void Analyzer::InitCuts()
 {

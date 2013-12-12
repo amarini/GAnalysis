@@ -390,8 +390,15 @@ void Analyzer::Loop()
 		//-----
 		{
 		string name=string("gammaPt_")+cutsContainer[iCut].name()+SystName();
-			if(histoContainer[name]==NULL) {histoContainer[name]=new TH1D(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); histoContainer[name]->Sumw2();}
+			if(histoContainer[name]==NULL) {
+				histoContainer[name]=new TH1D(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax); 
+				histoContainer[name]->Sumw2();
+				dump.BookHisto(histoContainer[name]);
+				}
 		histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);
+		if(currentSyst==NONE){
+				dump.FillHisto(name,gamma.Pt(),runNum,lumi,eventNum);
+				}
 		}
 		//-----
 		if( !isRealData ){  //only for MC
@@ -523,6 +530,8 @@ void Analyzer::Loop()
 		it->second->Write("",TObject::kOverwrite);
 		}
 	*/
+	
+	if(currentSyst==NONE)dump.Dump();
 return;
 }//Analyzer::Loop
 

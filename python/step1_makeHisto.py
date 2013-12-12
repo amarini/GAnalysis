@@ -48,6 +48,11 @@ A.usePUWeightHLT=ReadFromDat(config,"UsePUWeightHLT",0,"--> Default usePUWeightH
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
 A.outputFileName=WorkDir+ReadFromDat(config,"outputFileName","output","-->Default Output Name")
+if ReadFromDat(config,"dumpAscii",0,"--> No DumpAscii as default"):
+	if options.nJobs<0: A.dump.fileName=A.outputFileName+".txt.gz"
+	else: A.dump.fileName=A.outputFileName+"_"+str(options.jobId)+"_"+str(options.nJobs)+".txt.gz"
+	A.dump.compress=1
+	print "--> Loaded DumpAscii configuration: output="+A.dump.fileName+ " compress="+str(A.dump.compress)
 
 try: 
 	for tree in config["DataTree"]: A.AddTree(tree) 

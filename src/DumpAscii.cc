@@ -33,9 +33,13 @@ unsigned long long int Histo::FindBin(double x){
 }
 
 void DumpAscii::Dump(){
-	if((fw==NULL) && !compress)fw=fopen(fileName.c_str(),"w");	
+	if((fw==NULL) && !compress && fileName!="")fw=fopen(fileName.c_str(),"w");	
 	#ifndef __CINT__
-	if((fz==NULL) && compress)fz=gzopen(fileName.c_str(),"w");	
+	if((fz==NULL) && compress && fileName!="")fz=gzopen(fileName.c_str(),"w");	
+	#endif
+	
+	#ifdef __CINT__
+	if(compress) fprintf("DUMP ERROR: can't use zlib in CINT. Try to turn it off\n");
 	#endif
 
 	for (map<string,Histo>::iterator i=histoContainer.begin();i!=histoContainer.end();i++)
@@ -82,12 +86,14 @@ void Bin::Dump(string name,gzFile fz){
 #endif
 
 void Event::Dump(string name,double x, double y,FILE *fw){
+	if (fw == NULL) return;
 	fprintf(fw,"name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
 	return;
 	}
 
 #ifndef __CINT__
 void Event::Dump(string name,double x, double y,gzFile fz){
+	if (fz == NULL) return;
 	string str=Form("name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
 	gzwrite(fz,str.c_str(),strlen(str.c_str()));
 	return;
