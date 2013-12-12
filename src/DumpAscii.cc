@@ -15,7 +15,12 @@ void DumpAscii::BookHisto(TH1*h)
 void DumpAscii::FillHisto(string s,double x,const Event &e){
 	unsigned long long int iBin=histoContainer[s].FindBin(x);
 	if(iBin<0){fprintf(stderr,"Error: Bin not found\n"); return ; };
+	if(iBin>= histoContainer[s].histo.size()){ fprintf(stderr,"Error Bin not found\n");return ;}
 	histoContainer[s].histo.at(iBin).events.push_back(e);
+	if (maxn>0){
+		in++;
+		if (in >=maxn)Dump();
+		};
 	return;
 }
 
@@ -28,10 +33,17 @@ unsigned long long int Histo::FindBin(double x){
 }
 
 void DumpAscii::Dump(){
-	if(fw==NULL)fw=fopen(fileName.c_str(),"w");	
+	if((fw==NULL) && !compress)fw=fopen(fileName.c_str(),"w");	
+	#ifndef __CINT__
+	if((fz==NULL) && compress)fz=gzopen(fileName.c_str(),"w");	
+	#endif
+
 	for (map<string,Histo>::iterator i=histoContainer.begin();i!=histoContainer.end();i++)
 		{
-		i->second.Dump(i->first,fw);
+		if(!compress)i->second.Dump(i->first,fw);
+	#ifndef __CINT__
+		if(compress)i->second.Dump(i->first,fz);
+	#endif
 		}
 	return;
 }
@@ -43,6 +55,15 @@ void Histo::Dump(string name,FILE*fw){
 		}
 	return;
 	}
+#ifndef __CINT__
+void Histo::Dump(string name,gzFile fz){
+	for(unsigned long long int  i=0;i<histo.size();i++)
+		{
+		histo.at(i).Dump(name,fz);
+		}
+	return;
+	}
+#endif
 
 void Bin::Dump(string name,FILE *fw){
 	for (unsigned long long i=0;i<events.size();i++)
@@ -51,7 +72,24 @@ void Bin::Dump(string name,FILE *fw){
 	return ;
 	}
 
+#ifndef __CINT__
+void Bin::Dump(string name,gzFile fz){
+	for (unsigned long long i=0;i<events.size();i++)
+		events.at(i).Dump(name,range.first,range.second,fz);
+	events.clear();
+	return ;
+	}
+#endif
+
 void Event::Dump(string name,double x, double y,FILE *fw){
-	fprintf(fw,"%s\t%lf\t%lf\t%llu\t%llu\t%llu\n",name.c_str(),x,y,run,lumi,event);
+	fprintf(fw,"name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
 	return;
 	}
+
+#ifndef __CINT__
+void Event::Dump(string name,double x, double y,gzFile fz){
+	string str=Form("name:%s\tBinLow:%lf\tBinHigh:%lf\trun:%llu\tlumi:%llu\tevent:%llu\n",name.c_str(),x,y,run,lumi,event);
+	gzwrite(fz,str.c_str(),strlen(str.c_str()));
+	return;
+	}
+#endif

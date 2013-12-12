@@ -7,6 +7,11 @@
 #include "TH1D.h"
 #include "TH1F.h"
 #include "TObject.h"
+// --- ZLIB ------
+// for some reason cint doesn't like them
+#ifndef __CINT__
+#include <zlib.h>
+#endif
 
 // --- OTHER ----------
 using namespace std;
@@ -19,6 +24,9 @@ public:
 	unsigned long long int lumi;
 	unsigned long long int run;
 	void Dump(string,double x , double y,FILE *fw);
+	#ifndef __CINT__
+	void Dump(string,double x , double y,gzFile fz);
+	#endif
    ClassDef(Event,1);
 };
 
@@ -33,6 +41,9 @@ public:
 	const bool isBig(double x)const { return (x>=range.second);}
 	const bool isSmall(double x)const { return (x>=range.second);}
 	void Dump(string name,FILE *fw);
+	#ifndef __CINT__
+	void Dump(string name,gzFile fz);
+	#endif
    ClassDef(Bin,1);
 };
 
@@ -50,6 +61,9 @@ public:
 	vector<Bin> histo; //bin are supposed sorted
 	unsigned long long int FindBin(double x);
 	void Dump(string name,FILE *fw);
+	#ifndef __CINT__
+	void Dump(string name,gzFile fz);
+	#endif
    ClassDef(Histo,1);
 };
 
@@ -59,18 +73,33 @@ class DumpAscii:public TObject{
 public:
 	void BookHisto(TH1*h);
 	void FillHisto(string s,double x,const Event &e);
+	// -- overload
 	void FillHisto(TH1*h,double x,const Event &e){return FillHisto(h->GetName(),x,e);};
 	void FillHisto(TH1*h,double x,unsigned long long int run, unsigned long long int lumi, unsigned long long int event) {return  FillHisto(h,x,Event(run,lumi,event));};
 	void FillHisto(string s,double x,unsigned long long int run, unsigned long long int lumi, unsigned long long int event) {return  FillHisto(s,x,Event(run,lumi,event));};
 	void Dump();
 
-	DumpAscii(){fw=NULL;maxn=-1;in=0;}
-	~DumpAscii(){Dump();if(fw)fclose(fw);}
+	DumpAscii(){fw=NULL;maxn=-1;in=0;
+	#ifndef __CINT__
+		fz=NULL;
+	#endif
+		}
+	~DumpAscii(){
+		Dump();
+		if(fw)fclose(fw);
+	#ifndef __CINT__
+		 if(fz)gzclose(fz);
+	#endif
+		}
 	string fileName;
 	long long maxn;
+	bool compress;
 private:
 	map<string,Histo> histoContainer;
 	FILE *fw;
+	#ifndef __CINT__
+		gzFile fz;
+	#endif
 	long long in;
 public:
    ClassDef(DumpAscii,1);
