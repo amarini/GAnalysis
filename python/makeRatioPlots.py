@@ -49,6 +49,10 @@ def ReadRatioDat( inputDat ):
 		elif parts[0] == 'file2': 
 			R["file2"]=parts[1]
 			if 'eventList2' not in R: R['eventList2']=''
+		elif parts[0] == 'lumi1': 
+			R["lumi1"]=float(parts[1])
+		elif parts[0] == 'lumi2': 
+			R["lumi2"]=float(parts[1])
 		elif parts[0] == 'eventList1': 
 			R['eventList1Compress']=0
 			R['eventList1HistoName']=''
@@ -255,6 +259,13 @@ file2 = ROOT.TFile.Open(config['file2'])
 
 AllCanvas=[]
 
+ROOT.gROOT.ProcessLine("struct Bins{ \
+		Double_t PtBins[1023];\
+		int nBins;\
+		};")
+
+from ROOT import Bins
+
 for cut in config['Cut']:
 	#take histo from file 1
 	
@@ -276,14 +287,53 @@ for cut in config['Cut']:
 		El2HistoName=config['eventList2HistoName']
 	
 	print "Going to Get Histo :"+hn1 + ": from file " + config["file1"]
-	h1=file1.Get(hn1) 
+	h1Raw=file1.Get(hn1) 
 	print "Going to Get Histo :"+hn2 + ": from file " + config["file2"]
-	h2=file2.Get(hn2)
+	h2Raw=file2.Get(hn2)
+	print "Taken Histo "+ h1Raw.GetName()
+	print "Taken Histo "+ h2Raw.GetName()
+	h1Raw.Scale(config['lumi1'])
+	h2Raw.Scale(config['lumi2'])
+
+	print "Histo1 Available Bins:"
+	h1Bin=[]
+	for iBin in range(1,h1Raw.GetNbinsX()+1):
+		h1Bin.append( int(h1Raw.GetBinLowEdge(iBin)) )
+		print str(h1Raw.GetBinLowEdge(iBin))+"->"+str(h1Bin[-1]),
+	print
+	print "Histo2 Available Bins:"
+	h2Bin=[]
+	for iBin in range(1,h2Raw.GetNbinsX()+1):
+		h2Bin.append( int(h2Raw.GetBinLowEdge(iBin)) )
+		print str(h2Raw.GetBinLowEdge(iBin))+"->"+str(h2Bin[-1]),
+	print
+	hBinCommon=ROOT.Bins()
+	hBinCommon.nBins=0;
+	for ptBin in h1Bin:
+			if ptBin in h2Bin: 
+				hBinCommon.PtBins[hBinCommon.nBins]=ptBin
+				hBinCommon.nBins+=1
+	h1=ROOT.TH1D("Histo1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
+	h2=ROOT.TH1D("Histo2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+	for iBin in range(1,h1.GetNbinsX()+1):
+		h1.SetBinContent(iBin,  h1Raw.GetBinContent(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
+		h1.SetBinError(iBin,  h1Raw.GetBinError(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
+		h2.SetBinContent(iBin,  h2Raw.GetBinContent(h2Raw.FindBin(h2.GetBinCenter(iBin)) ))
+		h2.SetBinError(iBin,  h2Raw.GetBinError(h2Raw.FindBin(h2.GetBinCenter(iBin)) ))
+	print "Values"
+	for iBin in range(1,h2.GetNbinsX()+1):
+		print " ["+str(h1.GetBinContent(iBin)) + ","+str(h2.GetBinContent(iBin))+"]",
+	print
 
 	#get syst	
-	print "Taken Histo "+ h1.GetName()
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
-	R=Ratio(h1,h2,True)
+	#R=Ratio(h1,h2,True)
+	R=Ratio(h2,h1,True)
+	print "Ratio"
+	for iBin in range(1,h2.GetNbinsX()+1):
+		print str(R.GetBinContent(iBin)),
+	print
+
 	if El1Files != '' and El2Files !='':
 	   for i in range(1,h1.GetNbinsX()+1):
 		e1=h1.GetBinError(i)
