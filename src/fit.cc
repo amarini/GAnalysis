@@ -52,8 +52,10 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 	else t=(TTree*)o;
 	
 	int nBins=sig->GetNbinsX();
-	float xMin=sig->GetBinLowEdge(1);
-	float xMax=sig->GetBinLowEdge(nBins+1);
+	//float xMin=sig->GetBinLowEdge( 1);
+	float xMin=sig->GetBinLowEdge( sig->FindBin(-3));
+	//float xMax=sig->GetBinLowEdge(nBins+1);
+	float xMax=sig->GetBinLowEdge(nBins);
 	
 	//Make Sure overflow & underflow=0
 	if(binned){
@@ -161,10 +163,8 @@ float FIT::fit(TObject *o, TH1D* sig, TH1D* bkg,const char *fileName,const char 
 		//		}
 		printf("----> Going to fit\n");
 		RooMsgService::instance().setSilentMode(true); 
-		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(), PrintEvalErrors(-1));
-		//r = PdfModel.fitTo(HistToFit,Save(),SumW2Error(kFALSE),Range(xMin,xMax));
+		r = PdfModel.fitTo(HistToFit,SumW2Error(kTRUE),Save(), PrintEvalErrors(-1),PrintLevel(-1),Minos(kTRUE),Warnings(0));
 		printf("----> Going to plot\n");
-		//f.setVal(fracEstimator);
 		HistToFit.plotOn(frame,DataError(RooAbsData::SumW2));
 		}
 	else {

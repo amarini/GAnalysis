@@ -41,7 +41,7 @@ PreScale=0 0 0 6886.55 0 885.49 0 147.59 0 70.53 52.84 1.43 1.0
 ## ACTIVATE FUNCTIONS
 DoSyst=1
 # for GEN?
-UsePUWeightHLT=0
+UsePUWeightHLT=1
 
 # not completely impl  - Residual correction predicted by MC
 DoShapeCorrFit=1

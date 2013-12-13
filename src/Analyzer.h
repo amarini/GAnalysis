@@ -15,6 +15,7 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TLorentzVector.h"
+#include "TRandom3.h"
 
 #include "Selection.h"
 #include "DumpAscii.h"
@@ -74,6 +75,8 @@ public :
    vector<float>   *photonE;
    vector<float>   *photonEta;
    vector<float>   *photonPhi;
+   vector<float>   *photonRegressionCorr;
+   vector<float>   *photonRegressionCorrErr;
    vector<float>   *photonPassConversionVeto;
    vector<float>   *photonPfIsoChargedHad;
    vector<float>   *photonPfIsoNeutralHad;
@@ -278,6 +281,8 @@ public :
    TBranch        *b_photonE;   //!
    TBranch        *b_photonEta;   //!
    TBranch        *b_photonPhi;   //!
+   TBranch        *b_photonRegressionCorr;   //!
+   TBranch        *b_photonRegressionCorrErr;   //!
    TBranch        *b_photonPassConversionVeto;   //!
    TBranch        *b_photonPfIsoChargedHad;   //!
    TBranch        *b_photonPfIsoNeutralHad;   //!
@@ -473,7 +478,7 @@ public :
    PHOTONID idvars;
 
    //SYST SMEARINGS
-   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD,LUMIUP,LUMIDN,FIT};
+   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD,LUMIUP,LUMIDN,FIT,BIAS,SMEARUP,SMEARDN,REGRUP,REGRDN};
    enum SYST currentSyst; 
    void Smear();
    string SystName();
@@ -544,6 +549,10 @@ public :
    map<string,float> EGscaleFactors;
    void InitEGscaleFactors();
    
+   bool useEnergyRegression;
+   void ApplyEnergyRegression();
+   static bool SortingRule(TLorentzVector x, TLorentzVector y){return x.Pt() > y.Pt();}
+   
    //
    bool useEnergyScale;
    string energyScaleFile;
@@ -554,9 +563,11 @@ public :
    bool useEnergySmear;
    string energySmearFile;
    map<string,pair<float,float> > energySmear;
+   map<string,pair<float,float> > energySmearErr;
    void InitEnergySmear();
    void ApplyEnergySmear();
-	
+   TRandom3 *rEnergySmear;
+  
    //TRIGGER MENUS
    map<string,pair<float,float> > triggerMenus; 
    map<string,float> triggerScales;
@@ -605,6 +616,7 @@ Analyzer::Analyzer() : fChain(0)
    useEnergyScale=0;
    energyScaleFile="";
    useEnergySmear=0;
+   rEnergySmear=NULL;
    energySmearFile="";
    dump.compress=1;
    dump.maxn=10000;
@@ -801,6 +813,8 @@ void Analyzer::Init()
    photonE = 0;
    photonEta = 0;
    photonPhi = 0;
+   photonRegressionCorr = 0;
+   photonRegressionCorrErr = 0;
    photonPassConversionVeto = 0;
    photonPfIsoChargedHad = 0;
    photonPfIsoNeutralHad = 0;
@@ -979,6 +993,8 @@ if(debug>1) printf("-> SetBranchAddress B - photon vectors\n");
    fChain->SetBranchAddress("photonE", &photonE, &b_photonE);
    fChain->SetBranchAddress("photonEta", &photonEta, &b_photonEta);
    fChain->SetBranchAddress("photonPhi", &photonPhi, &b_photonPhi);
+   fChain->SetBranchAddress("photonRegressionCorr", &photonRegressionCorr, &b_photonRegressionCorr);
+   fChain->SetBranchAddress("photonRegressionCorrErr", &photonRegressionCorrErr, &b_photonRegressionCorrErr);
    fChain->SetBranchAddress("photonPassConversionVeto", &photonPassConversionVeto, &b_photonPassConversionVeto);
    fChain->SetBranchAddress("photonPfIsoChargedHad", &photonPfIsoChargedHad, &b_photonPfIsoChargedHad);
    fChain->SetBranchAddress("photonPfIsoNeutralHad", &photonPfIsoNeutralHad, &b_photonPfIsoNeutralHad);

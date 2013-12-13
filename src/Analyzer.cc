@@ -61,6 +61,9 @@ void Analyzer::Loop()
    if(currentSyst == FIT ) return;	
    if(currentSyst == LUMIUP ) return;	
    if(currentSyst == LUMIDN ) return;	
+   if(currentSyst == BIAS ) return;	
+   if(currentSyst == SMEARUP && isRealData ) return;	
+   if(currentSyst == SMEARDN && isRealData ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -82,8 +85,6 @@ void Analyzer::Loop()
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
 	if(currentSyst==NONE)Sel->FillAndInit("All"); //Selection
-	//SYST SMEARINGS
-	Smear();
      // if (ientry < 0) break;
 
 	int GammaIdxGEN=-1;
@@ -91,8 +92,12 @@ void Analyzer::Loop()
 	int mynJetsGEN=0;
 	vector<int> JetIdxGEN;
 
+	if (useEnergyRegression) ApplyEnergyRegression();
 	if (useEnergyScale) ApplyEnergyScale();
 	if (useEnergySmear) ApplyEnergySmear();
+
+	//SYST SMEARINGS
+	Smear();
 	if(!isRealData) //only MC
 	{
 		//look for Gamma	
@@ -538,6 +543,7 @@ return;
 void Analyzer::ApplyEnergyScale()
 {
 if( !isRealData) return;
+if( !useEnergyScale) return;
 for(unsigned int i=0;i < photonPt->size();i++)
 	{
 	float pt = photonPt->at(i);
@@ -560,7 +566,7 @@ for(unsigned int i=0;i < photonPt->size();i++)
 }
 
 void Analyzer::InitEnergyScale(){
-	FILE *fr=fopen(energyScaleFile.c_str(),"r");
+  FILE *fr=fopen(energyScaleFile.c_str(),"r");
   if(fr==NULL) fprintf(stderr,"Error opening: %s",energyScaleFile.c_str());
   char name[1023],buf[2048];
   float ptmin,ptmax,etamin,etamax,value,err,r9min,r9max;
@@ -591,6 +597,41 @@ void Analyzer::InitEnergyScale(){
 void Analyzer::ApplyEnergySmear()
 {
 if(isRealData)return;
+if(!useEnergySmear)return;
+for(unsigned int i=0;i < photonPt->size();i++)
+	{
+	float pt = photonPt->at(i);
+	float eta= fabs(photonEta->at(i));
+	float r9 = photonid_r9->at(i);
+	for( map<string,pair<float,float> >::iterator it=energySmear.begin();it!=energySmear.end();it++)
+		{
+		float ptmin,ptmax,etamin,etamax,r9min,r9max;
+		long runmin,runmax;
+		sscanf(it->first.c_str(),"%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
+		if (!(pt>=ptmin && pt<ptmax)	) continue;
+		if (!(eta>=etamin && eta<etamax)	) continue;
+		if (!(r9>=r9min && r9<r9max) 	)continue;
+		if (!(runNum>=runmin && runNum<runmax)	) continue;
+		float rho=it->second.first;
+		float phi=it->second.second;
+		if(currentSyst == SMEARUP)
+			{
+			rho+=energySmearErr[it->first].first;
+			phi+=energySmearErr[it->first].second; //TODO: this are not fully correlated
+			}
+		else if (currentSyst == SMEARDN)
+			{
+			rho-=energySmearErr[it->first].first;
+			phi-=energySmearErr[it->first].second;
+			}
+		float sigma=sqrt( TMath::Power(rho*TMath::Sin(phi),2) + TMath::Power(rho*TMath::Cos(phi)/pt,2));
+		
+		float newpt=rEnergySmear->Gaus(photonPt->at(i),sigma);
+		photonE->at(i)*=newpt/photonPt->at(i);
+		photonPt->at(i)=newpt;
+		break;
+		}
+	}
 }
 
 void Analyzer::InitEnergySmear(){
@@ -612,6 +653,7 @@ void Analyzer::InitEnergySmear(){
 
 	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
 	energySmear[name]=pair<float,float>(rho,phi);
+	energySmearErr[name]=pair<float,float>(rhoerr,phierr);
 	
 	}
    for(map<string,pair<float,float>>::iterator it=energySmear.begin();it!=energySmear.end();it++)
@@ -659,6 +701,41 @@ void Analyzer::InitEGscaleFactors(){
   return;
 	
 }
+
+
+void Analyzer::ApplyEnergyRegression(){
+if( !useEnergyRegression) return;
+	for(int i=0 ;i<photonPt->size();i++)
+		{
+		float corr;
+		corr=photonRegressionCorr->at(i)/photonE->at(i);
+		if( currentSyst == REGRUP)
+			corr = (photonRegressionCorr->at(i) + photonRegressionCorrErr->at(i) )/photonE->at(i);   
+		if( currentSyst == REGRDN)
+			corr = (photonRegressionCorr->at(i) - photonRegressionCorrErr->at(i) )/photonE->at(i);   
+		float newE=photonE->at(i)*corr;
+		float newPt=photonPt->at(i)*corr;
+		photonPt->at(i)=newPt;
+		photonE->at(i)=newE;
+		}
+	// re order per Pt
+	vector<TLorentzVector> photons;
+	for(int i=0 ;i<photonPt->size();i++)
+		{
+		TLorentzVector g;
+		g.SetPtEtaPhiE( photonPt->at(i),photonEta->at(i),photonPhi->at(i),photonE->at(i))	;
+		photons.push_back(g);
+		}
+	sort(photons.begin(),photons.end(), SortingRule );
+	for(int i=0 ;i<photonPt->size();i++)
+		{
+		(*photonPt)[i] = photons[i].Pt();
+		(*photonEta)[i] = photons[i].Eta();
+		(*photonE)[i] = photons[i].E();
+		(*photonPhi)[i] = photons[i].Phi();
+		}
+	
+};
 
 void Analyzer::Smear()
 {
@@ -755,6 +832,21 @@ string Analyzer::SystName(enum SYST a){
 		break;
 	case LUMIDN: 
 		return string("_LUMIDN");
+		break;
+	case BIAS: 
+		return string("_BIAS");
+		break;
+	case SMEARUP: 
+		return string("_SMEARUP");
+		break;
+	case SMEARDN: 
+		return string("_SMEARDN");
+		break;
+	case REGRUP: 
+		return string("_REGRUP");
+		break;
+	case REGRDN: 
+		return string("_REGRDN");
 		break;
 	default: return "";
 	}

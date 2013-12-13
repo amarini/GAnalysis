@@ -166,7 +166,7 @@ def Loop(systName=""):
 					fr=FracSigCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				elif systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE):
 					fr=FracBkgCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
-				elif  systName == "_BIAS" :
+				elif  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) :
 					fr=FracBias[  (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				else: ##DEFAULT
 					fr=Frac[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
@@ -183,7 +183,7 @@ def Loop(systName=""):
 			else : er=0
 			## TAKE HISTO WITH YIELDS
 			systNameForHisto=systName
-			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD):
+			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS):
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
 			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
@@ -269,6 +269,6 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 #BKGSHAPE
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
 #
-Loop(ROOT.Analyzer.SystName("_BIAS"))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS))
 		
 
