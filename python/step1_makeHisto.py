@@ -103,6 +103,11 @@ A.jobId=options.jobId
 if(DEBUG>0): print "--> Init"
 A.Init()
 
+SetAttributes(A,config)
+#A.useReWeights=1
+#A.InitReWeights();
+
+
 for jetpt in JetPtThr:
 	A.JetPtThreshold=jetpt	
 	if DEBUG>0: print "-->Setting jetPt threshold to "+str(jetpt)

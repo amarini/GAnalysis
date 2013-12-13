@@ -25,6 +25,16 @@ def read_dat(filename):
 			continue
 		elif(parts[0] == "Lumi"):
 			Dat["Lumi"]=float(parts[1])
+		elif(parts[0] == "Attribute"):
+			if "Attribute" not in Dat: Dat["Attribute"]=[]
+			for attr in parts[1].split(';'):
+				if len(attr.split(':')) > 1: Dat["Attribute"].append( (attr.split(':')[0],attr.split(':')[1]) )
+		elif(parts[0] == "Functions"):
+			if "Functions" not in Dat: Dat["Functions"]=[]
+			for attr in parts[1].split(':'):
+				attr=attr.replace('\n','')
+				attr=attr.replace('\r','')
+				if attr!="":Dat["Functions"].append( attr )
 		elif(parts[0] == "dumpAscii"):
 			Dat["dumpAscii"]=int(parts[1])
 		elif(parts[0] == "DoSyst"):
@@ -132,3 +142,18 @@ def ReadFromDat(dat,what,default,Error):
 	except KeyError:
 		print Error
 		return default
+def SetAttribute(Analyzer, attr,value ):
+	print "Set Attribute %s to %s"%(attr,value)
+	exec("Analyzer.%s=%s"%(attr,value))
+	return
+def SetFunction(Analyzer, attr ):
+	print "Executing Functions '%s'"%attr
+	print "Analyzer.%s"%(attr)
+	exec("Analyzer.%s"%(attr))
+	return
+def SetAttributes(Analyzer, dat):
+	for (attr,value) in dat["Attribute"]:
+		SetAttribute(Analyzer,attr,value)
+	for attr in dat["Functions"]:
+		SetFunction(Analyzer,attr)
+	return

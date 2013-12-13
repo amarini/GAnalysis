@@ -4,6 +4,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 #include "TDirectory.h"
+#include <assert.h>
 
 void Analyzer::MakeTree(string name){
 	treeContainer[name]=new TTree(name.c_str(),name.c_str());
@@ -24,6 +25,7 @@ void Analyzer::Loop()
 	SetCutsJetPtThreshold();
     if(debug>0)printf("start loop\n");
     fChain->SetBranchStatus("*",0);  // disable all branches
+    if(useReWeights)fChain->SetBranchStatus("puTrueINT");
     fChain->SetBranchStatus("photon*",1);  // activate branchname
     fChain->SetBranchStatus("jetPt",1);  // activate branchname
     fChain->SetBranchStatus("jetEta",1);  // activate branchname
@@ -92,6 +94,7 @@ void Analyzer::Loop()
 	int mynJetsGEN=0;
 	vector<int> JetIdxGEN;
 
+	if (!isRealData && useReWeights) ApplyReWeights();
 	if (useEnergyRegression) ApplyEnergyRegression();
 	if (useEnergyScale) ApplyEnergyScale();
 	if (useEnergySmear) ApplyEnergySmear();
@@ -702,17 +705,18 @@ void Analyzer::InitEGscaleFactors(){
 	
 }
 
-
 void Analyzer::ApplyEnergyRegression(){
 if( !useEnergyRegression) return;
 	for(int i=0 ;i<photonPt->size();i++)
 		{
 		float corr;
 		corr=photonRegressionCorr->at(i)/photonE->at(i);
+			//corr = (photonRegressionCorr->at(i) - photonRegressionCorrErr->at(i) )/photonE->at(i);   
+			//corr = (photonRegressionCorr->at(i) + photonRegressionCorrErr->at(i) )/photonE->at(i);   
 		if( currentSyst == REGRUP)
-			corr = (photonRegressionCorr->at(i) + photonRegressionCorrErr->at(i) )/photonE->at(i);   
+			corr+= photonRegressionCorrErr->at(i);
 		if( currentSyst == REGRDN)
-			corr = (photonRegressionCorr->at(i) - photonRegressionCorrErr->at(i) )/photonE->at(i);   
+			corr-=photonRegressionCorrErr->at(i) ;
 		float newE=photonE->at(i)*corr;
 		float newPt=photonPt->at(i)*corr;
 		photonPt->at(i)=newPt;
@@ -851,3 +855,138 @@ string Analyzer::SystName(enum SYST a){
 	default: return "";
 	}
 }
+
+
+
+void Analyzer::ApplyReWeights(){
+    if (isRealData) return;
+	double oldew=eventWeight,oldpuw=PUWeight; //DEBUG
+    string name=fChain->GetCurrentFile()->GetName();
+    //find index mc
+    TObjArray *a=fChain->GetListOfFiles();
+    int indexFile=0;
+   for(int i=0;i<  a->GetEntries();i++ )
+	{
+	if (string(a->At(i)->GetName()) == name ) indexFile=i;
+	}
+    eventWeight=xSec[indexFile]*1000./nEvents[indexFile];
+	
+ 	TH1D* PU=puMCHistos[indexFile];
+    
+    if(targetHisto["PUWeight"])PUWeight =eventWeight * (double) targetHisto["PUWeight"]->GetBinContent(targetHisto["PUWeight"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) )) ;else PUWeight=-1;
+    if(targetHisto["PUWeightSysUp"])PUWeightSysUp =eventWeight * (double) targetHisto["PUWeightSysUp"]->GetBinContent(targetHisto["PUWeightSysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightSysUp=-1;
+    if(targetHisto["PUWeightSysDown"])PUWeightSysDown =eventWeight * (double) targetHisto["PUWeightSysDown"]->GetBinContent(targetHisto["PUWeightSysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightSysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon150"])PUWeightHLT_Photon150 =eventWeight * (double) targetHisto["PUWeightHLT_Photon150"]->GetBinContent(targetHisto["PUWeightHLT_Photon150"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon150=-1;
+    if(targetHisto["PUWeightHLT_Photon150SysUp"])PUWeightHLT_Photon150SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon150SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon150SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon150SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon150SysDown"])PUWeightHLT_Photon150SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon150SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon150SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon150SysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon135"])PUWeightHLT_Photon135 =eventWeight * (double) targetHisto["PUWeightHLT_Photon135"]->GetBinContent(targetHisto["PUWeightHLT_Photon135"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon135=-1;
+    if(targetHisto["PUWeightHLT_Photon135SysUp"])PUWeightHLT_Photon135SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon135SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon135SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon135SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon135SysDown"])PUWeightHLT_Photon135SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon135SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon135SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon135SysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon90"])PUWeightHLT_Photon90 =eventWeight * (double) targetHisto["PUWeightHLT_Photon90"]->GetBinContent(targetHisto["PUWeightHLT_Photon90"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon90=-1;
+    if(targetHisto["PUWeightHLT_Photon90SysUp"])PUWeightHLT_Photon90SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon90SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon90SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon90SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon90SysDown"])PUWeightHLT_Photon90SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon90SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon90SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon90SysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon75"])PUWeightHLT_Photon75 =eventWeight * (double) targetHisto["PUWeightHLT_Photon75"]->GetBinContent(targetHisto["PUWeightHLT_Photon75"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon75=-1;
+    if(targetHisto["PUWeightHLT_Photon75SysUp"])PUWeightHLT_Photon75SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon75SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon75SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon75SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon75SysDown"])PUWeightHLT_Photon75SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon75SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon75SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon75SysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon50"])PUWeightHLT_Photon50 =eventWeight * (double) targetHisto["PUWeightHLT_Photon50"]->GetBinContent(targetHisto["PUWeightHLT_Photon50"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon50=-1;
+    if(targetHisto["PUWeightHLT_Photon50SysUp"])PUWeightHLT_Photon50SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon50SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon50SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon50SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon50SysDown"])PUWeightHLT_Photon50SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon50SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon50SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon50SysDown=-1;
+
+    if(targetHisto["PUWeightHLT_Photon30"])PUWeightHLT_Photon30 =eventWeight * (double) targetHisto["PUWeightHLT_Photon30"]->GetBinContent(targetHisto["PUWeightHLT_Photon30"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon30=-1;
+    if(targetHisto["PUWeightHLT_Photon30SysUp"])PUWeightHLT_Photon30SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon30SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon30SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon30SysUp=-1;
+    if(targetHisto["PUWeightHLT_Photon30SysDown"])PUWeightHLT_Photon30SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon30SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon30SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon30SysDown=-1;
+
+       printf("Weights: %lf->%lf %lf->%lf\n",oldew,eventWeight,oldpuw,PUWeight); //DEBUG
+}
+
+void Analyzer::InitReWeights(){
+	//Get Target
+	if(debug>0)cout<<"-- INIT REWEIGHTS --"<<endl;
+	TDirectory *d=gDirectory;
+	targetHisto.clear();
+	for(map<string,string>::iterator it=PUFiles.begin();it!=PUFiles.end();it++)
+		{
+		TFile *f=TFile::Open(it->second.c_str());
+		d->cd();
+		targetHisto[it->first]=(TH1D*) f->Get("pileup")->Clone( (it->first+"_pileup").c_str() )	;
+		if(targetHisto[it->first]==NULL) cout<<"PU Histo for file "<<it->first<<" look for "<<it->second<<" not found"<<endl;
+		targetHisto[it->first]->Scale(1./targetHisto[it->first]->Integral());
+		f->Close();
+		}
+	//
+	TObjArray *a=fChain->GetListOfFiles();
+	int nFiles=a->GetEntries();
+	nEvents.clear();
+	puMCHistos.clear(); //TODO destruction
+	xSec.resize(nFiles);
+	CrossSection xS;
+	xS.ReadTxtFile( (xSecFile).c_str());
+	for(int iFile=0;iFile<nFiles;iFile++)
+		{	
+		TChain *t=new TChain("accepted/processedData");
+		string fileName=a->At(iFile)->GetTitle();
+		cout << "Adding File: " << fileName <<" :";
+		cout << t->Add( fileName.c_str() );
+		cout << endl;
+
+		Float_t mcWeight_;
+		Int_t puTrueINT_;
+		t->SetBranchAddress("mcWeight",&mcWeight_);
+		t->SetBranchAddress("puTrueINT",&puTrueINT_);
+
+		double SumEvents=0;
+
+		TH1D* mcPU=(TH1D*)targetHisto["PUWeight"]->Clone(  Form("pileup_%d",iFile) );
+		mcPU->Reset("ICES");
+		//for(int iBin=1;iBin<mcPU->GetNbinsX()+1;iBin++){mcPU->SetBinContent(iBin,0);mcPU->SetBinError(iBin,0);}
+		//mcPU->SetEntries(0);
+		for (unsigned long long iEntry=0;iEntry<t->GetEntries();iEntry++)
+			{
+			t->GetEntry(iEntry);
+			SumEvents+=mcWeight_;
+			mcPU->Fill(puTrueINT_,mcWeight_);
+			}
+		mcPU->Scale(1./mcPU->Integral());
+		nEvents.push_back(SumEvents);
+		puMCHistos.push_back(mcPU);
+		xSec[iFile]=xS.xSection( fileName.c_str() );
+		cout<< "XSEC for file "<<fileName<<" is "<<xSec[iFile]<<endl;
+		assert( xSec[iFile]>= 0 );
+		delete t;
+		}
+	return;	
+}
+
+
+int CrossSection::ReadTxtFile(const char*fileName)
+        {
+        FILE *fr=fopen(fileName,"r");
+        if(fr==NULL) return CrossSection::noFile;
+        char key[1023];
+        double number;
+        while(fscanf(fr,"%s %lf",key,&number)!=EOF){
+                xSec[string(key)]=number;
+                }
+        return 0;
+        }
+double CrossSection::xSection(string match){
+        float R=0;
+        int m=0;
+        for(map<string,double>::iterator it=xSec.begin();it!=xSec.end();it++)
+                {
+                if(match.find(it->first) != string::npos){ // I want to match what I put in the database and not the fileName
+                        R=it->second;
+                        m++;
+                        //DEBUG
+                        fprintf(stderr,"MATCH=%s\n",it->first.c_str());
+                        }
+                }
+        if(m==1) return R;
+        else if( m==0) return CrossSection::noMatch;
+        else if( m>1) return CrossSection::multipleMatch;
+        }

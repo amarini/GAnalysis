@@ -23,6 +23,8 @@
 // Header file for the classes stored in the TTree if any.
 #include <vector>
 #include <map>
+#include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -578,6 +580,20 @@ public :
    //
    int usePUWeightHLT;
 
+   // Weights
+   int useReWeights; //configuration
+   string xSecFile; //configuration -- see SetCommonWeightConfiguration
+   map<string,string> PUFiles; //configuration
+
+   void SetCommonWeightConfiguration();
+   void ApplyReWeights();
+   void InitReWeights();
+   vector<double> nEvents;
+   vector<double> xSec; // set aux/xSec.ini
+   vector<TH1D*> puMCHistos; // TODO: destruct
+   //
+   map<string,TH1D*> targetHisto; //TODO: destruct
+
    //DumpAscii
    DumpAscii dump;
    //activate extra cout	
@@ -590,6 +606,37 @@ public :
 #endif
 
 #ifdef Analyzer_cxx
+void Analyzer::SetCommonWeightConfiguration(){
+ xSecFile="aux/xSec.ini";
+ PUFiles["PUWeight"]="aux/MyPileup.root";
+ PUFiles["PUWeightSysUp"]="aux/MyPileup_UP.root";
+ PUFiles["PUWeightSysDown"]="aux/MyPileup_DN.root";
+
+ PUFiles["PUWeightHLT_Photon150"]="aux/MyPileup_HLT_Photon150_v.root";
+ PUFiles["PUWeightHLT_Photon150SysUp"]="aux/MyPileup_UP_HLT_Photon150_v.root";
+ PUFiles["PUWeightHLT_Photon150SysDown"]="aux/MyPileup_DN_HLT_Photon150_v.root";
+
+ PUFiles["PUWeightHLT_Photon135"]="aux/MyPileup_HLT_Photon135_v.root";
+ PUFiles["PUWeightHLT_Photon135SysUp"]="aux/MyPileup_UP_HLT_Photon135_v.root";
+ PUFiles["PUWeightHLT_Photon135SysDown"]="aux/MyPileup_DN_HLT_Photon135_v.root";
+
+ PUFiles["PUWeightHLT_Photon90"]="aux/MyPileup_HLT_Photon90_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon90SysUp"]="aux/MyPileup_UP_HLT_Photon90_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon90SysDown"]="aux/MyPileup_DN_HLT_Photon90_CaloIdVL_v.root";
+
+ PUFiles["PUWeightHLT_Photon75"]="aux/MyPileup_HLT_Photon75_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon75SysUp"]="aux/MyPileup_UP_HLT_Photon75_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon75SysDown"]="aux/MyPileup_DN_HLT_Photon75_CaloIdVL_v.root";
+
+ PUFiles["PUWeightHLT_Photon50"]="aux/MyPileup_HLT_Photon50_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon50SysUp"]="aux/MyPileup_UP_HLT_Photon50_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon50SysDown"]="aux/MyPileup_DN_HLT_Photon50_CaloIdVL_v.root";
+
+ PUFiles["PUWeightHLT_Photon30"]="aux/MyPileup_HLT_Photon30_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon30SysUp"]="aux/MyPileup_UP_HLT_Photon30_CaloIdVL_v.root";
+ PUFiles["PUWeightHLT_Photon30SysDown"]="aux/MyPileup_DN_HLT_Photon30_CaloIdVL_v.root";
+
+}
 
 void Analyzer::LoadTrigger(string menu,float ptmin,float ptmax, float scale)
 {
@@ -621,6 +668,7 @@ Analyzer::Analyzer() : fChain(0)
    dump.compress=1;
    dump.maxn=10000;
    dump.fileName="";
+   SetCommonWeightConfiguration();
 }
 void Analyzer::InitCuts()
 {
@@ -1163,4 +1211,18 @@ if(debug>1) printf("-> SetBranchAddress B - photon vectors\n");
    InitCuts();
    if(useEffArea)InitEffArea();
 }
+#endif
+
+#ifndef CROSSSECT_H
+#define CROSSSECT_H
+class CrossSection{
+public:
+        int ReadTxtFile(const char*fileName);
+        const static int noFile=-1;
+        const static int noMatch=-2;
+        const static int multipleMatch=-3;
+        double xSection(string match);
+private:
+        map<string,double> xSec;
+};
 #endif
