@@ -1,17 +1,10 @@
 #!/usr/bin/python
 import sys,os
 import array
-import ROOT
 import time
 from optparse import OptionParser
 
 DEBUG=1
-
-ROOT.gROOT.SetBatch()
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptTitle(0)
-
-if(DEBUG>0):print "----- BEGIN -----"
 
 if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
@@ -20,6 +13,15 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="MC Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
+
+import ROOT
+
+ROOT.gROOT.SetBatch()
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptTitle(0)
+
+if(DEBUG>0):print "----- BEGIN -----"
+
 
 print "inserting in path cwd"
 sys.path.insert(0,os.getcwd())
@@ -70,6 +72,8 @@ if DEBUG>0:print "--> Read Fraction"
 #READ FITTED FRACTION IN A DATABASE
 #Pt 43.5 48.3 Ht 0.0 nJets 1 Fraction= 0.528608322144 ERROR= 0.000138673000038
 Frac={};
+FracBias={};
+FracErr={};
 for line in fFit:
 	#exclude not well done lines
 	if '#' in line : continue
@@ -85,10 +89,18 @@ for line in fFit:
 			nj=float(l[iWord+1])
 		elif "Fraction" in l[iWord]:
 			fr=float(l[iWord+1])
-		elif "ERROR" in l[iWord]:
+		elif "TOYS" in l[iWord]: #read error from toys
 			er=float(l[iWord+1])
+		elif "BIAS" in l[iWord]: #read error from toys
+			bias=float(l[iWord+1])
 	try:
 		Frac[ (ptmin,ptmax,ht,nj) ] = fr
+	except NameError: continue;
+	try:
+		FracErr[ (ptmin,ptmax,ht,nj) ] = er
+	except NameError: continue;
+	try:
+		FracBias[ (ptmin,ptmax,ht,nj) ] = bias
 	except NameError: continue;
 
 #Float_t * is needed for TH1D
@@ -120,6 +132,7 @@ for h in range(0,len(HtCuts)):
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
 		H=ROOT.TH1D("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		HBias=ROOT.TH1D("bias_"+Bin,"Bias_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 		if doMC:
 			HMC=ROOT.TH1D("mc_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
@@ -130,7 +143,21 @@ for h in range(0,len(HtCuts)):
 			except (IndexError,KeyError): 
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
 				fr=1	
+			try:
+				er=FracErr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+			except (IndexError,KeyError): 
+				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				er=1	
+			try:
+				bias=FracBias[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+			except (IndexError,KeyError): 
+				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				bias=1	
 			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), fr )
+			H.SetBinError( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), er )
+
+			HBias.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), bias )
+
 			if doMC:
 				RU= fMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
 				RE= fMC.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
@@ -148,31 +175,48 @@ for h in range(0,len(HtCuts)):
 				HMC.SetLineColor(ROOT.kBlack)
 				HMC.SetLineWidth(2)
 				HMC.SetLineStyle(ROOT.kDashed)
+			HBias.SetLineColor(ROOT.kBlack)
+			HBias.SetLineWidth(2)
+			HBias.SetLineStyle(3)
 		elif HtCuts[h] == 100 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kRed+1)
+			H.SetLineColor(ROOT.kRed+1)
 			H.SetMarkerStyle(33)
 			if doMC: 
 				HMC.SetLineColor(ROOT.kRed)
 				HMC.SetLineWidth(2)
 				HMC.SetLineStyle(ROOT.kDashed)
+			HBias.SetLineColor(ROOT.kRed+1)
+			HBias.SetLineWidth(2)
+			HBias.SetLineStyle(3)
 		elif HtCuts[h] == 300 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kBlue-3)
+			H.SetLineColor(ROOT.kBlue-3)
 			H.SetMarkerStyle(29)
 			if doMC: 
 				HMC.SetLineColor(ROOT.kBlue-3)
 				HMC.SetLineWidth(2)
 				HMC.SetLineStyle(ROOT.kDashed)
+			HBias.SetLineColor(ROOT.kBlue-3)
+			HBias.SetLineWidth(2)
+			HBias.SetLineStyle(3)
 		elif HtCuts[h] == 0 and nJetsCuts[nj]==3:
 			H.SetMarkerColor(ROOT.kGreen+2)
+			H.SetLineColor(ROOT.kGreen+2)
 			H.SetMarkerStyle(21)
 			H.SetMarkerSize(0.8)
 			if doMC: 
 				HMC.SetLineColor(ROOT.kGreen+2)
 				HMC.SetLineWidth(2)
 				HMC.SetLineStyle(ROOT.kDashed)
+			HBias.SetLineColor(ROOT.kGreen+2)
+			HBias.SetLineWidth(2)
+			HBias.SetLineStyle(3)
 		else:
 			H.SetMarkerStyle(25)
 		#DRAW
+		H.SetFillStyle(0);
+		H.SetFillColor(H.GetLineColor());
 		if   h== 0 and nj==0:
 			print "Draw"
 			H.GetXaxis().SetTitle("p_{T}^{#gamma}");
@@ -180,10 +224,11 @@ for h in range(0,len(HtCuts)):
 			H.GetXaxis().SetMoreLogLabels()
 			H.GetXaxis().SetNoExponent()
 			H.GetYaxis().SetRangeUser(0,1);
-			H.Draw("P")
+			H.Draw("P E4")
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
-			H.Draw("P SAME")
+			H.Draw("P E4 SAME")
+		HBias.Draw("HIST SAME")
 
 		if doMC:
 			HMC.Draw("HIST SAME")

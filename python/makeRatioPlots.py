@@ -15,6 +15,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file for Ratio",default="data/configRatio.dat")
 parser.add_option("-b","--batch" ,dest='batch',action='store_true',help="ROOT Batch",default=False)
+parser.add_option("-s","--syst" ,dest='syst',action='store_true',help="Syst does not include stat",default=False)
 
 (options,args)=parser.parse_args()
 import ROOT
@@ -252,6 +253,14 @@ def FixNames(histoName,cut,syst=''):
 	#print "histoname=" + histoName[:n] + "   substri="+ substring + "    histoname="+histoName[r+1:] 
 	name=(histoName[:n] + substring + histoName[r+1:] )%(var)
 	return FixNames(name,cut,syst)
+
+def ConvertToTargetTH1( h1, h2):
+	h=h1.Clone(h2.GetName());
+	for iBin in range(1,h.GetNbinsX()+1):
+		h.SetBinContent(iBin,  h2.GetBinContent(h2.FindBin(h.GetBinCenter(iBin)) ))
+		h.SetBinError(iBin,  h2.GetBinError(h2.FindBin(h.GetBinCenter(iBin)) ))
+	return h
+	
 	
 #open files
 file1 = ROOT.TFile.Open(config['file1'])
@@ -292,8 +301,8 @@ for cut in config['Cut']:
 	h2Raw=file2.Get(hn2)
 	print "Taken Histo "+ h1Raw.GetName()
 	print "Taken Histo "+ h2Raw.GetName()
-	h1Raw.Scale(config['lumi1'])
-	h2Raw.Scale(config['lumi2'])
+	h1Raw.Scale(1./config['lumi1'])
+	h2Raw.Scale(1./config['lumi2'])
 
 	print "Histo1 Available Bins:"
 	h1Bin=[]
@@ -315,6 +324,7 @@ for cut in config['Cut']:
 				hBinCommon.nBins+=1
 	h1=ROOT.TH1D("Histo1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
 	h2=ROOT.TH1D("Histo2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+	## Convert to Target TH1
 	for iBin in range(1,h1.GetNbinsX()+1):
 		h1.SetBinContent(iBin,  h1Raw.GetBinContent(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
 		h1.SetBinError(iBin,  h1Raw.GetBinError(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
@@ -355,7 +365,9 @@ for cut in config['Cut']:
 		if math.abs( da2+dc2 - e2**2/N2**2 )> 0.01:print "Error don't match 1"
 		dr= N1/N2 * math.sqrt( ((a+b)/(a+c)) * ( (a/(a+b))**2 * db2 + (a/(a+c))**2 * dc2 + ( a*(b-c)/((a+c)*(a+b)) )**2 * da2  ))
 		R.SetBinError(i,dr)
-	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )
+	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )	
+	if options.syst:
+		for iBin in range(1,S.GetNbinsX()+1):S.SetBinError(iBin,0)
 	for s in config['Syst']:
 		hns1=s[2]	
 		hns2=s[3]
@@ -371,11 +383,14 @@ for cut in config['Cut']:
 			print "Going to get Histo " +h1nup + " - " + h1ndn
 			h1up=file1.Get(h1nup)
 			h1dn=file1.Get(h1ndn)
+			h1up=ConvertToTargetTH1(h1,h1up)
+			h1dn=ConvertToTargetTH1(h1,h1dn)
 			s1=makeBands(h1up,h1dn,"Mean")
 		elif typ[0]==':':
 			h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
 			print "Going to get Histo " +h1nfirst
 			h1first=file1.Get(h1nfirst)
+			h1first=ConvertToTargetTH1(h1,h1first)
 			s1=makeBands(h1,h1first,"First")
 		elif typ[0]=='.':
 			s1=h1.Clone("syst1"+syst)
@@ -388,11 +403,14 @@ for cut in config['Cut']:
 			print "Going to get Histo " +h2nup + " - " + h2ndn
 			h2up=file2.Get(h2nup)
 			h2dn=file2.Get(h2ndn)
+			h2up=ConvertToTargetTH1(h2,h2up)
+			h2dn=ConvertToTargetTH1(h2,h2up)
 			s2=makeBands(h2up,h2dn,"Mean")
 		elif typ[1]==':':
 			h2nfirst=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
 			print "Going to get Histo " +h2nfirst
 			h2first=file2.Get(h2nfirst)
+			h2first=ConvertToTargetTH1(h2,h2first)
 			s2=makeBands(h2,h2first,"First")
 		elif typ[1]=='.':
 			s2=h2.Clone("syst2"+syst)
@@ -403,11 +421,13 @@ for cut in config['Cut']:
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	R.SetMarkerStyle(20)
 	S.SetLineColor(ROOT.kRed)
+	S.SetFillColor(ROOT.kRed)
 	S.SetFillStyle(0)
 	
 	R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
 	R.GetYaxis().SetTitle("d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}")
-	R.GetYaxis().SetRangeUser(0,2)
+	#R.GetYaxis().SetRangeUser(0,2)
+	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
 	R.Draw("AXIS P")
 	S.Draw("P E4 SAME")
 	R.Draw("P SAME")
