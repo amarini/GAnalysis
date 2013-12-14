@@ -111,6 +111,8 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 	TruthBkg=[]
 	BiasStudySig=[]
 	BiasStudyBkg=[]
+	BiasStudySigRC=[]
+	BiasStudyBkgInv=[]
 	SigCorr=[]
 	BkgCorr=[]
 	for p in range(0,len(PtCuts)-1):
@@ -141,6 +143,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 					SigMC=fileMC.Get("photonisoRC_"+ cutSig.name() )
 					TruthSig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ) )
 					BiasStudySig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ).Clone("BiasStudySig") )
+					BiasStudySigRC.append(fileMC.Get("photonisoRC_"+cutSig.name() ).Clone("BiasStudySigRC") )
 					TruthSig[-1].Divide(SigMC)
 					for iHbin in range(1,TruthSig[-1].GetNbinsX()+1):
 						if( TruthSig[-1].GetBinContent(iHbin) >100 and TruthSig[-1].GetBinError(iHbin)> TruthSig[-1].GetBinContent(iHbin)*.5 ):
@@ -157,6 +160,7 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 					BkgMC=fileMC.Get("photoniso_"+cutBkg.name() )
 					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name() ) )#Truth has Sig Id
 					BiasStudyBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name()).Clone("BiasStudyBkg") )#Truth has Sig Id
+					BiasStudyBkgInv.append(fileMC.Get("photoniso_"+cutBkg.name()  ).Clone("BiasStudyBkgInv") )
 					TruthBkg[-1].Divide(BkgMC)
 					for iHbin in range(1,TruthBkg[-1].GetNbinsX()+1):
 						if( TruthBkg[-1].GetBinContent(iHbin) >100 and TruthBkg[-1].GetBinError(iHbin)> TruthBkg[-1].GetBinContent(iHbin)*.5 ):
@@ -277,11 +281,13 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 				 Bin="Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1])+"_HT_"+str(Ht) +"_nJets_"+str(nJets) 
 				 os.remove(WorkDir+"/biasresults"+Bin+".root")
 			except OSError: print "bias file doesn't exist: not removed"
+			#The fit model is build with thruth
 			BiasStudySig[Sbin].Scale( 1./BiasStudySig[Sbin].Integral() )
 			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral() )
-			ToFitBias=BiasStudySig[Sbin].Clone("ToFitBias"+Bin)
+			#The template to fit is build with inverted and rc template
+			ToFitBias=BiasStudySigRC[Sbin].Clone("ToFitBias"+Bin)
 			ToFitBias.Scale(f)
-			ToFitBias.Add(BiasStudyBkg[Bbin],(1-f))
+			ToFitBias.Add(BiasStudyBkgInv[Bbin],(1-f))
 			b=ROOT.TOYS.toy(ToFitBias,SigTemplate[Sbin],BkgTemplate[Bbin],100,0,WorkDir+"/biasresults"+Bin+".root");
 			o_txt.write(" BIAS= "+str(b["mean"]))
 			bf=ROOT.TFile.Open(WorkDir+"/biasresults"+Bin+".root","UPDATE")
