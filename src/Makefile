@@ -32,14 +32,14 @@ all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so DumpAscii.so
 libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o
 	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o fit.o fitDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o -o libGAnalysis.so
 
-Analyzer.d: Analyzer.cc Analyzer.h
+Analyzer.d: Analyzer.cc Analyzer.h AnalyzerBranches.h
 	$(CXX) -o Analyzer.$(DepSuf) -M Analyzer.$(SrcSuf) $(CXXFLAGS) $(LDFLAGS)
 
 Analyzer.o: Analyzer.cc Analyzer.h Analyzer.d
 	$(CXX) -c -o Analyzer.$(ObjSuf) Analyzer.$(SrcSuf) $(LDFLAGS) $(CXXFLAGS)
 
-Analyzer.so: Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o -o Analyzer.so
+Analyzer.so: Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o DumpAscii.o DumpAsciiDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o DumpAscii.o DumpAsciiDict.o -o Analyzer.so
 
 AnalyzerDict.o: AnalyzerDict.cc
 	$(CXX) -c -o AnalyzerDict.o AnalyzerDict.cc $(LDFLAGS) $(CXXFLAGS)

@@ -200,44 +200,8 @@ void Analyzer::Loop()
 	} //RhoCorr
 
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
-		//---- OLD
-		//if( (*photonid_hadronicOverEm)[iGamma] >0.05) continue; 
-		//if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
-		//if( (*photonPfIsoChargedHad)[iGamma]>1.5) continue;
-		//if(currentSyst==NONE)Sel2->FillAndInit("IsoCharged"); //Selection
-		//if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) continue;
-		//if(currentSyst==NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
-		////if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) continue;
 		
-		//PRESELECTION H-GG
-		if( (*photonid_sieie)[iGamma] >0.014) continue;
-		if(currentSyst==NONE)Sel2->FillAndInit("SieieLoose");
-		if( (*photonid_r9)[iGamma]>=0.9){
-			if( (*photonid_hadronicOverEm)[iGamma] >0.082) continue; 
-			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
-			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )continue;
-			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 50 + 0.005*(*photonPt)[iGamma] )continue;
-			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
-			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )continue;
-			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 50 + 0.002*(*photonPt)[iGamma] )continue;
-			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
-		}
-		else{
-			if( (*photonid_hadronicOverEm)[iGamma] >0.075) continue; 
-			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
-			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )continue;
-			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 4 + 0.005*(*photonPt)[iGamma] )continue;
-			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
-			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )continue;
-			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 4 + 0.002*(*photonPt)[iGamma] )continue;
-			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
-		}
-		//if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) continue;
-		if( (*photonPfIsoCharged02ForCicVtx0)[iGamma] > 4 ) continue;
-			if(currentSyst==NONE)Sel2->FillAndInit("chgIso"); //Selection
-		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) continue;  // loose 
-		if(currentSyst==NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
-		
+		if(!PassHggPreSelection(iGamma,RhoCorr))continue;	
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
 		string triggerMenu="";
@@ -249,8 +213,8 @@ void Analyzer::Loop()
 				triggerMenu=it->first;
 				}
 			}
+
 		if(isRealData) 
-		//if(true)
 		{
 		if(triggerMenu=="") continue; //doesn't have a trigger selection
 		else if(triggerMenu=="HLT_Photon20_CaloIdVL_v*"  && !(trigger &  1     ) ) continue;
@@ -266,20 +230,6 @@ void Analyzer::Loop()
 		else if(triggerMenu=="HLT_Photon90_CaloIdVL_IsoL_v*"  && !(trigger &  1024  ) ) continue;
 		else if(triggerMenu=="HLT_Photon135_v*"  && !(trigger &  2048  ) ) continue;
 		else if(triggerMenu=="HLT_Photon150_v*"  && !(trigger &  4096  ) ) continue;
-		//trigger -- from twiki
-		//	0000000000001 	1 	HLT_Photon20_CaloIdVL_v*
-		//  	0000000000010 	2 	HLT_Photon20_CaloIdVL_IsoL_v*
-		//  	0000000000100 	4 	HLT_Photon30_v*
-		//  	0000000001000 	8 	HLT_Photon30_CaloIdVL_v*
-		//  	0000000010000 	16 	HLT_Photon30_CaloIdVL_IsoL_v*
-		//  	0000000100000 	32 	HLT_Photon50_CaloIdVL_v*
-		//  	0000001000000 	64 	HLT_Photon50_CaloIdVL_IsoL_v*
-		//  	0000010000000 	128 	HLT_Photon75_CaloIdVL_v*
-		//  	0000100000000 	256 	HLT_Photon75_CaloIdVL_IsoL_v*
-		//  	0001000000000 	512 	HLT_Photon90_CaloIdVL_v*
-		//  	0010000000000 	1024 	HLT_Photon90_CaloIdVL_IsoL_v*
-		//  	0100000000000 	2048 	HLT_Photon135_v*
-		//  	1000000000000 	4096 	HLT_Photon150_v* 
 		ScaleTrigger=triggerScales[triggerMenu];
 		}//DATA
 		else
@@ -556,7 +506,7 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		{
 		float ptmin,ptmax,etamin,etamax,r9min,r9max;
 		long runmin,runmax;
-		sscanf(it->first.c_str(),"%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
+		sscanf(it->first.c_str(),"%f_%f_%f_%f_%f_%f_%ld_%ld",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
 		if (!(pt>=ptmin && pt<ptmax)	) continue;
 		if (!(eta>=etamin && eta<etamax)	) continue;
 		if (!(r9>=r9min && r9<r9max) 	)continue;
@@ -582,10 +532,10 @@ void Analyzer::InitEnergyScale(){
 	int i=0;
 	while(buf[i]!='\n' && buf[i]!='\0') i++;
 	buf[i]='\0';
-  	sscanf(buf,"%s %d %f %f %f %f %f %f %ld %ld %f %f",&name,&type,&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&value,&err);
+  	sscanf(buf,"%s %ld %f %f %f %f %f %f %ld %ld %f %f",&name,&type,&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&value,&err);
 
 
-	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
+	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%ld_%ld",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
 	energyScale[name]=value;
 	
 	}
@@ -610,7 +560,7 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		{
 		float ptmin,ptmax,etamin,etamax,r9min,r9max;
 		long runmin,runmax;
-		sscanf(it->first.c_str(),"%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
+		sscanf(it->first.c_str(),"%f_%f_%f_%f_%f_%f_%ld_%ld",&ptmin,&ptmax,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax);
 		if (!(pt>=ptmin && pt<ptmax)	) continue;
 		if (!(eta>=etamin && eta<etamax)	) continue;
 		if (!(r9>=r9min && r9<r9max) 	)continue;
@@ -651,15 +601,15 @@ void Analyzer::InitEnergySmear(){
 	int i=0;
 	while(buf[i]!='\n' && buf[i]!='\0') i++;
 	buf[i]='\0';
-  	sscanf(buf,"%s %d %f %f %f %f %ld %ld %f %f %f %f",&name,&type,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&rho,&rhoerr,&phi,&phierr);
+  	sscanf(buf,"%s %ld %f %f %f %f %ld %ld %f %f %f %f",&name,&type,&etamin,&etamax,&r9min,&r9max,&runmin,&runmax,&rho,&rhoerr,&phi,&phierr);
 
 
-	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%d_%d",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
+	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%ld_%ld",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
 	energySmear[name]=pair<float,float>(rho,phi);
 	energySmearErr[name]=pair<float,float>(rhoerr,phierr);
 	
 	}
-   for(map<string,pair<float,float>>::iterator it=energySmear.begin();it!=energySmear.end();it++)
+   for(map<string,pair<float,float> >::iterator it=energySmear.begin();it!=energySmear.end();it++)
 	{
 	string name=it->first;
 	fprintf(stderr,"Loaded %s in EGSmearFactors Corrections with val %f %f - \n",name.c_str(), energySmear[name].first ,energySmear[name].second );
@@ -856,6 +806,51 @@ string Analyzer::SystName(enum SYST a){
 	}
 }
 
+bool Analyzer::PassPhotonId2012(int iGamma){
+		if( (*photonid_hadronicOverEm)[iGamma] >0.05) return false; 
+		if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
+		if( (*photonPfIsoChargedHad)[iGamma]>1.5) return false;
+		if(currentSyst==NONE)Sel2->FillAndInit("IsoCharged"); //Selection
+		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) return false;
+		if(currentSyst==NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
+		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) return false;
+		return true;
+}
+
+bool Analyzer::PassHggPreSelection(int iGamma,float RhoCorr)
+{
+		//PRESELECTION H-GG
+		if( (*photonid_sieie)[iGamma] >0.014) return false;;
+		if(currentSyst==NONE)Sel2->FillAndInit("SieieLoose");
+		if( (*photonid_r9)[iGamma]>=0.9){
+			if( (*photonid_hadronicOverEm)[iGamma] >0.082) return false;; 
+			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
+			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 50 + 0.005*(*photonPt)[iGamma] )return false;;
+			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 50 + 0.005*(*photonPt)[iGamma] )return false;;
+			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
+			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 50 + 0.002*(*photonPt)[iGamma] )return false;;
+			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 50 + 0.002*(*photonPt)[iGamma] )return false;;
+			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
+		}
+		else{
+			if( (*photonid_hadronicOverEm)[iGamma] >0.075) return false;; 
+			if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
+			//if( (*photonhcalTowerSumEtConeDR04)[iGamma]*9./16. > 4 + 0.005*(*photonPt)[iGamma] )return false;;
+			if( (*photonhcalTowerSumEtConeDR03)[iGamma] > 4 + 0.005*(*photonPt)[iGamma] )return false;;
+			if(currentSyst==NONE)Sel2->FillAndInit("hcalIso"); //Selection
+			//if( (*photontrkSumPtHollowConeDR04)[iGamma]*9./16. > 4 + 0.002*(*photonPt)[iGamma] )return false;;
+			if( (*photontrkSumPtHollowConeDR03)[iGamma] > 4 + 0.002*(*photonPt)[iGamma] )return false;;
+			if(currentSyst==NONE)Sel2->FillAndInit("trkIso"); //Selection
+		}
+		//if( (*photonPfIsoCharged03ForCicVtx0)[iGamma]* 4./9. > 4 ) return false;;
+		if( (*photonPfIsoCharged02ForCicVtx0)[iGamma] > 4 ) return false;;
+			if(currentSyst==NONE)Sel2->FillAndInit("chgIso"); //Selection
+		if( (*photonIsoFPRPhoton)[iGamma]-RhoCorr>10) return false;;  // loose 
+		if(currentSyst==NONE)Sel2->FillAndInit("IsoPhoton"); //Selection
+		return true;
+
+}
+
 
 
 void Analyzer::ApplyReWeights(){
@@ -990,3 +985,5 @@ double CrossSection::xSection(string match){
         else if( m==0) return CrossSection::noMatch;
         else if( m>1) return CrossSection::multipleMatch;
         }
+
+
