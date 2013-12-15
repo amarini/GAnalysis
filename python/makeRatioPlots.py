@@ -123,8 +123,7 @@ def makeBands(h1,h2,type="Mean"):
 			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) )/2.0)
 	return H
 
-epsilon=0.0001
-def sqrtSum(h1,h2):
+def sqrtSum(h1,h2,epsilon=0.0001):
 	for i in range (1,h2.GetNbinsX()+1):
 		if h1.GetBinError(i)  > epsilon and h2.GetBinError(i)  > epsilon:
 			e=math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 )
@@ -255,10 +254,11 @@ def FixNames(histoName,cut,syst=''):
 	return FixNames(name,cut,syst)
 
 def ConvertToTargetTH1( h1, h2):
+	h2.SetName("old_"+h2.GetName())
 	h=h1.Clone(h2.GetName());
 	for iBin in range(1,h.GetNbinsX()+1):
 		h.SetBinContent(iBin,  h2.GetBinContent(h2.FindBin(h.GetBinCenter(iBin)) ))
-		h.SetBinError(iBin,  h2.GetBinError(h2.FindBin(h.GetBinCenter(iBin)) ))
+		h.SetBinError(iBin,    h2.GetBinError  (h2.FindBin(h.GetBinCenter(iBin)) ))
 	return h
 	
 	
@@ -307,13 +307,13 @@ for cut in config['Cut']:
 	print "Histo1 Available Bins:"
 	h1Bin=[]
 	for iBin in range(1,h1Raw.GetNbinsX()+1):
-		h1Bin.append( int(h1Raw.GetBinLowEdge(iBin)) )
+		h1Bin.append( int(round(h1Raw.GetBinLowEdge(iBin))) )
 		print str(h1Raw.GetBinLowEdge(iBin))+"->"+str(h1Bin[-1]),
 	print
 	print "Histo2 Available Bins:"
 	h2Bin=[]
 	for iBin in range(1,h2Raw.GetNbinsX()+1):
-		h2Bin.append( int(h2Raw.GetBinLowEdge(iBin)) )
+		h2Bin.append( int(round(h2Raw.GetBinLowEdge(iBin))) )
 		print str(h2Raw.GetBinLowEdge(iBin))+"->"+str(h2Bin[-1]),
 	print
 	hBinCommon=ROOT.Bins()
@@ -325,16 +325,12 @@ for cut in config['Cut']:
 	h1=ROOT.TH1D("Histo1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
 	h2=ROOT.TH1D("Histo2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
 	## Convert to Target TH1
-	for iBin in range(1,h1.GetNbinsX()+1):
-		h1.SetBinContent(iBin,  h1Raw.GetBinContent(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
-		h1.SetBinError(iBin,  h1Raw.GetBinError(h1Raw.FindBin(h1.GetBinCenter(iBin)) ))
-		h2.SetBinContent(iBin,  h2Raw.GetBinContent(h2Raw.FindBin(h2.GetBinCenter(iBin)) ))
-		h2.SetBinError(iBin,  h2Raw.GetBinError(h2Raw.FindBin(h2.GetBinCenter(iBin)) ))
+	h1=ConvertToTargetTH1(h1,h1Raw)
+	h2=ConvertToTargetTH1(h2,h2Raw)
 	print "Values"
 	for iBin in range(1,h2.GetNbinsX()+1):
-		print " ["+str(h1.GetBinContent(iBin)) + ","+str(h2.GetBinContent(iBin))+"]",
+		print " ["+str(h1.GetBinCenter(iBin))+"->"+str(h1.GetBinContent(iBin)) + ","+str(h2.GetBinContent(iBin))+"]",
 	print
-
 	#get syst	
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	#R=Ratio(h1,h2,True)
@@ -371,8 +367,8 @@ for cut in config['Cut']:
 	for s in config['Syst']:
 		hns1=s[2]	
 		hns2=s[3]
-		hns1=hns1.replace('-',hn1)
-		hns2=hns2.replace('-',hn2)
+		hns1=hns1.replace('-',config["histoName1"])
+		hns2=hns2.replace('-',config["histoName2"])
 		typ=s[1]
 		syst=s[0]
 		if hns1=='None': typ='.'+typ[1]
@@ -385,39 +381,58 @@ for cut in config['Cut']:
 			h1dn=file1.Get(h1ndn)
 			h1up=ConvertToTargetTH1(h1,h1up)
 			h1dn=ConvertToTargetTH1(h1,h1dn)
+			h1up.Scale(1./config["lumi1"])
+			h1dn.Scale(1./config["lumi1"])
 			s1=makeBands(h1up,h1dn,"Mean")
 		elif typ[0]==':':
 			h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
 			print "Going to get Histo " +h1nfirst
 			h1first=file1.Get(h1nfirst)
 			h1first=ConvertToTargetTH1(h1,h1first)
+			h1first.Scale(1./config["lumi1"])
 			s1=makeBands(h1,h1first,"First")
 		elif typ[0]=='.':
-			s1=h1.Clone("syst1"+syst)
+			s1=h1.Clone("syst1"+syst) #h1 is already scaled
 			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,0);
 		else: print "error on type 0 of "+typ	
 			
 		if typ[1]=='+': #h1 double band
 			h2nup=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Up'][1])
 			h2ndn=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Down'][1])
-			print "Going to get Histo " +h2nup + " - " + h2ndn
+			print "Going to get Histo " +h2nup + " - " + h2ndn 
 			h2up=file2.Get(h2nup)
 			h2dn=file2.Get(h2ndn)
 			h2up=ConvertToTargetTH1(h2,h2up)
 			h2dn=ConvertToTargetTH1(h2,h2up)
+			h2up.Scale(1./config["lumi2"])
+			h2dn.Scale(1./config["lumi2"])
 			s2=makeBands(h2up,h2dn,"Mean")
 		elif typ[1]==':':
 			h2nfirst=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
 			print "Going to get Histo " +h2nfirst
 			h2first=file2.Get(h2nfirst)
 			h2first=ConvertToTargetTH1(h2,h2first)
+			h2first.Scale(1./config["lumi2"])
 			s2=makeBands(h2,h2first,"First")
 		elif typ[1]=='.':
-			s2=h2.Clone("syst2"+syst)
+			s2=h2.Clone("syst2"+syst) #h2 is already scale for lumi
 			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,0);
 		else: print "error on type 1 of "+typ	
-		s=Ratio(s1,s2,True)
+		s=Ratio(s2,s1,False)
+		print "Syst %s:"%syst
+		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
+		print
 		sqrtSum(S,s)
+		#DEBUG
+		print
+		print "Relative Errors [tot s1 s2 TOT]%% %s:"%syst
+		for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %.1f]"%(s.GetBinError(i)/s.GetBinContent(i)*100, s1.GetBinError(i)/s1.GetBinContent(i)*100,s2.GetBinError(i)/s2.GetBinContent(i) *100, S.GetBinError(i)/S.GetBinContent(i) *100),
+		print
+		print "Absolute Vales"
+		for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %f]"%(s.GetBinContent(i), s1.GetBinContent(i),s2.GetBinContent(i) , S.GetBinContent(i)),
+		print
+		print
+		#ENDDEBUG
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	R.SetMarkerStyle(20)
 	S.SetLineColor(ROOT.kRed)
