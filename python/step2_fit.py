@@ -284,16 +284,19 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 			#The fit model is build with thruth
 			BiasStudySig[Sbin].Scale( 1./BiasStudySig[Sbin].Integral() )
 			BiasStudyBkg[Bbin].Scale( 1./BiasStudyBkg[Bbin].Integral() )
-			#The template to fit is build with inverted and rc template
-			ToFitBias=BiasStudySigRC[Sbin].Clone("ToFitBias"+Bin)
+			#The template to fit is build with mc thruth
+			ToFitBias=BiasStudySig[Sbin].Clone("ToFitBias"+Bin)
 			ToFitBias.Scale(f)
-			ToFitBias.Add(BiasStudyBkgInv[Bbin],(1-f))
-			b=ROOT.TOYS.toy(ToFitBias,SigTemplate[Sbin],BkgTemplate[Bbin],100,0,WorkDir+"/biasresults"+Bin+".root");
-			o_txt.write(" BIAS= "+str(b["mean"]))
+			ToFitBias.Add(BiasStudyBkg[Bbin],(1-f))
+			#The template are build with RC & Inv from MC (BiasStudies)
+			b=ROOT.TOYS.toy(ToFitBias,BiasStudySigRC[Sbin],BiasStudyBkgInv[Bbin],100,0,WorkDir+"/biasresults"+Bin+".root");
+			o_txt.write(" BIAS= "+str(b["mean"]) + " BRMS= " + str(b["rms"]))
 			bf=ROOT.TFile.Open(WorkDir+"/biasresults"+Bin+".root","UPDATE")
 			bf.cd()
 			BiasStudyBkg[Bbin].Write()
 			BiasStudySig[Sbin].Write()
+			BiasStudyBkgInv[Bbin].Write()
+			BiasStudySigRC[Sbin].Write()
 			bf.Close()
 			
 
