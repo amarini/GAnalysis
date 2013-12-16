@@ -1,4 +1,6 @@
 
+class AnalyzerBranches {
+public:
    ULong64_t       eventNum;
    Int_t           runNum;
    Int_t           lumi;
@@ -396,3 +398,4 @@
    TBranch        *b_VBPartonPhi;   //!
    TBranch        *b_lepSigmaIEtaIEta;   //!
    TBranch        *b_lepHadronicOverEm;   //!
+};

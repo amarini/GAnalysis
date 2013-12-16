@@ -25,7 +25,7 @@ void Analyzer::Loop()
 	SetCutsJetPtThreshold();
     if(debug>0)printf("start loop\n");
     fChain->SetBranchStatus("*",0);  // disable all branches
-    if(useReWeights)fChain->SetBranchStatus("puTrueINT");
+    if(useReWeights && !isRealData)fChain->SetBranchStatus("puTrueINT");
     fChain->SetBranchStatus("photon*",1);  // activate branchname
     fChain->SetBranchStatus("jetPt",1);  // activate branchname
     fChain->SetBranchStatus("jetEta",1);  // activate branchname
@@ -41,7 +41,6 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
     fChain->SetBranchStatus("jetPtRES*",1);  // activate branchname
-    fChain->SetBranchStatus("lep*",1);  // activate branchname
     if (fChain == 0) return;
 //	fChain->GetEntry(0); done in init
    if(!isRealData) {
@@ -50,6 +49,7 @@ void Analyzer::Loop()
     	fChain->SetBranchStatus("eventWeight*",1);  // activate branchname
 	fChain->SetBranchStatus("photon*GEN",1);
 	fChain->SetBranchStatus("jet*GEN",1);
+    	fChain->SetBranchStatus("lep*",1);  // activate branchname
 	}
 
    //exit if syst does not make sense for data or mc	
@@ -83,11 +83,10 @@ void Analyzer::Loop()
 	if( (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
 
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
-     // Long64_t ientry = LoadTree(jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
 	fChain->GetEntry(jentry);
+	fCurrent=fChain->GetTreeNumber();
 	if(currentSyst==NONE)Sel->FillAndInit("All"); //Selection
-     // if (ientry < 0) break;
 
 	int GammaIdxGEN=-1;
 	int HtGEN=0;
@@ -98,10 +97,10 @@ void Analyzer::Loop()
 	if (useEnergyRegression) ApplyEnergyRegression();
 	if (useEnergyScale) ApplyEnergyScale();
 	if (useEnergySmear) ApplyEnergySmear();
-
-	//SYST SMEARINGS
+	//SYST SMEARINGS - JER JES
 	Smear();
-	if(!isRealData) //only MC
+
+	if(!isRealData) //only MC -- FILL GEN Plots
 	{
 		//look for Gamma	
 			if( fabs(photonEtaGEN)<EtaMax && photonPtGEN>=0  && photonIsoSumPtDR04GEN < 5) { // photonPtGEN=-999 initialized
@@ -163,6 +162,9 @@ void Analyzer::Loop()
 		//TODO Gamma ID with CiC
 		//if( photonid_hadronicOverEm2012->at(iGamma) >0.1 ) continue;	
 			//set variables for tmva
+		//compute mva
+		if(loadMVA)
+			{
        			 idvars.tmva_photonid_r9			=(*photonid_r9)[iGamma];
        			 idvars.tmva_photonid_sieie			=(*photonid_sieie)[iGamma];
        			 idvars.tmva_photonid_etawidth			=(*photonid_etawidth)[iGamma];
@@ -174,9 +176,8 @@ void Analyzer::Loop()
        			 idvars.tmva_photonid_pfchargedisobad03		=(*photonPfIsoCharged03BadForCic)[iGamma];
        			 idvars.tmva_photonid_sceta			=(*photonid_sceta)[iGamma];
        			 idvars.tmva_photonid_eventrho			=rho; //TODO check that it is the correct rho
-		//compute mva
-		if(loadMVA)
 			GammaMVA = tmvaReaderID_Single_Barrel->EvaluateMVA("AdaBoost");
+			}
 		//if (GammaMVA <-.1)continue; //comment? -> no id use this to cut instead of sieie? - better sieie is less correleted with iso. Otherwise the id will use iso to kill the bkg
 		//select the leading photon in |eta|<1.4
 		if(fabs( (*photonEta)[iGamma] )>=EtaMax ) continue;
@@ -200,7 +201,8 @@ void Analyzer::Loop()
 	} //RhoCorr
 
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
-		
+	
+		//selection = Hgg PreSelection	
 		if(!PassHggPreSelection(iGamma,RhoCorr))continue;	
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
@@ -269,35 +271,7 @@ void Analyzer::Loop()
 			else {PUWeight*=sf2; PUWeightSysUp*=sf2;PUWeightSysDown*=sf2;}
 			}
 				
-
-	if(useEGscaleFactors && !isRealData){
-		//check if e is matched to G	
-		for( int iLep=0;iLep<lepPtGEN->size();iLep++ )
-			{
-			//is e?
-			if( abs(lepChIdGEN->at(iLep)) != 11) continue;
-			TLorentzVector e;
-			e.SetPtEtaPhiE( (*lepPtGEN)[iLep],(*lepEtaGEN)[iLep],(*lepPhiGEN)[iLep],(*lepEGEN)[iLep] );
-			if (gamma.DeltaR(e) < 0.3)
-				{ //match to an electron -gen
-   				for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
-				  {
-				  string name=it->first;
-				  float ptmin,ptmax,etamin,etamax;
-  				  sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
-				  if( (*photonPt)[GammaIdx]>ptmin && (*photonPt)[GammaIdx]<ptmax && fabs((*photonEta)[GammaIdx])> etamin && fabs((*photonEta)[GammaIdx]) <etamax)
-					{
-		
-					PUWeight*=it->second;
-					PUWeightSysUp*=it->second;
-					PUWeightSysDown*=it->second;
-					}
-				  break;
-				  }
-				break;
-				}
-			}
-		}
+	if(useEGscaleFactors && !isRealData )ApplyEGscaleFactors(gamma,GammaIdx); 
 	//--- jet founding -------------
 	JetIdx.clear();
 	Int_t mynJets=jetPt->size();
@@ -957,6 +931,37 @@ void Analyzer::InitReWeights(){
 	return;	
 }
 
+void Analyzer::ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx){
+	if(useEGscaleFactors && !isRealData){ // move to a function
+		//check if e is matched to G	
+		for( int iLep=0;iLep<lepPtGEN->size();iLep++ )
+			{
+			//is e?
+			if( abs(lepChIdGEN->at(iLep)) != 11) return ;
+			TLorentzVector e;
+			e.SetPtEtaPhiE( (*lepPtGEN)[iLep],(*lepEtaGEN)[iLep],(*lepPhiGEN)[iLep],(*lepEGEN)[iLep] );
+			if (gamma.DeltaR(e) < 0.3)
+				{ //match to an electron -gen
+   				for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
+				  {
+				  string name=it->first;
+				  float ptmin,ptmax,etamin,etamax;
+  				  sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
+				  if( (*photonPt)[GammaIdx]>ptmin && (*photonPt)[GammaIdx]<ptmax && fabs((*photonEta)[GammaIdx])> etamin && fabs((*photonEta)[GammaIdx]) <etamax)
+					{
+		
+					PUWeight*=it->second;
+					PUWeightSysUp*=it->second;
+					PUWeightSysDown*=it->second;
+					}
+				  break;
+				  }
+				break;
+				}
+			}
+		}
+	return ;
+}
 
 int CrossSection::ReadTxtFile(const char*fileName)
         {

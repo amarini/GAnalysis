@@ -28,12 +28,14 @@
 
 using namespace std;
 
+#include "AnalyzerBranches.h"
+
 // --- Headers for TMVA - photonID --------------
 #include "TMVA/Reader.h"
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 
-class Analyzer: public TObject {
+class Analyzer: public TObject, public AnalyzerBranches {
 public :
    TChain          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
@@ -46,7 +48,7 @@ public :
    double 	 PUWeightSysDown;
 
   //Maybe a class inereditance is better? 
-#include "AnalyzerBranches.h"
+//#include "AnalyzerBranches.h"
 	//HLT PUWeight
    double 	 PUWeightHLT_Photon150,PUWeightHLT_Photon150SysUp,PUWeightHLT_Photon150SysDown;
    double 	 PUWeightHLT_Photon135,PUWeightHLT_Photon135SysUp,PUWeightHLT_Photon135SysDown;
@@ -158,6 +160,7 @@ public :
    string EGscaleFactorsFile;
    map<string,float> EGscaleFactors;
    void InitEGscaleFactors();
+   void ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx); //TODO Remove one of the two parameters
    
    bool useEnergyRegression;
    void ApplyEnergyRegression();
