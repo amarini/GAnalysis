@@ -544,12 +544,12 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		if(currentSyst == SMEARUP)
 			{
 			rho+=energySmearErr[it->first].first;
-			phi+=energySmearErr[it->first].second; //TODO: this are not fully correlated
+			phi-=energySmearErr[it->first].second; //I maximaze/min the smearing sigma = rho^2 * [ (1-Et2)/Et2 *Sin*2phi + 1/Et2 ], sin2phi is crescient and the coefficient is negative. rho and phi are factorized
 			}
 		else if (currentSyst == SMEARDN)
 			{
 			rho-=energySmearErr[it->first].first;
-			phi-=energySmearErr[it->first].second;
+			phi+=energySmearErr[it->first].second;
 			}
 		float sigma=sqrt( TMath::Power(rho*TMath::Sin(phi),2) + TMath::Power(rho*TMath::Cos(phi)/pt,2));
 		
