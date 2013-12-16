@@ -48,3 +48,5 @@ DoShapeCorrFit=1
 DoBiasStudies=1
 Lumi=19.7
 
+Attribute=useEGscaleFactors:1
+Functions=InitEGscaleFactors()
