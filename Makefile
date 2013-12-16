@@ -7,9 +7,9 @@ all: src
 
 .PHONY:src
 src:
-	cd src ; make all
+	$(MAKE) -C src  all 
 
 .PHONY:clean
 clean:
-	cd src; make clean
+	$(MAKE) -C src clean
 	[ -e ./libGAnalysis.so ] && rm libGAnalysis.so || true
