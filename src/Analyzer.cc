@@ -266,9 +266,15 @@ void Analyzer::Loop()
 
 	if(!isRealData) //ScaleFactors
 			{
+			//Preselection SF on Zee AN-13-008
 			double sf1=0.997,sf2=0.978;
 			if((*photonid_r9)[GammaIdx]>=0.9){PUWeight*=sf1;PUWeightSysUp*=sf1;PUWeightSysDown*=sf1;}
 			else {PUWeight*=sf2; PUWeightSysUp*=sf2;PUWeightSysDown*=sf2;}
+			//ElectronSafeConversionVeto SF on Zuug
+			sf1=0.995; sf2=0.998;
+			if((*photonid_r9)[GammaIdx]>=0.94){PUWeight*=sf1;PUWeightSysUp*=sf1;PUWeightSysDown*=sf1;}
+			else {PUWeight*=sf2; PUWeightSysUp*=sf2;PUWeightSysDown*=sf2;}
+			
 			}
 				
 	if(useEGscaleFactors && !isRealData )ApplyEGscaleFactors(gamma,GammaIdx); 
