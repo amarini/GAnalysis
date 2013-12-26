@@ -9,14 +9,14 @@ if(log){
 	if(before>0)
 		for(int i=before;i>0;i--)
 		{
-		printf("%.1f ",xmin/TMath::Power(a,i));
+		printf("%.10f ",xmin/TMath::Power(a,i));
 		}
 	for(int i=0;i<nBins+1;i++)
-		printf("%.1f ",TMath::Power(a,i)*xmin);
+		printf("%.10f ",TMath::Power(a,i)*xmin);
 	if(after>0)
 		for(int i=1;i<=after;i++)
 		{
-		printf("%.1f ",xmax*TMath::Power(a,i));
+		printf("%.10f ",xmax*TMath::Power(a,i));
 		}
 	printf("\n");
 }
