@@ -347,6 +347,7 @@ void Analyzer::InitEffArea()
    map<string,float> effArea_rho;
    map<string,float> effArea_iso;
 
+  if(debug>0) printf("Opening File %s\n",effAreaFile.c_str());
   FILE *fr=fopen(effAreaFile.c_str(),"r"); 
   if(fr==NULL) fprintf(stderr,"Error opening: %s",effAreaFile.c_str());
   char what[1023],buf[2048];

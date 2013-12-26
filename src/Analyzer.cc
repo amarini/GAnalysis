@@ -560,6 +560,7 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		float sigma=sqrt( TMath::Power(rho*TMath::Sin(phi),2) + TMath::Power(rho*TMath::Cos(phi)/pt,2));
 		
 		float newpt=rEnergySmear->Gaus(photonPt->at(i),sigma);
+		if (newpt<1) newpt=1; // a photon of 1GeV will not pass any reasonable selection
 		photonE->at(i)*=newpt/photonPt->at(i);
 		photonPt->at(i)=newpt;
 		break;
