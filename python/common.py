@@ -115,7 +115,10 @@ def read_dat(filename):
 				print "Reading configuration from "+dir+filename2
 				Dat2=read_dat(dir+filename2)
 				for name in Dat2:
-					Dat[name]=Dat2[name]
+					if (name=="Attribute" or name=="Functions" )and name in Dat:
+						Dat[name]+=Dat2[name]
+					else:
+						Dat[name]=Dat2[name]
 			except IOError:
 				try:
 					f=open("./"+filename2);
