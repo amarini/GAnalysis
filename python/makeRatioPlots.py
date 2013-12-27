@@ -16,6 +16,7 @@ parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file for Ratio",default="data/configRatio.dat")
 parser.add_option("-b","--batch" ,dest='batch',action='store_true',help="ROOT Batch",default=False)
 parser.add_option("-s","--syst" ,dest='syst',action='store_true',help="Syst does not include stat",default=False)
+parser.add_option("-c","--cov" ,dest='cov',action='store_true',help="Use Covariance Matrix",default=False)
 
 (options,args)=parser.parse_args()
 import ROOT
@@ -76,6 +77,8 @@ def ReadRatioDat( inputDat ):
 					R['eventList2HistoName']=parts[i].split('=')[1]
 		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
 		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
+		elif parts[0] == 'cov1': R["cov1"]=parts[1]
+		elif parts[0] == 'cov2': R["cov2"]=parts[1]
 		elif parts[0] == 'Cut':
 			#default
 			ht=0
@@ -339,6 +342,21 @@ for cut in config['Cut']:
 	for iBin in range(1,h2.GetNbinsX()+1):
 		print str(R.GetBinContent(iBin)),
 	print
+	if options.cov:
+		print "Computing covariance matrix assuming gaussian error propagation and (``mu_i/sigma_i >>1'' ) "
+		cov1name=FixNames(config['cov1'],cut)
+		cov2name=FixNames(config['cov2'],cut)
+		cov1Raw=file1.Get(cov1name);
+		cov2Raw=file2.Get(cov2name);
+		#find common bins -- covariance matrix is in iBin
+		cov1=TH2D("Cov1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,0,hBinCommon.nBins-1);
+		
+		cov2=TH2D("Cov2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,0,hBinCommon.nBins-1);
+		for iBin in range(1,hBinCommon.nBins):
+		 for jBin in range(1,hBinCommon.nBins):
+		      cov1.SetBinContent(iBin,jBin, cov1.GetBinContent( h1.FindBin((hBinCommon.PtBins[iBin-1]+ hBinCommon.PtBins[iBin])/2.,(hBinCommon.PtBins[jBin-1]+ hBinCommon.PtBins[jBin])/2.) ) );
+		      cov2.SetBinContent(iBin,jBin, cov2.GetBinContent( h2.FindBin((hBinCommon.PtBins[iBin-1]+ hBinCommon.PtBins[iBin])/2.,(hBinCommon.PtBins[jBin-1]+ hBinCommon.PtBins[jBin])/2.) ) );
+
 
 	if El1Files != '' and El2Files !='':
 	   for i in range(1,h1.GetNbinsX()+1):
