@@ -239,25 +239,47 @@ def Loop(systName=""):
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
 		hcov= ROOT.TH2D(c) # must be D because cov is a TMatrixD
 		hcov.SetName("cov_"+Bin)
-		hcov.SetTitle("Covariance "+Bin.replace("_"," ") )
+		hcov.SetTitle("Covariance "+Bin.replace("_"," ") ) #covariance matrix is referred to u. not scaled for b_
 		b=u.Clone("b_"+Bin)
 		b.SetTitle( "Unfolded And Bin Width Scaled" +Bin.replace("_"," "))
 		for i in range(1,b.GetNbinsX()+1 ):
 			b.SetBinContent(i, b.GetBinContent(i)/b.GetBinWidth(i) )
-			b.SetBinError  (i, b.GetBinError(i)/b.GetBinWidth(i) ) 
+			b.SetBinError  (i, b.GetBinError(i)/b.GetBinWidth(i) ) 	
+		#SCALE cov matrix as for b
+		for i in range(1,b.GetNbinsX()+1 ):
+		 for j in range(1,b.GetNbinsX()+1 ):
+			hcov.SetBinContent(i,j, hcov.GetBinContent(i,j)/(b.GetBinWidth(i) *b.GetBinWidth(j)) )
+			hcov.SetBinError  (i,j, hcov.GetBinError(i,j)/(b.GetBinWidth(i) *b.GetBinWidth(j))) 	
 		## SAVE OUTPUT
 		fUnfOut.cd()
 		u.Write()
 		hcov.Write()
 		b.Write()
+		## ----- MC TRUTH ---------------------------------
+		if systName == ROOT.Analyzer.NONE: # no syst on data. eventually only syst on mc like pdf ...
+	                print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
+	                H_MC=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
+			#Scale per bin width as done for reco
+	                for i in range(1,H_MC.GetNbinsX()+1):
+				H_MC.SetBinContent(i, H_MC.GetBinContent(i)/H_MC.GetBinWidth(i) )
+	                	H_MC.SetBinError  (i, H_MC.GetBinError  (i)/H_MC.GetBinWidth(i) )
+			#scale per luminosity
+	                H_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
+	                H_MC.SetLineColor(ROOT.kBlue)
+	                H_MC.SetLineStyle(ROOT.kDashed)
+	                H_MC.SetLineWidth(2)
+			H_MC.SetName("mc_"+Bin)
+			H_MC.SetTitle("default MC Truth"+Bin)
+			fUnfOut.cd()
+			H_MC.Write()
 
 ### SYST ####
 #NONE
-#Loop("")
-Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.NONE))
-#PU
-Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.PUUP))
-Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN))
+#Loopien("")
+Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.NONE))
+#PU  Gen
+Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.PUUP))
+Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.PUDN))
 #JEC
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN))
