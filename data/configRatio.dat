@@ -10,8 +10,10 @@ lumi2 19.7
 
 ### histo name1
 histoName1 hData_leptons_combined
+#cov1  ???
 ### histo name2
 histoName2 b_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
+cov2 cov_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
 
 ### Load cuts
 Cut Ht=0 nJets=1 ptJet=30
