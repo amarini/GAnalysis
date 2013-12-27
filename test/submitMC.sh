@@ -21,7 +21,7 @@ rm -v log/logMC_*.done || true
 rm -v log/logMC_*.fail || true
 
 for i in `seq 0 100` ; do
-bsub -q 8nh -J Job_MC_$i -o $PWD/log/logMC_$i.log <<EOF
+bsub -q 1nd -J Job_MC_$i -o $PWD/log/logMC_$i.log <<EOF
 cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`

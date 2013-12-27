@@ -7,3 +7,4 @@ include=config.dat
 DATATREE=root://eoscms///store/user/amarini/V00-13/GJet*.root root://eoscms///store/user/amarini/V00-13/QCD*.root root://eoscms///store/user/amarini/V00-13/DY*.root
 WorkDir=/afs/cern.ch/user/a/amarini/work/V00-13_MC/
 Lumi=1
+dumpAscii=0
