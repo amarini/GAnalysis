@@ -69,6 +69,7 @@ if Clean[2]:
 	print "------ Cleaning 2 ------"
 	files+=glob(WorkDir+"/fit*")
 	files+=glob(WorkDir+"/bias*")
+	files+=glob(WorkDir+"/toys*")
 if Clean[3]:
 	print "------ Cleaning 3 ------"
 	files+=glob(WorkDir+"/Unfold*")
