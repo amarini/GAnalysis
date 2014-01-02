@@ -1,6 +1,16 @@
 #!/bin/bash
 
 CWD=$PWD
+DIR=$0
+
+cd ${DIR%/*}
+./submit_main data/configMC.dat 1nd logMC_ 500 all
+cd $CWD
+exit 0
+
+##### old
+
+CWD=$PWD
 RCWD=$PWD
 
 while(true);do

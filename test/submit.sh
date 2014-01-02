@@ -1,4 +1,14 @@
 #!/bin/bash
+CWD=$PWD
+DIR=$0
+
+cd ${DIR%/*}
+./submit_main data/config.dat 8nh log_ 100 all
+cd $CWD
+
+exit 0
+
+#### OLD
 
 CWD=$PWD
 RCWD=$PWD

@@ -3,11 +3,19 @@
 CWD=$PWD
 RCWD=$PWD
 
+#example
 CONFIG=data/config.dat
+QUEUE=8nh
 LOG=log_
 NJOBS=100
-QUEUE=8nh
 LIST=""
+
+CONFIG=$1
+QUEUE=$2
+LOG=$3
+NJOBS=$4
+LIST=$5
+[ "$LIST" == "all ] && LIST=""
 
 while(true);do
 	TMP_CWD=${CWD##*/}
