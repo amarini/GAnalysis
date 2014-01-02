@@ -16,6 +16,7 @@
 #include "TChain.h"
 #include "TLorentzVector.h"
 #include "TRandom3.h"
+#include "TStopwatch.h"
 
 #include "Selection.h"
 #include "DumpAscii.h"
@@ -207,6 +208,16 @@ public :
 
    //DumpAscii
    DumpAscii dump;
+
+   //Watch Duty Cycle:
+   int doDutyCycle;
+   Long64_t nBench;
+   Long64_t startBench; //minutes
+   Long64_t dutyCount;
+   float thrBench;
+   void SetCheckDuty(int n, int s,float thr){nBench=n;startBench=s;thrBench=thr;dutyCount=0;};
+   void  checkDuty(Long64_t jentry); 
+   TStopwatch stopWatch;
    //activate extra cout	
    int debug;
 
@@ -280,6 +291,7 @@ Analyzer::Analyzer() : fChain(0)
    dump.maxn=10000;
    dump.fileName="";
    SetCommonWeightConfiguration();
+   doDutyCycle=0;SetCheckDuty(-1,-1,-1.);
 }
 void Analyzer::InitCuts()
 {

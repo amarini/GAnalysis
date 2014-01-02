@@ -18,6 +18,34 @@ int Analyzer::SetCutsJetPtThreshold(){
 		}
 	}
 
+void inline Analyzer::checkDuty(Long64_t jentry){
+	//-- check to decide if do dutyCycle checks
+	if (!doDutyCycle) return;
+	if (nBench<=0) return;
+	if (thrBench<=0) return;
+	//---
+	if ( dutyCount>0 && (dutyCount % nBench == 0) ) {
+		stopWatch.Stop();
+		float realTime=stopWatch.RealTime();
+		float cpuTime=stopWatch.CpuTime();
+		float bench=cpuTime/(cpuTime+realTime);
+		if (bench<thrBench && realTime>startBench * 60.) {
+				cout<<"Exiting: too slow"<<endl;
+				cout<<"RealTime: "<< realTime<<endl;
+				cout<<"CpuTime: "<< cpuTime<<endl;
+				if( outputFileName.find(".root") != string::npos ){//already written part of the file
+				cout<<"removing file "<<outputFileName<<endl;
+				system(Form("rm %s",outputFileName.c_str()));
+			       	}
+				exit(1001);
+				}
+		dutyCount = 0; // work with small numbers
+		} //jentry of dutycount
+	if (dutyCount == 0) stopWatch.Start();
+	dutyCount++;	
+	return;
+}
+
 void Analyzer::Loop()
 {
     //
@@ -87,6 +115,9 @@ void Analyzer::Loop()
 	fChain->GetEntry(jentry);
 	fCurrent=fChain->GetTreeNumber();
 	if(currentSyst==NONE)Sel->FillAndInit("All"); //Selection
+
+	//duty cycle
+	checkDuty(jentry);
 
 	int GammaIdxGEN=-1;
 	int HtGEN=0;
