@@ -27,8 +27,7 @@ export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
 rm $PWD/log/log_$i.done || true
 python python/step1_makeHisto.py --inputDat=data/config.dat --nJobs=100 --jobId=$i 2>&1 | gzip > $PWD/log/log_$i.txt.gz 
-declare -a PS=${PIPESTATUS[@]} ;
-[ "${PS[0]}" == "0" ] && touch $PWD/log/log_$i.done || { touch $PWD/log/log_$i.fail; exit 1; }
+[ "${PIPESTATUS[0]}" == "0" ] && touch $PWD/log/log_$i.done || { touch $PWD/log/log_$i.fail; exit 1; }
 
 echo "************************"
 echo "*          DONE        *"
