@@ -47,5 +47,6 @@ DoShapeCorrFit=1
 DoBiasStudies=1
 Lumi=19.7
 
-Attribute=useEGscaleFactors:1
+Attribute=useEGscaleFactors:1;doDutyCycle:1
 Functions=InitEGscaleFactors()
+Functions=SetCheckDutyCycle(2000,5,.2)
