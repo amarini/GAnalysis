@@ -81,8 +81,8 @@ for line in fFit:
 	l=line.split(' ')
 	for iWord in range(0,len(l)):
 		if "Pt" in l[iWord] :
-			ptmin=float(l[iWord+1])
-			ptmax=float(l[iWord+2])
+			ptmin= round(float(l[iWord+1]),1)
+			ptmax= round(float(l[iWord+2]),1)
 		elif "Ht" in l[iWord]:
 			ht=float(l[iWord+1])
 		elif "nJets" in l[iWord]:
@@ -124,8 +124,12 @@ for h in range(0,len(HtCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
 		#CREATE TARGET HISTO
 		try:
-			PtCuts2=PtCuts[0:PtCuts.index(-1) ]
-		except ValueError: PtCuts2=PtCuts
+			PtCuts2_tmp=PtCuts[0:PtCuts.index(-1) ]
+		except ValueError: PtCuts2_tmp=PtCuts
+
+		PtCuts2=[]
+		for pt in PtCuts2_tmp:		
+			PtCuts2.append(round(pt,1));
 
 		for c in range(0,len(PtCuts2)):
 			PtBins.PtBins[c]=PtCuts2[c]
@@ -139,34 +143,34 @@ for h in range(0,len(HtCuts)):
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION
 			try:
-				fr=Frac[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				fr=1	
 			try:
-				er=FracErr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				er=FracErr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				er=1	
 			try:
-				bias=FracBias[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				bias=FracBias[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				bias=1	
-			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), fr )
-			H.SetBinError( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), er )
+			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
+			H.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), er )
 
-			HBias.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), bias )
+			HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), bias )
 
 			if doMC:
 				RU= fMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
-				RE= fMC.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
+				RE= fMC.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
 				try:
-					frmc= RU.GetBinContent( RU.FindBin((PtCuts[p]+PtCuts[p+1])/2.) ) / RE.Integral()
+					frmc= RU.GetBinContent( RU.FindBin((PtCuts2[p]+PtCuts2[p+1])/2.) ) / RE.Integral()
 				except AttributeError: 
-					print "--ERROR in MC Fraction: Pt %.0f Ht %.0f nJets %d"%(PtCuts[p],HtCuts[h],nJetsCuts[nj])
+					print "--ERROR in MC Fraction: Pt %.0f Ht %.0f nJets %d"%(PtCuts2[p],HtCuts[h],nJetsCuts[nj])
 					frmc=0
-				HMC.SetBinContent( HMC.FindBin((PtCuts[p]+PtCuts[p+1])/2.) , frmc)
+				HMC.SetBinContent( HMC.FindBin((PtCuts2[p]+PtCuts2[p+1])/2.) , frmc)
 		## PLOT HISTOS
 		if   HtCuts[h] == 0 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kBlack)
