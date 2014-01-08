@@ -276,10 +276,10 @@ def Loop(systName=""):
 ### SYST ####
 #NONE
 #Loopien("")
-Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.NONE))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.NONE))
 #PU  Gen
-Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.PUUP))
-Loop(GenROOT.Analyzer.SystName(ROOT.Analyzer.PUDN))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.PUUP))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN))
 #JEC
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN))
