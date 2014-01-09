@@ -132,7 +132,7 @@ for h in range(0,len(HtCuts)):
 			PtCuts2.append(round(pt,1));
 
 		for c in range(0,len(PtCuts2)):
-			PtBins.PtBins[c]=PtCuts2[c]
+			PtBins.PtBins[c]=PtCuts2_tmp[c] ## bin for histo with high precision
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
 		H=ROOT.TH1D("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
