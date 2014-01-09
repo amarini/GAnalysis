@@ -120,6 +120,11 @@ for line in fFit:
 		FracBias[ (ptmin,ptmax,ht,nj) ] = bias;
 	except NameError: pass
 
+if DEBUG>0:
+	print "-->Frac",Frac
+	print "--> FracErr",FracErr
+	print "--> FracBias",FracBias
+
 def Unfold(Response,H,par,type="SVD"):
 	#U=ROOT.RooUnfold.RooUnfoldSvd(Response,H,par,1000)
 	if type.lower() == "svd":
@@ -159,7 +164,7 @@ def Loop(systName=""):
 			PtCuts2.append(round(pt,1));
 
 		for c in range(0,len(PtCuts2)):
-			PtBins.PtBins[c]=PtCuts2[c]
+			PtBins.PtBins[c]=PtCuts2_tmp[c]#bins of histos with high precision
 
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])+systName
 		#Will it work?
@@ -192,9 +197,9 @@ def Loop(systName=""):
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS):
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
-			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
+			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
 			try:
-				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
+				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
 				rawError= ROOT.Double(0)
 				rawYield=hBin.IntegralAndError(1,hBin.GetNbinsX(),rawError)
 			except AttributeError:
