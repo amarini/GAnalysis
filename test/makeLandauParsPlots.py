@@ -65,8 +65,8 @@ for line in fFit:
 	l=line.split(' ')
 	for iWord in range(0,len(l)):
 		if "Pt" in l[iWord] :
-			ptmin=float(l[iWord+1])
-			ptmax=float(l[iWord+2])
+			ptmin=round(float(l[iWord+1]),1)
+			ptmax=round(float(l[iWord+2]),1)
 		elif "Ht" in l[iWord]:
 			ht=float(l[iWord+1])
 		elif "nJets" in l[iWord]:
@@ -103,11 +103,16 @@ for h in range(0,len(HtCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
 		#CREATE TARGET HISTO
 		try:
-			PtCuts2=PtCuts[0:PtCuts.index(-1) ]
-		except ValueError: PtCuts2=PtCuts
+			PtCuts2_tmp=PtCuts[0:PtCuts.index(-1) ]
+		except ValueError: PtCuts2_tmp=PtCuts
 
-		for c in range(0,len(PtCuts2)):
-			PtBins.PtBins[c]=PtCuts2[c]
+		PtCuts2=[]
+		for pt in PtCuts2_tmp:		
+			PtCuts2.append(round(pt,1));
+
+		for c in range(0,len(PtCuts2_tmp)):
+			PtBins.PtBins[c]=PtCuts2_tmp[c]
+
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
 		#Will it work?
 		H0=ROOT.TH1D("h0_"+Bin,"Par0_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
@@ -116,17 +121,17 @@ for h in range(0,len(HtCuts)):
 
 		for p in range(0,len(PtCuts2)-1):
 			try:
-				p0=Par0[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
-				p1=Par1[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
-				p2=Par2[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				p0=Par0[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				p1=Par1[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				p2=Par2[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN PARS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN PARS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				p0=-999	
 				p1=-999
 				p2=-999
-			H0.SetBinContent( H0.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), p0 ) ## NORMALIZATION
-			H1.SetBinContent( H1.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), p1 )
-			H2.SetBinContent( H2.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), p2 )
+			H0.SetBinContent( H0.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), p0 ) ## NORMALIZATION
+			H1.SetBinContent( H1.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), p1 )
+			H2.SetBinContent( H2.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), p2 )
 
 		H0.SetMarkerStyle(33)
 		H1.SetMarkerStyle(20)

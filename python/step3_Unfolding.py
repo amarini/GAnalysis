@@ -88,8 +88,8 @@ for line in fFit:
 	l=line.split(' ')
 	for iWord in range(0,len(l)):
 		if "Pt" in l[iWord] :
-			ptmin=float(l[iWord+1])
-			ptmax=float(l[iWord+2])
+			ptmin=round(float(l[iWord+1]),1)
+			ptmax=round(float(l[iWord+2]),1)
 		elif "Ht" in l[iWord]:
 			ht=float(l[iWord+1])
 		elif "nJets" in l[iWord]:
@@ -151,10 +151,16 @@ def Loop(systName=""):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
 		#CREATE TARGET HISTO
 		try:
-			PtCuts2=PtCuts[0:PtCuts.index(-1) ]
-		except ValueError: PtCuts2=PtCuts
+			PtCuts2=PtCuts_tmp[0:PtCuts.index(-1) ]
+		except ValueError: PtCuts2_tmp=PtCuts
+
+		PtCuts2=[]
+		for pt in PtCuts2_tmp:		
+			PtCuts2.append(round(pt,1));
+
 		for c in range(0,len(PtCuts2)):
 			PtBins.PtBins[c]=PtCuts2[c]
+
 		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])+systName
 		#Will it work?
 		H=ROOT.TH1D("m_"+Bin,"Measured_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
@@ -163,21 +169,21 @@ def Loop(systName=""):
 			## TAKE FITTED FRACTION
 			try:
 				if   systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) :
-					fr=FracSigCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracSigCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				elif systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE):
-					fr=FracBkgCorr[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracBkgCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				elif  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) :
-					fr=FracBias[  (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracBias[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				else: ##DEFAULT
-					fr=Frac[ (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 
 			except (IndexError,KeyError): 
-				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj])+" SYST="+systName
+				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])+" SYST="+systName
 				fr=1	
 				
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.NONE) :
 				try:
-					er= FracErr[  (PtCuts[p],PtCuts[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					er= FracErr[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
 				except (IndexError,KeyError):
 					er=1
 			else : er=0
@@ -186,9 +192,9 @@ def Loop(systName=""):
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS):
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
-			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
+			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
 			try:
-				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts[p],PtCuts[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
+				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
 				rawError= ROOT.Double(0)
 				rawYield=hBin.IntegralAndError(1,hBin.GetNbinsX(),rawError)
 			except AttributeError:
@@ -201,8 +207,8 @@ def Loop(systName=""):
 				corErr= corYield*math.sqrt( (rawError/rawYield)**2 + (er/fr)**2)
 			else:
 				corErr=1
-			H.SetBinContent( H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corYield )
-			H.SetBinError(   H.FindBin( (PtCuts[p]+PtCuts[p+1])/2.), corErr )
+			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corYield )
+			H.SetBinError(   H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corErr )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
 		M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
 		G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)

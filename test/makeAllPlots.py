@@ -58,12 +58,14 @@ call(["rm","-r",WorkDir+"plots"])
 call(["mkdir","-p",WorkDir+"plots"])
 #purityPlots
 if doPurityPlots:
+	print >>sys.stderr, " --- PURITY --- "
 	cmd=["python","test/makePurityPlots.py","--inputDat="+options.inputDat]
 	if isMC:
 		cmd=["python","test/makePurityPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDat]
 	call(cmd)
 #inclusivePtPlots
 if doInclusivePlots:
+	print >>sys.stderr, " --- INCLUSIVE --- "
 	line=".x test/gamma_Pt_Incl.C(\"%s\",\"gammaPt_VPt_0_8000_Ht_0_8000_phid_0.000_0.011_nJets_1\",\"%s/plots/gammaPt_Incl_Ht0.pdf\")"%(inputFileName,WorkDir)
 	ROOT.gROOT.ProcessLine(line)
 	line=".x test/gamma_Pt_Incl.C(\"%s\",\"gammaPt_VPt_0_8000_Ht_300_8000_phid_0.000_0.011_nJets_1\",\"%s/plots/gammaPt_Incl_Ht300.pdf\")"%(inputFileName,WorkDir)
@@ -74,16 +76,20 @@ if doInclusivePlots:
 	ROOT.gROOT.ProcessLine(line)
 #fitPlots
 if doFitPlots:
+	print >>sys.stderr, " --- FIT PLOTS --- "
 	cmd=["python","test/makeFitPlots.py","--inputDat="+options.inputDat]
 	call(cmd)
 #LandaPars
 if doParsPlots:
+	print >>sys.stderr,  " --- PARS PLOTS --- "
 	cmd=["python","test/makeLandauParsPlots.py","--inputDat="+options.inputDat]
 	call(cmd)
 #unfolded distributions
 if doUnfoldPlots:
+	print >>sys.stderr, " --- UNFOLD PLOTS --- "
 	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
 	call(cmd)
 
 if doUnfoldStudies:
+	print >>sys.stderr, " --- UNFOLD STUDIES --- "
 	cmd=["python","test/makeUnfoldStudiesPlots.py","--inputDat="+options.inputDat]
