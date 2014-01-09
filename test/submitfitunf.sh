@@ -42,7 +42,7 @@ cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
  python python/step2_fit.py --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/logMC_fit.txt.gz ;
- python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip >log/logMC_unf.txt
+ python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip >log/logMC_unf.txt.gz
  python test/makeAllPlots.py --inputDat=data/configMC.dat
 
 echo *********************
