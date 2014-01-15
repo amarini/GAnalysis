@@ -17,6 +17,7 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 parser.add_option("-b","--batch" ,dest='batch',action='store_true',help="ROOT Batch",default=False)
 parser.add_option("-s","--syst" ,dest='syst',action='store_true',help="Syst does not include stat",default=False)
 parser.add_option("-c","--cov" ,dest='cov',action='store_true',help="Use Covariance Matrix",default=False)
+parser.add_option("-m","--mc" ,dest='mc',action='store_true',help="Add MC:TODO",default=False)
 
 (options,args)=parser.parse_args()
 import ROOT
