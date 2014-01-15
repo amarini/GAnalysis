@@ -156,7 +156,7 @@ def Loop(systName=""):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
 		#CREATE TARGET HISTO
 		try:
-			PtCuts2=PtCuts_tmp[0:PtCuts.index(-1) ]
+			PtCuts2_tmp=PtCuts[0:PtCuts.index(-1) ]
 		except ValueError: PtCuts2_tmp=PtCuts
 
 		PtCuts2=[]
