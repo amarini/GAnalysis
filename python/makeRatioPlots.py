@@ -78,6 +78,8 @@ def ReadRatioDat( inputDat ):
 					R['eventList2HistoName']=parts[i].split('=')[1]
 		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
 		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
+		elif parts[0] == 'mcName1': R["mcName1"]=parts[1]
+		elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
 		elif parts[0] == 'cov1': R["cov1"]=parts[1]
 		elif parts[0] == 'cov2': R["cov2"]=parts[1]
 		elif parts[0] == 'Cut':
@@ -328,6 +330,7 @@ for cut in config['Cut']:
 				hBinCommon.nBins+=1
 	h1=ROOT.TH1D("Histo1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
 	h2=ROOT.TH1D("Histo2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+
 	## Convert to Target TH1
 	h1=ConvertToTargetTH1(h1,h1Raw)
 	h2=ConvertToTargetTH1(h2,h2Raw)
@@ -380,6 +383,25 @@ for cut in config['Cut']:
 		if math.abs( da2+dc2 - e2**2/N2**2 )> 0.01:print "Error don't match 1"
 		dr= N1/N2 * math.sqrt( ((a+b)/(a+c)) * ( (a/(a+b))**2 * db2 + (a/(a+c))**2 * dc2 + ( a*(b-c)/((a+c)*(a+b)) )**2 * da2  ))
 		R.SetBinError(i,dr)
+	if options.mc:
+		mc1name=FixNames(config['mcName1'],cut)
+		mc2name=FixNames(config['mcName2'],cut)
+		print "Going to Get",mc1name,"from ",config['file1'],"and",mc2name,"from",config['file2']
+		mc1Raw=file1.Get(mc1name)
+		mc2Raw=file2.Get(mc2name)
+
+		mc1=ROOT.TH1D("mc1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mc2=ROOT.TH1D("mc2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mc1=ConvertToTargetTH1(mc1,mc1Raw)
+		mc2=ConvertToTargetTH1(mc2,mc2Raw)
+
+		mc1.Scale(1./config['lumi1'])
+		mc2.Scale(1./config['lumi2'])
+
+		mc1.SetName("MC_Ht_%s_nJets_%s_ptJet_%s"%cut )
+		mcR=Ratio(mc2,mc1,True)
+		mcR.SetLineColor(ROOT.kBlue)
+
 	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )	
 	if options.syst:
 		for iBin in range(1,S.GetNbinsX()+1):S.SetBinError(iBin,0)
@@ -454,9 +476,15 @@ for cut in config['Cut']:
 		#ENDDEBUG
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	R.SetMarkerStyle(20)
+	R.SetMarkerColor(ROOT.kBlack)
+	R.SetLineColor(ROOT.kBlack)
 	S.SetLineColor(ROOT.kRed)
 	S.SetFillColor(ROOT.kRed)
 	S.SetFillStyle(0)
+
+	L=ROOT.TLegend(0.75,0.75,.89,.89)
+	L.SetFillStyle(0);
+	L.SetBorderSize(0);
 	
 	R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
 	R.GetYaxis().SetTitle("d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}")
@@ -467,6 +495,17 @@ for cut in config['Cut']:
 	R.Draw("P SAME")
 	R.Draw("AXIS X+ Y+ SAME")
 	R.Draw("AXIS SAME")
+	L.AddEntry(R,"Data","P");
+	L.AddEntry(S,"Stat+Syst","F");
+	if options.mc:
+		mcR.Draw("HIST SAME")
+		mcN=mcR.Clone("Normalize")
+		mcN.SetLineStyle(ROOT.kDashed)
+		mcN.Scale(h1.Integral() * mc2.Integral() / (h2.Integral() * mc1.Integral() ))
+		mcN.Draw("HIST SAME")
+		L.AddEntry(mcR,"MG","F");
+		L.AddEntry(mcN,"MG Norm.","F");
+	L.Draw();	
 	if not options.batch:
 		a=raw_input("Press Enter");
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
