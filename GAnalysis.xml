@@ -3,11 +3,11 @@ To teach scram about h2gglobe
 scram saetup h2gglobe.xml
 -->
   <tool name="GAnalysis" version="v0">
-    <lib name="Analyzer.so"/>
+    <lib name="libGAnalysis.so"/>
     <client>
-      <environment name="H2GGLOBE_BASE" default="$CMSSW_BASE/src/h2gglobe"/>
-      <environment name="LIBDIR" default="$H2GGLOBE_BASE"/>
-      <environment name="INCLUDE" default="$H2GGLOBE_BASE"/>
+	    <environment name="GANALYSIS_BASE" default="$CMSSW_BASE/src/amarini/GAnalysis"/>
+      <environment name="LIBDIR" default="$GANALYSIS_BASE"/>
+      <environment name="INCLUDE" default="$GANALYSIS_BASE"/>
     </client>
     <use name="root"/>
     <use name="rootcore"/>
