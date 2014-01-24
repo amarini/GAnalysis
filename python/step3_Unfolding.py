@@ -267,7 +267,8 @@ def Loop(systName=""):
 		hcov.Write()
 		b.Write()
 		## ----- MC TRUTH ---------------------------------
-		if systName == ROOT.Analyzer.NONE: # no syst on data. eventually only syst on mc like pdf ...
+		print 'MC Truth "' + systName + '" == "" '
+		if systName == "" : #ROOT.Analyzer.NONE: # no syst on data. eventually only syst on mc like pdf ...
 	                print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
 	                H_MC=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
 			#Scale per bin width as done for reco
