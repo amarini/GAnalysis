@@ -1,9 +1,0 @@
-#
-#
-include=config.dat
-# -- Tree Location
-# -- Directory where it will write output or search for input
-WorkDir=/afs/cern.ch/user/a/amarini/work/V00-13_hlt/
-# for GEN?
-UsePUWeightHLT=1
-
