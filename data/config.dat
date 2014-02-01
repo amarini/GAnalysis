@@ -2,9 +2,9 @@
 #
 # -- Tree Location
 #DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root #V00-12
-DATATREE=root://eoscms///store/user/amarini/V00-13/SinglePhoton*.root root://eoscms///store/user/amarini/V00-13/Photon*.root
+DATATREE=root://eoscms///store/user/amarini/V00-14/SinglePhoton*.root root://eoscms///store/user/amarini/V00-14/Photon*.root
 # -- Directory where it will write output or search for input
-WorkDir=/afs/cern.ch/user/a/amarini/work/V00-13/
+WorkDir=/afs/cern.ch/user/a/amarini/work/V00-14/
 # -- output of Analyzer
 outputFileName=output
 dumpAscii=1
@@ -48,6 +48,7 @@ DoBiasStudies=1
 Lumi=19.7
 
 Attribute=useEGscaleFactors:1
+Attribute=useEnergyRegression:1
 #;doDutyCycle:1
 Functions=InitEGscaleFactors()
 #Functions=SetCheckDutyCycle(2000,5,.2)

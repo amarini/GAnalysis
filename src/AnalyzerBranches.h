@@ -118,6 +118,10 @@ public:
    vector<float>   *jetJEC;
    vector<float>   *jetUNC;
    vector<float>   *jetllDPhi;
+   vector<float>   *jetPuId;
+   vector<float>   *jetPuIdMva;
+   vector<int>     *jetPuIdFlags;
+   vector<int>     *jetPuIdFlagsMva;
    vector<float>   *fwjetPt;
    vector<float>   *fwjetPtRES;
    vector<float>   *fwjetPtRESup;
@@ -324,6 +328,10 @@ public:
    TBranch        *b_jetJEC;   //!
    TBranch        *b_jetUNC;   //!
    TBranch        *b_jetllDPhi;   //!
+   TBranch	  *b_jetPuId;
+   TBranch   	  *b_jetPuIdMva;
+   TBranch   	  *b_jetPuIdFlags;
+   TBranch   	  *b_jetPuIdFlagsMva;
    TBranch        *b_fwjetPt;   //!
    TBranch        *b_fwjetPtRES;   //!
    TBranch        *b_fwjetPtRESup;   //!

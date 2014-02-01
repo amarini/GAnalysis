@@ -501,6 +501,8 @@ for cut in config['Cut']:
 		mcR.Draw("HIST SAME")
 		mcN=mcR.Clone("Normalize")
 		mcN.SetLineStyle(ROOT.kDashed)
+		print "Z Scale: %.3f"%(h1.Integral()/ mc1.Integral())
+		print "G Scale: %.3f"%(h2.Integral()/ mc2.Integral())
 		mcN.Scale(h1.Integral() * mc2.Integral() / (h2.Integral() * mc1.Integral() ))
 		mcN.Draw("HIST SAME")
 		L.AddEntry(mcR,"MG","F");

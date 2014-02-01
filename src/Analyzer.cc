@@ -325,8 +325,9 @@ void Analyzer::Loop()
 		if(j.DeltaR(gamma)<0.5) continue;	
 
 		//PU ID -- cut based
-		 if(1.-(*jetBeta)[iJet] >= 0.2*TMath::Log(nVtx-0.64))  continue;
-                 if((*jetRMS)[iJet] > TMath::Sqrt(0.06) ) continue;
+		 //if(1.-(*jetBeta)[iJet] >= 0.2*TMath::Log(nVtx-0.64))  continue;
+                 //if((*jetRMS)[iJet] > TMath::Sqrt(0.06) ) continue;
+		 if ( (*jetPuIdFlagsMva)[iJet] == 0 ) continue; //loose
 
 		//book the jet
 		JetIdx.push_back(iJet);
