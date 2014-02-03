@@ -17,6 +17,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file",default="")
+parser.add_option("","--inputDatMC2" ,dest='inputDatMC2',type='string',help="Input Configuration file for second MC model",default="")
 parser.add_option("-l","--libRooUnfold" ,dest='libRooUnfold',type='string',help="Shared RooUnfoldLibrary",default="/afs/cern.ch/user/a/amarini/work/RooUnfold-1.1.1/libRooUnfold.so")
 parser.add_option("","--doUnfoldStudies",dest='doUnfoldStudies',action='store_true',default=False)
 
@@ -39,6 +40,15 @@ configMC=read_dat(options.inputDatMC)
 if(DEBUG>0):
 	print "--------- MC CONFIG -----------"
 	PrintDat(configMC)
+
+if options.inputDatMC2 != "":
+	config2MC=read_dat(options.inputDatMC2)
+	if DEBUG>0:
+	print "--------- MC 2 CONFIG -----------"
+	PrintDat(config2MC)
+	WorkDirMC2=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
+	inputFileNameRootMC2= WorkDirMC2 + ReadFromDat(configMC,"outputFileName","output","--> Default outputFileName")
+	fRootMC2= ROOT.TFile.Open(inputFileNameRootMC2+".root");
 
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
@@ -194,7 +204,7 @@ def Loop(systName=""):
 			else : er=0
 			## TAKE HISTO WITH YIELDS
 			systNameForHisto=systName
-			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS):
+			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD): 
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
 			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
@@ -215,9 +225,15 @@ def Loop(systName=""):
 			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corYield )
 			H.SetBinError(   H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corErr )
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
-		M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-		G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-		R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+		if systName != ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD):
+			M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+		else:
+			M=fRootMC2.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			G=fRootMC2.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			R=fRootMC2.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+
 		try:
 			Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
 			#Response= ROOT.RooUnfoldResponse(0,0,M,"Response"+Bin,"Response"+Bin)
@@ -304,5 +320,8 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
 #
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS))
+
+if options.inputDatMC2 != "":
+	Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) )
 		
 print "--- END ---"
