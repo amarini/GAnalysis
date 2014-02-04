@@ -3,8 +3,10 @@ CWD=$PWD
 DIR=$0
 
 cd ${DIR%/*}
-./submit_main data/config.dat 8nh log_ 100 all
+echo " cd in $PWD"
+./submit_main.sh data/config.dat 8nh log_ 100 all
 cd $CWD
+echo " cd in $PWD"
 
 exit 0
 

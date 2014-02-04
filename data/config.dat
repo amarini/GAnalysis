@@ -49,10 +49,10 @@ Lumi=19.7
 
 Attribute=useEGscaleFactors:1
 Attribute=useEnergyRegression:1
-Attribute=useEnergySmear:1
-Attribute=useEnergyScale:1
-Attribute=energyScaleFile:aux/energy_scale_offsets_rd_mc_etdep.dat
-Attribute=energySmearFile:aux/smearing_sigma_and_errors_stocastic_rd_mc.dat
+#Attribute=useEnergySmear:1
+#Attribute=useEnergyScale:1
+Attribute=energyScaleFile:"aux/energy_scale_offsets_rd_mc_etdep.dat"
+Attribute=energySmearFile:"aux/smearing_sigma_and_errors_stocastic_rd_mc.dat"
 #;doDutyCycle:1
 Functions=InitEGscaleFactors()
 Functions=InitEnergySmear()

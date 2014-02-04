@@ -15,7 +15,7 @@ QUEUE=$2
 LOG=$3
 NJOBS=$4
 LIST=$5
-[ "$LIST" == "all ] && LIST=""
+[ "$LIST" == "all" ] && LIST=""
 
 while(true);do
 	TMP_CWD=${CWD##*/}
@@ -57,6 +57,4 @@ echo "************************"
 EOF
 
 done
-
-
 cd $RCWD

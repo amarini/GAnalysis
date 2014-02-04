@@ -4,7 +4,7 @@ CWD=$PWD
 DIR=$0
 
 cd ${DIR%/*}
-./submit_main data/configMC.dat 1nd logMC_ 500 all
+./submit_main.sh data/configMC.dat 1nd logMC_ 500 all
 cd $CWD
 exit 0
 
