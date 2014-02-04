@@ -69,6 +69,7 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("runNum",1);  // activate branchname
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
     fChain->SetBranchStatus("jetPtRES*",1);  // activate branchname
+    fChain->SetBranchStatus("jetPuId*",1);  // activate branchname
     if (fChain == 0) return;
 //	fChain->GetEntry(0); done in init
    if(!isRealData) {
