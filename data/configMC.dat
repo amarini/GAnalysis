@@ -11,4 +11,5 @@ Lumi=1
 dumpAscii=0
 
 Attribute=useReWeights:1
+Functions=InitReWeights()
 Functions=SetCommonWeightConfiguration()

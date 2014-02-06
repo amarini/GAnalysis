@@ -921,7 +921,7 @@ void Analyzer::ApplyReWeights(){
     if(targetHisto["PUWeightHLT_Photon30SysUp"])PUWeightHLT_Photon30SysUp =eventWeight * (double) targetHisto["PUWeightHLT_Photon30SysUp"]->GetBinContent(targetHisto["PUWeightHLT_Photon30SysUp"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon30SysUp=-1;
     if(targetHisto["PUWeightHLT_Photon30SysDown"])PUWeightHLT_Photon30SysDown =eventWeight * (double) targetHisto["PUWeightHLT_Photon30SysDown"]->GetBinContent(targetHisto["PUWeightHLT_Photon30SysDown"]->FindBin(puTrueINT))/(double)PU->GetBinContent(PU->FindBin(   TMath::Max(puTrueINT,0) ));else PUWeightHLT_Photon30SysDown=-1;
 
-       printf("Weights: %lf->%lf %lf->%lf\n",oldew,eventWeight,oldpuw,PUWeight); //DEBUG
+       //printf("Weights: %lf->%lf %lf->%lf\n",oldew,eventWeight,oldpuw,PUWeight); //DEBUG
 }
 
 void Analyzer::InitReWeights(){

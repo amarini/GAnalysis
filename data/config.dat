@@ -58,4 +58,4 @@ Functions=InitEGscaleFactors()
 #Functions=InitEnergyScale()
 
 Attribute=doDutyCycle:1
-Functions=SetCheckDutyCycle(2000,5,.2)
+Functions=SetCheckDuty(2000,5,.2)
