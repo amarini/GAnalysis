@@ -226,7 +226,7 @@ void Analyzer::Loop()
 		//fprintf(stderr,"GPt=%f pt in [%f,%f] GETA=%f et=[%f,%f]\n",gamma.Pt(),ptmin,ptmax,gamma.Eta(),etamin,etamax);
 		if( (*photonPt)[iGamma]>ptmin && (*photonPt)[iGamma]<ptmax && fabs((*photonEta)[iGamma])> etamin && fabs((*photonEta)[iGamma]) <etamax)
 			{
-			RhoCorr= it->second * rho;
+			RhoCorr= it->second * rho; //EffA *rho
 			}
 		
 		}
@@ -308,8 +308,8 @@ void Analyzer::Loop()
 			else {PUWeight*=sf2; PUWeightSysUp*=sf2;PUWeightSysDown*=sf2;}
 			
 			}
-				
-	if(useEGscaleFactors && !isRealData )ApplyEGscaleFactors(gamma,GammaIdx); 
+	int isEMatched=0;			
+	if(useEGscaleFactors && !isRealData )isEMatched=ApplyEGscaleFactors(gamma,GammaIdx); 
 	//--- jet founding -------------
 	JetIdx.clear();
 	Int_t mynJets=jetPt->size();
@@ -389,7 +389,6 @@ void Analyzer::Loop()
 			if(cutsContainer[iCut].VPt.first == 0 ){ //only for the inclusive cuts
 			string name=string("gammaPt_MATRIX_")+cutsContainer[iCut].name()+SystName();
 			if(histo2Container[name]==NULL){
-				//histo2Container[name]=new TH2D(name.c_str(),name.c_str(),binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax,binsContainer["gammaPt"].nBins,binsContainer["gammaPt"].xMin,binsContainer["gammaPt"].xMax);
 				histo2Container[name]=new TH2D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix,nbinsForMatrix,ptbinsForMatrix);
 				histo2Container[name]->Sumw2();
 				}
@@ -423,6 +422,16 @@ void Analyzer::Loop()
 			// -- only for mc --
 			if( cutsContainer[iCut].VPt.first==0 && GammaIdxGEN>=0 && gamma.DeltaR(gGEN) <0.3 ){ // should match with the purity fraction
 				string name=string("gammaPt_RECO_UNFOLD_")+cutsContainer[iCut].name()+SystName();
+				if(histoContainer[name]==NULL) {
+					histoContainer[name]=new TH1D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);
+					histoContainer[name]->Sumw2();
+					}
+			histoContainer[name]->Fill(gamma.Pt(),ScaleTrigger*PUWeight);	
+			}
+
+			if (isEMatched  && cutsContainer[iCut].VPt.first==0 && useEGscaleFactors  )	
+			{
+				string name=string("gammaPt_RECO_EMATCHED_")+cutsContainer[iCut].name()+SystName();
 				if(histoContainer[name]==NULL) {
 					histoContainer[name]=new TH1D(name.c_str(),name.c_str(),nbinsForMatrix,ptbinsForMatrix);
 					histoContainer[name]->Sumw2();
@@ -973,34 +982,28 @@ void Analyzer::InitReWeights(){
 	return;	
 }
 
-void Analyzer::ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx){
+int Analyzer::ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx){
 	if(useEGscaleFactors && !isRealData){ // move to a function
 		//check if e is matched to G	
 		for( int iLep=0;iLep<lepPtGEN->size();iLep++ )
 			{
 			//is e?
-			if( abs(lepChIdGEN->at(iLep)) != 11) return ;
+			if( abs(lepChIdGEN->at(iLep)) != 11) continue ;
 			TLorentzVector e;
 			e.SetPtEtaPhiE( (*lepPtGEN)[iLep],(*lepEtaGEN)[iLep],(*lepPhiGEN)[iLep],(*lepEGEN)[iLep] );
 			if (gamma.DeltaR(e) < 0.3)
 				{ //match to an electron -gen
-   			//	for(map<string,float>::iterator it=EGscaleFactors.begin();it!=EGscaleFactors.end();it++)
-			//	  {
-			//	  string name=it->first;
-			//	  float ptmin,ptmax,etamin,etamax;
-  			//	  sscanf(name.c_str(),"%f_%f_%f_%f",&ptmin,&ptmax,&etamin,&etamax);
-			//	  if( (*photonPt)[GammaIdx]>ptmin && (*photonPt)[GammaIdx]<ptmax && fabs((*photonEta)[GammaIdx])> etamin && fabs((*photonEta)[GammaIdx]) <etamax)
-					{
 					double sf=1.45;	
 					PUWeight*=sf;
 					PUWeightSysUp*=sf;
 					PUWeightSysDown*=sf;
-					}
 				  //break;
+				  return 1;
+				
 				  }
 			}
 	}
-	return ;
+	return  0;
 }
 
 int CrossSection::ReadTxtFile(const char*fileName)
