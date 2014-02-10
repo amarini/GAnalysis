@@ -190,7 +190,8 @@ for h in range(0,len(HtCuts)):
 		C2.SetLogx()
 
 		R_H=Ratio(H,H,NoErrorH=True);
-		R_H.GetYaxis().SetRangeUser(0.5,1.5)
+		R_H.GetYaxis().SetRangeUser(0.9,2.4)
+		R_H.GetYaxis().SetTitle("Unfold/Reco")
 		R_bayes={}
 		R_svd={}
 		for key in H_bayes:
@@ -211,4 +212,5 @@ for h in range(0,len(HtCuts)):
 
 		R_H.Draw("P SAME") # redraw on top
 		C2.SaveAs(WorkDir+"plots/unfoldStudiesRatio_Ht%.0f_nJets%.0f.pdf"%(HtCuts[h],nJetsCuts[nj]))		
+		C2.SaveAs(WorkDir+"plots/unfoldStudiesRatio_Ht%.0f_nJets%.0f.root"%(HtCuts[h],nJetsCuts[nj]))		
 

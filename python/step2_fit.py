@@ -98,7 +98,7 @@ if(DEBUG>0): print "----- Analyzer ------" #for syst name & type
 #ROOT.gSystem.Load("Analyzer.so")
 ROOT.gSystem.Load("libGAnalysis.so")
 
-def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),jetPt=30.):
+def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
 	Bin=0
 	SigTemplate=[]
 	BkgTemplate=[]
@@ -234,10 +234,12 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 	
 		#BINNED
 		#v=ROOT.std.vector(float)()
+		if jetPt == 30: extra=""
+		else: extra = "_JPT_%.1f"%jetPt
 		fitR=ROOT.std.map(ROOT.std.string,float)()
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],
 				WorkDir+"/fitresults.root",
-				"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) ,
+				"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) +extra,
 				fitR
 				)
 
@@ -251,11 +253,11 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 		
 		#Write output
 		if doShapeCorrFit:
-			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Fraction= "+str(f) + " "+ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)+" "+str(fSigCorr)+ " "+ ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)+" "+str(fBkgCorr))
+			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Fraction= "+str(f) + " "+ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)+" "+str(fSigCorr)+ " "+ ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)+" "+str(fBkgCorr))
 		else:
-			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Fraction= "+str(f))
+			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Fraction= "+str(f))
 	
-		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " Par0 "+str(fitR["bkg0"])+" Par1 "+str(fitR["bkg1"]) + " Par2 "+str(fitR["bkg2"])+"\n")
+		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Par0 "+str(fitR["bkg0"])+" Par1 "+str(fitR["bkg1"]) + " Par2 "+str(fitR["bkg2"])+"\n")
 
 		rms=-1
 		#make sure Normalization didn't change ->Poisson
@@ -311,9 +313,11 @@ def FIT(file,nJets=1,Ht=0,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null"),j
 			fOut.Close();
 
 #TODO ADD JetPTThr here
-for h in HtCuts:
+for jpt in JetPtThr:
+     for h in HtCuts:
 	for n in nJetsCuts:
+		if jpt !=30 and (n!=1 or h!=0): continue #only inclusive for different jpt
 		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
-		FIT(file,int(n),h,DoShapeCorrFit,fileMC)
+		FIT(file,int(n),jpt,h,DoShapeCorrFit,fileMC)
 
 if(DEBUG>0): print "----- END ------"
