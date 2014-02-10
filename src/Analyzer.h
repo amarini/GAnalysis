@@ -161,7 +161,7 @@ public :
    string EGscaleFactorsFile;
    map<string,float> EGscaleFactors;
    void InitEGscaleFactors();
-   void ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx); //TODO Remove one of the two parameters
+   int ApplyEGscaleFactors(TLorentzVector gamma,int GammaIdx); //TODO Remove one of the two parameters
    
    bool useEnergyRegression;
    void ApplyEnergyRegression();
