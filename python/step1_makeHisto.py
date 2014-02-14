@@ -23,6 +23,8 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--nJobs" ,dest='nJobs',type='int',help="Total number of jobs. Useful to run on batch",default=-1)
 parser.add_option("","--jobId" ,dest='jobId',type='int',help="Current job number. Useful to run on batch",default=0)
+parser.add_option("","--entryBegin" ,dest='entryBegin',type='int',help=" Useful to run on batch",default=-1)
+parser.add_option("","--entryEnd" ,dest='entryEnd',type='int',help=" Useful to run on batch",default=-1)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
@@ -99,6 +101,8 @@ if(DEBUG>0):print "Using EFF AREA="+A.effAreaFile
 #BATCH JOBS
 A.nJobs=options.nJobs
 A.jobId=options.jobId
+A.entryBegin=options.entryBegin
+A.entryEnd=options.entryEnd
 ### 
 if(DEBUG>0): print "--> Init"
 A.Init()

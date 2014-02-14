@@ -148,6 +148,8 @@ public :
    //BATCH RUN
    int nJobs;
    int jobId;
+   long entryBegin;
+   long entryEnd;
    string outputFileName;
 	
    //effarea
@@ -272,6 +274,8 @@ Analyzer::Analyzer() : fChain(0)
    debug=0;
    nJobs=-1;
    jobId=-1;
+   entryBegin=-1;
+   entryEnd=-1;
    outputFileName="output";
    loadMVA=0;
    useEffArea=0;

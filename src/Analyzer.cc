@@ -108,9 +108,18 @@ void Analyzer::Loop()
    //
    const double EtaMax=1.4;
 
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+   if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nEntries;
+   if (nJobs >0) 
+		{
+		entryBegin=(nentries/nJobs+1)*jobId;
+		entryEnd=(nentries/nJobs+1)*(jobId+1);
+		}	   
+   cout<<"***  jentry in [ "<< entryBegin  <<"," entryEnd <<") ***"<<endl; // +1 instead of doing ceil. 
+
+   for (Long64_t jentry=entryBegin; jentry<entryEnd;jentry++) {
 	//select jobs
 	//if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue; // slow on eos
+	//just a check
 	if( (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
 
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
