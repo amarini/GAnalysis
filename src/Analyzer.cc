@@ -108,9 +108,8 @@ void Analyzer::Loop()
    const double EtaMax=1.4;
 
 
-   if (nJobs >0) 
+   if (nJobs >0 && entryBegin<=0 && entryEnd<=0) 
 		{
-		if(entryBegin>0) cout<<"*** ENTRY BEGIN OVERWRITTEN ***"<<endl;
 		entryBegin=(nentries/nJobs+1)*jobId;
 		entryEnd=(nentries/nJobs+1)*(jobId+1);
 		}	   
