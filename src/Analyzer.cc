@@ -103,6 +103,8 @@ void Analyzer::Loop()
    //ptbinsForMatrix[nbinsForMatrix]=0;
    for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
    	{nbinsForMatrix++;ptbinsForMatrix[nbinsForMatrix]=PtCuts[iPt];}
+
+   if (nJobs >0) cout<<"***  jentry in [ "<< (nentries/nJobs+1)*jobId  <<" - <"  (nentries/nJobs+1)*(jobId+1) <<") ***"<<endl; // +1 instead of doing ceil. 
    //
    const double EtaMax=1.4;
 
