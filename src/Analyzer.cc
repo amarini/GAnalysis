@@ -115,7 +115,7 @@ void Analyzer::Loop()
 		entryEnd=(nentries/nJobs+1)*(jobId+1);
 		}	   
    if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nentries; }
-   cout<<"***  jentry in [ "<< entryBegin  <<","<< entryEnd <<") ***"<<endl; // +1 instead of doing ceil. 
+   cout<<"***  jentry in [ "<< entryBegin  <<","<< entryEnd <<") of "<<nentries<<" ***"<<endl; // +1 instead of doing ceil. 
 
    for (Long64_t jentry=entryBegin; jentry<entryEnd;jentry++) {
 	//select jobs
