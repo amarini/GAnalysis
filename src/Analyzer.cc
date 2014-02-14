@@ -104,17 +104,18 @@ void Analyzer::Loop()
    for(int iPt=0;iPt<int(PtCuts.size()) && PtCuts[iPt]>0;iPt++)
    	{nbinsForMatrix++;ptbinsForMatrix[nbinsForMatrix]=PtCuts[iPt];}
 
-   if (nJobs >0) cout<<"***  jentry in [ "<< (nentries/nJobs+1)*jobId  <<" - <"  (nentries/nJobs+1)*(jobId+1) <<") ***"<<endl; // +1 instead of doing ceil. 
    //
    const double EtaMax=1.4;
 
-   if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nEntries;
+
    if (nJobs >0) 
 		{
+		if(entryBegin>0) cout<<"*** ENTRY BEGIN OVERWRITTEN ***"<<endl;
 		entryBegin=(nentries/nJobs+1)*jobId;
 		entryEnd=(nentries/nJobs+1)*(jobId+1);
 		}	   
-   cout<<"***  jentry in [ "<< entryBegin  <<"," entryEnd <<") ***"<<endl; // +1 instead of doing ceil. 
+   if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nentries; }
+   cout<<"***  jentry in [ "<< entryBegin  <<","<< entryEnd <<") ***"<<endl; // +1 instead of doing ceil. 
 
    for (Long64_t jentry=entryBegin; jentry<entryEnd;jentry++) {
 	//select jobs

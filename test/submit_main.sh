@@ -50,10 +50,10 @@ eval \`scramv1 runtime -sh\`
 
 python python/step1_makeHisto.py --inputDat=${CONFIG} --nJobs=${NJOBS} --jobId=$i 2>&1 | gzip > $PWD/log/${LOG}$i.txt.gz 
 
-EXITSTATUS=${PIPESTATUS[0]}
+EXITSTATUS=\${PIPESTATUS[0]}
 
 rm -v log/${LOG}${i}.run || true
-[ "${EXITSTATUS}" == "0" ] && touch $PWD/log/${LOG}$i.done || { echo ${EXITSTATUS} > $PWD/log/${LOG}$i.fail; exit 1; } 
+[ "\${EXITSTATUS}" == "0" ] && touch $PWD/log/${LOG}$i.done || { echo \${EXITSTATUS} > $PWD/log/${LOG}$i.fail; exit 1; } 
 
 echo "************************"
 echo "*          DONE        *"
