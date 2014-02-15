@@ -107,6 +107,8 @@ void Analyzer::Loop()
    //
    const double EtaMax=1.4;
 
+   bool JobCheck=true;
+	if( entryBegin >0 || entryEnd>0) JobCheck=false;
 
    if (nJobs >0 && entryBegin<=0 && entryEnd<=0) 
 		{
@@ -120,7 +122,7 @@ void Analyzer::Loop()
 	//select jobs
 	//if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue; // slow on eos
 	//just a check
-	if( (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
+	if( (JobCheck) && (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
 
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
 	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
