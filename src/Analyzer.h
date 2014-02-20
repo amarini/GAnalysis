@@ -144,7 +144,15 @@ public :
 
    pair<float,float> SigPhId;
    pair<float,float> BkgPhId;
-	
+
+   // Fill Functions   
+   void Fill(string name, double value, double weight,string bins="");
+   void Fill2D(string name, double value1,double value2, double weight,string bins="");
+
+   Float_t ptbinsForMatrix[1023];
+   int nbinsForMatrix;
+
+   
    //BATCH RUN
    int nJobs;
    int jobId;
@@ -303,6 +311,11 @@ void Analyzer::InitCuts()
 	cutsContainer.push_back( CUTS(0,8000,0,8000) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,SigPhId.first,SigPhId.second) );
 	cutsContainer.push_back( CUTS(0,8000,0,8000,BkgPhId.first,BkgPhId.second) );
+
+	cutsContainer.push_back( CUTS(100,8000,0,8000) );
+	cutsContainer.push_back( CUTS(100,8000,0,8000,SigPhId.first,SigPhId.second) );
+	cutsContainer.push_back( CUTS(100,8000,0,8000,BkgPhId.first,BkgPhId.second) );
+
 		for(int h=0;h<int(HtCuts.size());h++)
 			{
 			if( HtCuts[h]<1) continue; //0 already booked
@@ -324,6 +337,7 @@ void Analyzer::InitCuts()
 	binsContainer["sieie"] = BINS(1000,0,.1);
 	binsContainer["phid"] = BINS(100,-1.,1.);
 	binsContainer["photoniso"] = BINS(100,-10,10);
+
 	for(int p=0; p<int(PtCuts.size())-1 ;p++)	
 		{
 		if(PtCuts[p]<0)continue;
