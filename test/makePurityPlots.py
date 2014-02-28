@@ -80,7 +80,7 @@ for line in fFit:
 	if len(line) <5 : continue
 	l=line.split(' ')
 	for iWord in range(0,len(l)):
-		if "Pt" in l[iWord] :
+		if "Pt" == l[iWord] :
 			ptmin= round(float(l[iWord+1]),1)
 			ptmax= round(float(l[iWord+2]),1)
 		elif "Ht" in l[iWord]:

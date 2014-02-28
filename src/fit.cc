@@ -270,6 +270,7 @@ void TOYS::RandomVar(TH1D*h,TRandom *r,int sumw2){
 			h->SetBinContent(i, r->Poisson(bc) );
 		}
 	if(h->Integral()==0) 
+		{
 		if(sumw2)
 			printf("ERROR INTEGRAL IS 0 in TOYS\n ");
 		else 
@@ -277,6 +278,7 @@ void TOYS::RandomVar(TH1D*h,TRandom *r,int sumw2){
 			printf("ERROR INTEGRAL IS 0 in TOYS: switch to Sumw2\n");
 			RandomVar(h,r,1);
 			}
+		}
 	
 }
 
