@@ -150,7 +150,8 @@ for h in range(0,len(HtCuts)):
 			H_MC.SetLineColor(ROOT.kBlue)
 			#H_MC.SetLineStyle(ROOT.kDashed)
 			H_MC.SetLineWidth(2)
-			H_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
+			#alreday scaled for lumi in Unfold
+			#H_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
 		
 		H_TOT=H.Clone("H_TOT")
 		sqrtSum(H_TOT,H_PU)
