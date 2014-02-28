@@ -18,7 +18,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
-parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC",default="")
+#parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC",default="")
 
 (options,args)=parser.parse_args()
 
@@ -36,17 +36,17 @@ if(DEBUG>0):
 	print "--------- DATA CONFIG -----------"
 	PrintDat(config)
 
-if(DEBUG>0): print "--> load dat file: "+options.inputDatMC
+#if(DEBUG>0): print "--> load dat file: "+options.inputDatMC
 
-if options.inputDatMC != "":
-	doMC=True
-	configMC=read_dat(options.inputDatMC)
-else:
-	doMC=False
-	configMC={}
-if(DEBUG>0):
-	print "--------- DATA MC CONFIG -----------"
-	PrintDat(configMC)
+#if options.inputDatMC != "":
+#	configMC=read_dat(options.inputDatMC)
+doMC=True
+#else:
+#	doMC=False
+#	configMC={}
+#if(DEBUG>0):
+#	print "--------- DATA MC CONFIG -----------"
+#	PrintDat(configMC)
 
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
 
@@ -62,14 +62,14 @@ BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 inputFileNameUnfold=WorkDir + "/UnfoldedDistributions.root"  
 
-if doMC:
-	WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
-	inputFileMC=WorkDirMC+ReadFromDat(configMC,"outputFileName","output","-->Default Output Name") + ".root"
+#if doMC:
+#	WorkDirMC=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
+#	inputFileMC=WorkDirMC+ReadFromDat(configMC,"outputFileName","output","-->Default Output Name") + ".root"
 
 ROOT.gSystem.Load("libGAnalysis.so") ##for syst names
 file= ROOT.TFile.Open(inputFileNameUnfold)
-if doMC:
-	fileMC=ROOT.TFile.Open(inputFileMC)
+#if doMC:
+#	fileMC=ROOT.TFile.Open(inputFileMC)
 
 def makeBands(h1,h2,type="Mean"):
 	H=h1.Clone(h1.GetName()+"_band")
@@ -143,14 +143,16 @@ for h in range(0,len(HtCuts)):
 		
 		if doMC:
 			print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
-			H_MC=fileMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
-			for i in range(1,H_MC.GetNbinsX()+1):
-				H_MC.SetBinContent(i, H_MC.GetBinContent(i)/H_MC.GetBinWidth(i) )
-				H_MC.SetBinError  (i, H_MC.GetBinError  (i)/H_MC.GetBinWidth(i) )
+			#H_MC=file.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
+			H_MC=file.Get("mc_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
+			#for i in range(1,H_MC.GetNbinsX()+1):
+			#	H_MC.SetBinContent(i, H_MC.GetBinContent(i)/H_MC.GetBinWidth(i) )
+			#	H_MC.SetBinError  (i, H_MC.GetBinError  (i)/H_MC.GetBinWidth(i) )
 			H_MC.SetLineColor(ROOT.kBlue)
 			#H_MC.SetLineStyle(ROOT.kDashed)
 			H_MC.SetLineWidth(2)
-			H_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
+			#alreday scaled for lumi in Unfold
+			#H_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
 		
 		H_TOT=H.Clone("H_TOT")
 		sqrtSum(H_TOT,H_PU)
