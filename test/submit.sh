@@ -7,7 +7,7 @@ LIST=$1
 
 cd ${DIR%/*}
 echo " cd in $PWD"
-./submit_main.sh data/config.dat 8nh log_ 100 ${LIST}
+./submit_main.sh data/config.dat 8nh log_ 200 ${LIST}
 cd $CWD
 echo " cd in $PWD"
 

@@ -16,6 +16,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC - must provided only in DoShapeCorrFit is set to true",default="")
+parser.add_option("","--checkTime" ,dest='checkTime',action='store_true',help="check Time usage by different Functions.",default=False)
 
 (options,args)=parser.parse_args()
 
@@ -79,6 +80,7 @@ if DoShapeCorrFit:
 		for source in glob(WorkDirMC+ReadFromDat(configMC,"outputFileName","output","-->Default Output Name")+"*.root"):
 			cmd.append(source)
 		call(cmd)
+	print "-> Opening MC File:",inputFileNameMC
 	fileMC=ROOT.TFile.Open(inputFileNameMC)
 else:
 	fileMC=ROOT.TFile.Open("/dev/null")
@@ -98,7 +100,12 @@ if(DEBUG>0): print "----- Analyzer ------" #for syst name & type
 #ROOT.gSystem.Load("Analyzer.so")
 ROOT.gSystem.Load("libGAnalysis.so")
 
+if options.checkTime:
+    A=ROOT.Analyzer()
+    A.doTimeUsage=1
+
 def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/dev/null")):
+	print "->Going to Fit: nJets",nJets,"Ht",Ht,"jetPt",jetPt,"doShape",doShapeCorrFit
 	Bin=0
 	SigTemplate=[]
 	BkgTemplate=[]
@@ -115,6 +122,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 	BiasStudyBkgInv=[]
 	SigCorr=[]
 	BkgCorr=[]
+        if options.checkTime: A.checkTimeUsage(0,"Begin");
 	for p in range(0,len(PtCuts)-1):
 		cutSig=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets);
 		cutSig.JetPtThreshold=jetPt;
@@ -141,6 +149,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			if Bin == SigBin:
 				try:
 					SigMC=fileMC.Get("photonisoRC_"+ cutSig.name() )
+					print "Going to Get:","photoniso_MATCHED_"+cutSig.name()
 					TruthSig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ) )
 					BiasStudySig.append(fileMC.Get("photoniso_MATCHED_"+cutSig.name() ).Clone("BiasStudySig") )
 					BiasStudySigRC.append(fileMC.Get("photonisoRC_"+cutSig.name() ).Clone("BiasStudySigRC") )
@@ -158,8 +167,11 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			if Bin == BkgBin:
 				try:
 					BkgMC=fileMC.Get("photoniso_"+cutBkg.name() )
+					print "Going to Get", "photoniso_NOTMATCHED_"+cutSig.name() 
 					TruthBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name() ) )#Truth has Sig Id
+					print "Goint to Get", "photoniso_NOTMATCHED_"+cutSig.name()
 					BiasStudyBkg.append( fileMC.Get("photoniso_NOTMATCHED_"+cutSig.name()).Clone("BiasStudyBkg") )#Truth has Sig Id
+					print "Going to Get", "photoniso_"+cutBkg.name() 
 					BiasStudyBkgInv.append(fileMC.Get("photoniso_"+cutBkg.name()  ).Clone("BiasStudyBkgInv") )
 					TruthBkg[-1].Divide(BkgMC)
 					for iHbin in range(1,TruthBkg[-1].GetNbinsX()+1):
@@ -172,8 +184,10 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 					print "-- histos: "+"photoniso_"+cutBkg.name()
 					print "-- histos: "+"photoniso_NOTMATCHED_"+cutSig.name()
 					doShapeCorrFit=0 # Turn Off Local var
+
+        if options.checkTime: A.checkTimeUsage(1,"GetHisto");
 	
-	if nJets == 1 and Ht ==0:
+	if nJets == 1 and Ht ==0 and jetPt==30:
 		o_txt=open(WorkDir+"/fit.txt","w")
 		o_pars=open(WorkDir+"/fitPars.txt","w")
 		try:
@@ -186,6 +200,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 	
 	for p in range(0,len(PtToFit)-1):
 		#find pt bin for sig
+        	if options.checkTime: A.checkTimeUsage(0,"Begin");
 		Sbin=-1
 		Bbin=-1
 		for s in range(0,len(PtSig)-1):
@@ -242,22 +257,24 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 				"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) +extra,
 				fitR
 				)
+        	if options.checkTime: A.checkTimeUsage(2,"Fit");
 
 		if doShapeCorrFit:
 			print "-> FIT SIGSHAPE CORR"
 			fSigCorr=ROOT.FIT.fit(ToFitTemplate[p],SigCorr[Sbin],BkgTemplate[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) )
 			fBkgCorr=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgCorr[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) )
 
+        	if options.checkTime: A.checkTimeUsage(3,"Shape Corr Fit");
 		#UNBINNED
 		#f=ROOT.FIT.fit(ToFitTree[p],SigTemplate[s],BkgTemplate[b],"fitresults.root","Bin_PT_"+str(PtToFit[p])+"_"+str(PtToFit[p+1]))
 		
 		#Write output
 		if doShapeCorrFit:
-			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Fraction= "+str(f) + " "+ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)+" "+str(fSigCorr)+ " "+ ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)+" "+str(fBkgCorr))
+			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ str(jetPt)+" Fraction= "+str(f) + " "+ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)+" "+str(fSigCorr)+ " "+ ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)+" "+str(fBkgCorr))
 		else:
-			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Fraction= "+str(f))
+			o_txt.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ str(jetPt)+" Fraction= "+str(f))
 	
-		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ jetPt+" Par0 "+str(fitR["bkg0"])+" Par1 "+str(fitR["bkg1"]) + " Par2 "+str(fitR["bkg2"])+"\n")
+		o_pars.write("Pt "+str(PtToFit[p])+" "+str(PtToFit[p+1])+" Ht " +str(Ht) + " nJets "+ str(nJets)+ " jetPt "+ str(jetPt)+" Par0 "+str(fitR["bkg0"])+" Par1 "+str(fitR["bkg1"]) + " Par2 "+str(fitR["bkg2"])+"\n")
 
 		rms=-1
 		#make sure Normalization didn't change ->Poisson
@@ -275,6 +292,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			t=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20,0,WorkDir+"/toysresults.root");
 		else:
 			t=ROOT.TOYS.toy(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],20);
+        	if options.checkTime: A.checkTimeUsage(4,"Toys");
 
 		o_txt.write(" TOYS= "+str( t["rms"] )+ " TMEAN= "+str(t["mean"]) );
 
@@ -302,6 +320,8 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			bf.Close()
 			
 
+        	if options.checkTime: A.checkTimeUsage(5,"Bias Studies");
+
 		o_txt.write(" ERROR= "+str( fitR["error"]) +"\n"); ## ROOFIT ERROR
 		
 		if doShapeCorrFit:
@@ -311,6 +331,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			TruthBkg[Bbin].Write("",ROOT.TObject.kOverwrite)	
 			BkgCorr[Bbin].Write("",ROOT.TObject.kOverwrite)	
 			fOut.Close();
+	if(options.checkTime):A.checkTimeUsage(-1,"Print");
 
 #TODO ADD JetPTThr here
 for jpt in JetPtThr:
@@ -318,6 +339,6 @@ for jpt in JetPtThr:
 	for n in nJetsCuts:
 		if jpt !=30 and (n!=1 or h!=0): continue #only inclusive for different jpt
 		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
-		FIT(file,int(n),jpt,h,DoShapeCorrFit,fileMC)
+		FIT(file,int(n),h,jpt,DoShapeCorrFit,fileMC)
 
 if(DEBUG>0): print "----- END ------"

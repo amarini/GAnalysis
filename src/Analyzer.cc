@@ -23,6 +23,7 @@ void inline Analyzer::checkDuty(Long64_t jentry){
 	if (!doDutyCycle) return;
 	if (nBench<=0) return;
 	if (thrBench<=0) return;
+	if (doTimeUsage) return; //Can't do both
 	//---
 	if ( dutyCount>0 && (dutyCount % nBench == 0) ) {
 		stopWatch.Stop();
@@ -46,11 +47,45 @@ void inline Analyzer::checkDuty(Long64_t jentry){
 	return;
 }
 
-void Analyzer::Loop()
-{
-    //
-    if(debug>0)printf("Reset Pt Threshold in all cuts\n");
-	SetCutsJetPtThreshold();
+void Analyzer::checkTimeUsage(int n, string name=""){
+if (!doTimeUsage) return;
+
+stopWatch.Stop();
+if(n>0){
+	if(timeNames.size() <= n)
+		{
+		timeNames.resize(n+1);
+		timeUsage.resize(n+1);
+		timeNames[n]=name;
+		}
+	timeUsage[n].first += stopWatch.RealTime();
+	timeUsage[n].second += stopWatch.CpuTime();
+	}
+if(n>=0){ 
+	stopWatch.Reset();
+	stopWatch.Start();
+	}
+if(n<0){
+	//print
+	cout<<"***********************"<<endl;
+	float SumCpu=0;
+	float SumReal=0;
+	for(int i=0;i<timeUsage.size();i++)
+		{
+		cout<<"* TIME "<<timeNames[i]<<" "<<timeUsage[i].first<<" "<<timeUsage[i].second<<" *"<<endl;
+		SumReal+=timeUsage[i].first;
+		SumCpu+=timeUsage[i].second;
+		}
+	cout<<"***********************"<<endl;
+	for(int i=0;i<timeUsage.size();i++){
+		cout<<"* TIME "<<timeNames[i]<<" "<<timeUsage[i].first/SumReal*100<<"% "<<timeUsage[i].second/SumCpu*100<<"% *"<<endl;
+		}
+	cout<<"***********************"<<endl;
+	}
+return;
+}
+
+void Analyzer::SetBranchStatus(){
     if(debug>0)printf("start loop\n");
     fChain->SetBranchStatus("*",0);  // disable all branches
     if(useReWeights && !isRealData)fChain->SetBranchStatus("puTrueINT");
@@ -70,7 +105,6 @@ void Analyzer::Loop()
     fChain->SetBranchStatus("isRealData",1);  // activate branchname
     fChain->SetBranchStatus("jetPtRES*",1);  // activate branchname
     fChain->SetBranchStatus("jetPuId*",1);  // activate branchname
-    if (fChain == 0) return;
 //	fChain->GetEntry(0); done in init
    if(!isRealData) {
 	if(debug>0)printf("Running on mc: activating branches\n");
@@ -80,6 +114,15 @@ void Analyzer::Loop()
 	fChain->SetBranchStatus("jet*GEN",1);
     	fChain->SetBranchStatus("lep*",1);  // activate branchname
 	}
+}
+
+void Analyzer::Loop()
+{
+    if (fChain == 0) return;
+    SetBranchStatus();
+    //
+    if(debug>0)printf("Reset Pt Threshold in all cuts\n");
+	SetCutsJetPtThreshold();
 
    //exit if syst does not make sense for data or mc	
    if(currentSyst == PUUP && isRealData) return;	
@@ -95,6 +138,8 @@ void Analyzer::Loop()
    if(currentSyst == BIAS ) return;	
    if(currentSyst == SMEARUP && isRealData ) return;	
    if(currentSyst == SMEARDN && isRealData ) return;	
+   if(currentSyst == ESCALEUP && !isRealData ) return;	
+   if(currentSyst == ESCALEDN && !isRealData ) return;	
 
    Long64_t nentries = fChain->GetEntries();
 
@@ -120,16 +165,26 @@ void Analyzer::Loop()
    if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nentries; }
    cout<<"***  jentry in [ "<< entryBegin  <<","<< entryEnd <<") of "<<nentries<<" ***"<<endl; // +1 instead of doing ceil. 
 
+   //LOOP
    for (Long64_t jentry=entryBegin; jentry<entryEnd;jentry++) {
-	//select jobs
-	//if(  (  nJobs >0)  && ( jentry%nJobs!=jobId) ) continue; // slow on eos
+	if(doTimeUsage) checkTimeUsage(0,"begin");	
 	//just a check
 	if( (JobCheck) && (nJobs >0) && ( jentry< (nentries/nJobs+1)*jobId  || jentry >= (nentries/nJobs+1)*(jobId+1) ) ) continue; // +1 instead of doing ceil. 
 
+	if(doTimeUsage) checkTimeUsage(1,"checkJobs");	
+
 	if(debug>1)printf("-> Loding entry %lld\n",jentry);
-	if( (jentry%10000)==0 && debug>0) printf("-> Getting entry %lld/%lld\n",jentry,nentries);
+	if( (jentry&16383)==0 && debug>0) {
+				printf("-> Getting entry %lld/%lld\n",jentry,nentries);
+				if(doTimeUsage) checkTimeUsage(-1,"print");	
+	}
 	fChain->GetEntry(jentry);
-	fCurrent=fChain->GetTreeNumber();
+	if( fCurrent != fChain->GetTreeNumber()) //new file
+		{
+		cout<<"Opening file "<<fChain->GetCurrentFile()->GetName()<<endl;
+		fCurrent=fChain->GetTreeNumber();
+		}
+	if(doTimeUsage) checkTimeUsage(2,"GetEntry");
 	if(currentSyst==NONE)Sel->FillAndInit("All"); //Selection
 
 	//duty cycle
@@ -146,6 +201,8 @@ void Analyzer::Loop()
 	if (useEnergySmear) ApplyEnergySmear();
 	//SYST SMEARINGS - JER JES
 	Smear();
+
+	if(doTimeUsage) checkTimeUsage(3,"Smearings");
 
 	if(!isRealData) //only MC -- FILL GEN Plots
 	{
@@ -190,6 +247,7 @@ void Analyzer::Loop()
 			//-----
 			} // iCut
 	} //isMC
+	if(doTimeUsage) checkTimeUsage(4,"GEN");
 	
 	Int_t GammaIdx=-1;
 	float GammaMVA=-999;
@@ -296,6 +354,7 @@ void Analyzer::Loop()
 		break;
 		}
 
+	if(doTimeUsage) checkTimeUsage(5,"Gamma Search");
 
 	if(GammaIdx<0) continue; //--no gamma candidate found
 	if(currentSyst==NONE)Sel->FillAndInit("GammaSelection"); //Selection
@@ -345,6 +404,9 @@ void Analyzer::Loop()
 		} // jet Loop
 
 	mynJets=JetIdx.size();
+
+	if(doTimeUsage) checkTimeUsage(6,"Jets");
+
 	//my selection 
 	if(mynJets<1) continue; 
 	if(currentSyst==NONE)Sel->FillAndInit("OneJet"); //Selection
@@ -356,6 +418,7 @@ void Analyzer::Loop()
 
 	for(int iCut=0;iCut<int(cutsContainer.size());++iCut)
 		{
+		//if(doTimeUsage) checkTimeUsage(timeUsage.size(),Form("-> Fill&Cuts %d: VPt_%.0f_%.0f_Ht_%.0f_%.0f_phid_%.3f_%.3f_nJets_%d",iCut,cutsContainer[iCut].VPt.first,cutsContainer[iCut].VPt.second,cutsContainer[iCut].Ht.first,cutsContainer[iCut].Ht.second,cutsContainer[iCut].phid.first, cutsContainer[iCut].phid.second));
 		if(gamma.Pt() < cutsContainer[iCut].VPt.first)continue;
 		if(gamma.Pt() > cutsContainer[iCut].VPt.second)continue;
 		if(Ht         < cutsContainer[iCut].Ht.first)continue;
@@ -368,16 +431,39 @@ void Analyzer::Loop()
 		
 		//Going to fill
 		//-----
+		bool isDumpToBook=false;
 		{ // the dumping is outside the fill function
 		string name=string("gammaPt_")+cutsContainer[iCut].name()+SystName();
 		if(histoContainer[name]==NULL) 
+				isDumpToBook=true;
+		}
+
+		Fill( string("gammaPt_")+cutsContainer[iCut].name()+SystName() , gamma.Pt(), ScaleTrigger * PUWeight, "gammaPt" );
+
+		{
+		string name=string("gammaPt_")+cutsContainer[iCut].name()+SystName();
+		//cant call before because Histo does not exists
+		if(isDumpToBook && doDump)
 				dump.BookHisto(histoContainer[name]);
-		if(currentSyst==NONE){
+		if(currentSyst==NONE && doDump){
 				dump.FillHisto(name,gamma.Pt(),runNum,lumi,eventNum);
 				}
 		}
-		Fill( string("gammaPt_")+cutsContainer[iCut].name()+SystName() , gamma.Pt(), ScaleTrigger * PUWeight, "gammaPt" );
 		Fill( string("Ht_")+cutsContainer[iCut].name()+SystName() , Ht , ScaleTrigger * PUWeight, "" );
+		//-----
+		Fill( string("gammaEta_")+cutsContainer[iCut].name()+SystName(), fabs(gamma.Eta()),ScaleTrigger*PUWeight,"gammaEta");
+		//----- NOT WEIGHTED -> LOW STAT FIT -> Not work if mix samples, use PUWeight instead
+		Fill(string("sieie_")+cutsContainer[iCut].name()+SystName(), (*photonid_sieie)[GammaIdx],PUWeight,"sieie");
+		//-----
+		Fill(string("photoniso_")+cutsContainer[iCut].name()+SystName(), (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,PUWeight,"photoniso");
+		//FILL Tree
+		//name="tree_"+cutsContainer[iCut].name()+SystName();
+		//if(treeContainer[name]==NULL) MakeTree(name); 
+		//TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
+		//treeContainer[name]->Fill( );
+		//-----
+		Fill( string("photonisoRC_")+cutsContainer[iCut].name()+SystName(), (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,PUWeight, "photoniso") ;
+		//-----
 		//-----
 		if( !isRealData ){  //only for MC
 			TLorentzVector gGEN;
@@ -426,22 +512,10 @@ void Analyzer::Loop()
 				Fill( string("Ht_RECO_EMATCHED_")+cutsContainer[iCut].name()+SystName(), Ht ,ScaleTrigger*PUWeight,"") ;
 			}
 		}//end of only MC
-		//-----
-		Fill( string("gammaEta_")+cutsContainer[iCut].name()+SystName(), fabs(gamma.Eta()),ScaleTrigger*PUWeight,"gammaEta");
-		//----- NOT WEIGHTED -> LOW STAT FIT -> Not work if mix samples, use PUWeight instead
-		Fill(string("sieie_")+cutsContainer[iCut].name()+SystName(), (*photonid_sieie)[GammaIdx],PUWeight,"sieie");
-		//-----
-		Fill(string("photoniso_")+cutsContainer[iCut].name()+SystName(), (*photonIsoFPRPhoton)[GammaIdx]-RhoCorr,PUWeight,"photoniso");
-		//FILL Tree
-		//name="tree_"+cutsContainer[iCut].name()+SystName();
-		//if(treeContainer[name]==NULL) MakeTree(name); 
-		//TreeVar.photoniso=(*photonIsoFPRPhoton)[GammaIdx]-RhoCorr;
-		//treeContainer[name]->Fill( );
-		//-----
-		Fill( string("photonisoRC_")+cutsContainer[iCut].name()+SystName(), (*photonIsoFPRRandomConePhoton)[GammaIdx]-RhoCorr,PUWeight, "photoniso") ;
-		//-----
 		
 		} //for iCut
+
+	if(doTimeUsage) checkTimeUsage(7,"Fills & Cuts");
 	
    } //Loop over entries
 	//WRITE
@@ -478,7 +552,7 @@ void Analyzer::Loop()
 		}
 	*/
 	
-	if(currentSyst==NONE)dump.Dump();
+	if(currentSyst==NONE && doDump)dump.Dump();
 return;
 }//Analyzer::Loop
 
@@ -500,11 +574,25 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		if (!(eta>=etamin && eta<etamax)	) continue;
 		if (!(r9>=r9min && r9<r9max) 	)continue;
 		if (!(runNum>=runmin && runNum<runmax)	) continue;
-		photonPt->at(i)*=it->second;
-		photonE->at(i)*=it->second;
+		double sf=(1-it->second);
+		double err=energyScaleError[it->first];
+		if (currentSyst==ESCALEUP) sf+=err;
+		if (currentSyst==ESCALEDN) sf-=err;
+		photonPt->at(i)*=sf;
+		photonE->at(i)*=sf;
 		break;
 		}
-	}
+	if (currentSyst==ESCALEUP)
+		{
+		if (photonPt->at(i)< pt+.3)
+			{
+			//change in photonPt in pt+.3 
+			double sf=(pt+.3 )/  photonPt->at(i) ;
+			photonPt->at(i) *= sf;
+			photonE->at(i) *= sf;
+			}
+		}
+	}//loop over photons
 }
 
 void Analyzer::InitEnergyScale(){
@@ -526,12 +614,13 @@ void Analyzer::InitEnergyScale(){
 
 	string name=Form("%.1f_%.1f_%.1f_%.1f_%.1f_%.1f_%ld_%ld",ptmin,ptmax,etamin,etamax,r9min,r9max,runmin,runmax);
 	energyScale[name]=value;
+	energyScaleError[name]=err;
 	
 	}
    for(map<string,float>::iterator it=energyScale.begin();it!=energyScale.end();it++)
 	{
 	string name=it->first;
-	fprintf(stderr,"Loaded %s in EGScaleFactors Corrections with val %f - \n",name.c_str(), energyScale[name] );
+	fprintf(stderr,"Loaded %s in EGScaleFactors Corrections with val %f +- %f\n",name.c_str(), energyScale[name],energyScaleError[name] );
 	}
   return;
 	
@@ -686,6 +775,14 @@ if( !useEnergyRegression) return;
 void Analyzer::Smear()
 {
 	float newPt,newE;
+
+	if(!isRealData) //smear Jet Energy resolution to match data
+	for(int i=0;i<int(jetPt->size());i++){
+		double sf=(*jetPtRES)[i]/(*jetPt)[i];
+		(*jetPt)[i] = (*jetPtRES)[i] ;
+		(*jetE)[i] *= sf;
+		}
+
 	switch (currentSyst)
 	{
 	case NONE : return;
@@ -730,6 +827,11 @@ void Analyzer::Smear()
 		for(int i=0;i<int(jetPt->size());i++){
 			(*jetPt)[i]=(*jetPtRESdown)[i] ;
 		}
+		break;
+	case ESCALEUP:
+		//done in apply energy Scale
+		break;
+	case ESCALEDN:
 		break;
 	default: return;
 	}
@@ -793,6 +895,12 @@ string Analyzer::SystName(enum SYST a){
 		break;
 	case REGRDN: 
 		return string("_REGRDN");
+		break;
+	case ESCALEUP:
+		return string("_ESCALEUP");
+		break;
+	case ESCALEDN:
+		return string("_ESCALEDN");
 		break;
 	default: return "";
 	}

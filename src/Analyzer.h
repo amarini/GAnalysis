@@ -69,6 +69,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init();
    virtual void     Loop();
+   virtual void     SetBranchStatus();
 	
    
    int loadMVA;
@@ -89,7 +90,7 @@ public :
    PHOTONID idvars;
 
    //SYST SMEARINGS
-   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD,LUMIUP,LUMIDN,FIT,BIAS,SMEARUP,SMEARDN,REGRUP,REGRDN};
+   enum SYST { NONE=0, JESUP,JESDN , PUUP, PUDN,JERUP,JERDN,SIGSHAPE,BKGSHAPE,UNFOLD,LUMIUP,LUMIDN,FIT,BIAS,SMEARUP,SMEARDN,REGRUP,REGRDN,ESCALEUP,ESCALEDN};
    enum SYST currentSyst; 
    void Smear();
    string SystName();
@@ -181,6 +182,7 @@ public :
    bool useEnergyScale;
    string energyScaleFile;
    map<string,float> energyScale;
+   map<string,float> energyScaleError;
    void InitEnergyScale();
    void ApplyEnergyScale();
    // --- Energy Smear
@@ -217,6 +219,7 @@ public :
    map<string,TH1D*> targetHisto; //TODO: destruct
 
    //DumpAscii
+   int doDump;
    DumpAscii dump;
 
    //Watch Duty Cycle:
@@ -227,6 +230,10 @@ public :
    float thrBench;
    void SetCheckDuty(int n, int s,float thr){nBench=n;startBench=s;thrBench=thr;dutyCount=0;};
    void  checkDuty(Long64_t jentry); 
+   bool doTimeUsage;
+   void checkTimeUsage(int n,string name);
+   vector< pair<float,float> > timeUsage;
+   vector< string> timeNames; 
    TStopwatch stopWatch;
    //activate extra cout	
    int debug;
@@ -279,6 +286,7 @@ return;
 
 Analyzer::Analyzer() : fChain(0) 
 {
+   fCurrent=-1;
    debug=0;
    nJobs=-1;
    jobId=-1;
@@ -295,15 +303,17 @@ Analyzer::Analyzer() : fChain(0)
    useEGscaleFactors=0;
    EGscaleFactorsFile="";
    useEnergyScale=0;
-   energyScaleFile="";
+   energyScaleFile="aux/energy_scale_offsets_rd_mc_etdep.dat";
    useEnergySmear=0;
    rEnergySmear=NULL;
    energySmearFile="";
+   doDump=0;
    dump.compress=1;
    dump.maxn=10000;
    dump.fileName="";
    SetCommonWeightConfiguration();
    doDutyCycle=0;SetCheckDuty(-1,-1,-1.);
+   doTimeUsage=0;
 }
 void Analyzer::InitCuts()
 {

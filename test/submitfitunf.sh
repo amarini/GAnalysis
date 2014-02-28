@@ -29,7 +29,7 @@ cd $PWD
 export SCRAM_ARCH=slc5_amd64_gcc462
 eval \`scramv1 runtime -sh\`
  python python/step2_fit.py --inputDat=data/config.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/log_fit.txt.gz ;
- python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/config.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/log_unf.txt.gz
+ python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/config.dat --inputDatMC=data/configMC.dat --inputDatMC2=data/configMC_pythia.dat 2>&1 | gzip > log/log_unf.txt.gz
  python test/makeAllPlots.py --inputDat=data/config.dat
 
 echo *********************
@@ -44,6 +44,21 @@ eval \`scramv1 runtime -sh\`
  python python/step2_fit.py --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip > log/logMC_fit.txt.gz ;
  python python/step3_Unfolding.py --doUnfoldStudies --inputDat=data/configMC.dat --inputDatMC=data/configMC.dat 2>&1 | gzip >log/logMC_unf.txt.gz
  python test/makeAllPlots.py --inputDat=data/configMC.dat
+
+echo *********************
+echo *      DONE         *
+echo *********************
+EOF
+
+rm -v log/logMCpythia_fit*.txt || true
+rm -v log/logMCpythia_unf*.txt || true
+bsub -q 1nd -J FIT_UNF_MC_PYTHIA -o $PWD/log/logMCpythia_submit.txt <<EOF
+cd $PWD
+export SCRAM_ARCH=slc5_amd64_gcc462
+eval \`scramv1 runtime -sh\`
+ python python/step2_fit.py --checkTime --inputDat=data/configMC_pythia.dat --inputDatMC=data/configMC_pythia.dat 2>&1 | gzip > log/logMCpythia_fit.txt.gz ;
+ python python/step3_Unfolding.py --inputDat=data/configMC_pythia.dat --inputDatMC=data/configMC_pythia.dat 2>&1 | gzip >log/logMCpythia_unf.txt.gz
+ python test/makeAllPlots.py --inputDat=data/configMC_pythia.dat
 
 echo *********************
 echo *      DONE         *

@@ -44,8 +44,8 @@ if(DEBUG>0):
 if options.inputDatMC2 != "":
 	config2MC=read_dat(options.inputDatMC2)
 	if DEBUG>0:
-	print "--------- MC 2 CONFIG -----------"
-	PrintDat(config2MC)
+		print "--------- MC 2 CONFIG -----------"
+		PrintDat(config2MC)
 	WorkDirMC2=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
 	inputFileNameRootMC2= WorkDirMC2 + ReadFromDat(configMC,"outputFileName","output","--> Default outputFileName")
 	fRootMC2= ROOT.TFile.Open(inputFileNameRootMC2+".root");
@@ -97,7 +97,7 @@ for line in fFit:
 	if len(line) <5 : continue
 	l=line.split(' ')
 	for iWord in range(0,len(l)):
-		if "Pt" in l[iWord] :
+		if "Pt" == l[iWord] : # in is wrong since jet pt will be there
 			ptmin=round(float(l[iWord+1]),1)
 			ptmax=round(float(l[iWord+2]),1)
 		elif "Ht" in l[iWord]:
