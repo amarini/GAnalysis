@@ -111,27 +111,30 @@ def Ratio(H,H1,NoErrorH=False):
 	return R
 
 #LOOP OVER THE BINs
-for h in range(0,len(HtCuts)):
+for jpt in [30.0,300.0]:
+  for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
+		if jpt!=30 and ( HtCuts[h]!=0 or nJetsCuts[nj]!=1):continue;
 
-		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
+		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])+"_JPt_"+str(jpt)
 	
 		#GET HISTOS
-		H=file.Get("b_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj]))
-		H_PUUP    =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.PUUP)))
-		H_PUDN    =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN)))
-		H_JESUP   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP)))
-		H_JESDN   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN)))
-		H_SIGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)))
-		H_BKGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)))
-		H_BIAS   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],"_BIAS"))
-		H_LUMIUP = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP)))
-		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
+		H=file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f"%(HtCuts[h],nJetsCuts[nj],jpt))
+		H_PUUP    =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.PUUP)))
+		H_PUDN    =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN)))
+		H_JESUP   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP)))
+		H_JESDN   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN)))
+		H_SIGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)))
+		H_BKGSHAPE=file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE)))
+		H_BIAS   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,"_BIAS"))
+		H_LUMIUP = H.Clone("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP)))
+		H_LUMIDN = H.Clone("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN)))
 		H_LUMIUP.Scale(1.+.026)
 		H_LUMIDN.Scale(1.-.026)
-		H_JERUP   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP)))
-		H_JERDN   =file.Get("b_Ht_%.1f_nJets_%.1f%s"%(HtCuts[h],nJetsCuts[nj],ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN)))
+		H_JERUP   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP)))
+		H_JERDN   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN)))
+		H_UNFOLD   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD)))
 	
 		H_PU=makeBands(H_PUUP,H_PUDN)
 		H_JES=makeBands(H_JESUP,H_JESDN)
@@ -140,11 +143,12 @@ for h in range(0,len(HtCuts)):
 		H_BKG=makeBands(H,H_BKGSHAPE,"First")
 		H_BIAS=makeBands(H,H_BIAS,"First")
 		H_LUM=makeBands(H_LUMIUP,H_LUMIDN)
+		H_UNFOLD=makeBands(H,H_UNFOLD,"First")
 		
 		if doMC:
-			print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
+			#print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
 			#H_MC=file.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
-			H_MC=file.Get("mc_Ht_%.1f_nJets_%.1f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
+			H_MC=file.Get("mc_Ht_%.1f_nJets_%.1f_JPt_%.1f"%(HtCuts[h],nJetsCuts[nj],jpt)); ## phid doesnt count
 			#for i in range(1,H_MC.GetNbinsX()+1):
 			#	H_MC.SetBinContent(i, H_MC.GetBinContent(i)/H_MC.GetBinWidth(i) )
 			#	H_MC.SetBinError  (i, H_MC.GetBinError  (i)/H_MC.GetBinWidth(i) )
@@ -162,6 +166,7 @@ for h in range(0,len(HtCuts)):
 		#sqrtSum(H_TOT,H_BKG)
 		sqrtSum(H_TOT,H_BIAS)
 		sqrtSum(H_TOT,H_LUM)
+		sqrtSum(H_TOT,H_UNFOLD)
 		for i in range(0,H_TOT.GetNbinsX()+1):
 			print "H_TOT: Bin=%d Content=%f Error=%f "%(i,H_TOT.GetBinContent(i),H_TOT.GetBinError(i))
 			print "H_PU: Bin=%d Content=%f Error=%f "%(i,H_PU.GetBinContent(i),H_PU.GetBinError(i))
@@ -171,6 +176,7 @@ for h in range(0,len(HtCuts)):
 			print "H_BIAS: Bin=%d Content=%f Error=%f "%(i,H_BIAS.GetBinContent(i),H_BIAS.GetBinError(i))
 			print "H_BKG: Bin=%d Content=%f Error=%f "%(i,H_BKG.GetBinContent(i),H_BKG.GetBinError(i))
 			print "H_LUM: Bin=%d Content=%f Error=%f "%(i,H_LUM.GetBinContent(i),H_LUM.GetBinError(i))
+			print "H_UNFOLD: Bin=%d Content=%f Error=%f "%(i,H_UNFOLD.GetBinContent(i),H_UNFOLD.GetBinError(i))
 			print "H: Bin=%d Content=%f Error=%f "%(i,H.GetBinContent(i),H.GetBinError(i))
 		
 		## CANVAS
@@ -213,6 +219,12 @@ for h in range(0,len(HtCuts)):
 		H_BIAS.SetLineColor  (ROOT.kGray+2)
 		H_BIAS.SetFillStyle(3001)
 
+		H_UNFOLD.SetMarkerStyle(0)
+		H_UNFOLD.SetFillColor  (ROOT.kGreen+2)
+		H_UNFOLD.SetMarkerColor(ROOT.kGreen+2)
+		H_UNFOLD.SetLineColor  (ROOT.kGreen+2)
+		H_UNFOLD.SetFillStyle(3001)
+
 		H_LUM.SetMarkerStyle(0)
 		H_LUM.SetFillColor  (ROOT.kOrange)
 		H_LUM.SetMarkerColor(ROOT.kOrange)
@@ -240,6 +252,7 @@ for h in range(0,len(HtCuts)):
 		#DRAW
 		H.Draw("P")
 		H.Draw("AXIS X+ Y+ SAME")
+		H_UNFOLD.Draw("P E2 SAME")
 		H_BKG.Draw("P E2 SAME")
 		H_PU.Draw("P E2 SAME")
 		H_JES.Draw("P E2 SAME")
@@ -289,8 +302,8 @@ for h in range(0,len(HtCuts)):
 
 		L.Draw()
 		#SAVE
-		C.SaveAs(WorkDir+"plots/unfoldedPlots_Ht%.0f_nJets%.0f.pdf"%(HtCuts[h],nJetsCuts[nj]))		
-		C.SaveAs(WorkDir+"plots/unfoldedPlots_Ht%.0f_nJets%.0f.root"%(HtCuts[h],nJetsCuts[nj]))		
+		C.SaveAs(WorkDir+"plots/unfoldedPlots_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
+		C.SaveAs(WorkDir+"plots/unfoldedPlots_Ht%.0f_nJets%.0f_JPt%.0f.root"%(HtCuts[h],nJetsCuts[nj],jpt))		
 
 		C2=ROOT.TCanvas("C2","C2")
 		C2.SetLogx()
@@ -324,4 +337,4 @@ for h in range(0,len(HtCuts)):
 			R_MC.Draw("HIST SAME");
 
 		R_H.Draw("P SAME") # redraw on top
-		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f.pdf"%(HtCuts[h],nJetsCuts[nj]))		
+		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		

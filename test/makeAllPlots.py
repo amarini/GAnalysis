@@ -87,7 +87,7 @@ if doParsPlots:
 #unfolded distributions
 if doUnfoldPlots:
 	print >>sys.stderr, " --- UNFOLD PLOTS --- "
-	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
+	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat]#,"--inputDatMC="+options.inputDatMC]
 	call(cmd)
 
 if doUnfoldStudies:

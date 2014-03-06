@@ -87,6 +87,8 @@ for line in fFit:
 			ht=float(l[iWord+1])
 		elif "nJets" in l[iWord]:
 			nj=float(l[iWord+1])
+		elif "jetPt" in l[iWord]:
+			jpt=float(l[iWord+1])
 		elif "Fraction" in l[iWord]:
 			fr=float(l[iWord+1])
 		elif "TOYS" in l[iWord]: #read error from toys
@@ -94,13 +96,13 @@ for line in fFit:
 		elif "BIAS" in l[iWord]: #read error from toys
 			bias=float(l[iWord+1])
 	try:
-		Frac[ (ptmin,ptmax,ht,nj) ] = fr
+		Frac[ (ptmin,ptmax,ht,nj,jpt) ] = fr
 	except NameError: continue;
 	try:
-		FracErr[ (ptmin,ptmax,ht,nj) ] = er
+		FracErr[ (ptmin,ptmax,ht,nj,jpt) ] = er
 	except NameError: continue;
 	try:
-		FracBias[ (ptmin,ptmax,ht,nj) ] = bias
+		FracBias[ (ptmin,ptmax,ht,nj,jpt) ] = bias
 	except NameError: continue;
 
 #Float_t * is needed for TH1D
@@ -119,6 +121,7 @@ L=ROOT.TLegend(0.65,0.15,.89,.45)
 L.SetFillStyle(0)
 L.SetBorderSize(0)
 C.SetLogx()
+jpt=30.
 for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
 		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
@@ -143,17 +146,17 @@ for h in range(0,len(HtCuts)):
 		for p in range(0,len(PtCuts2)-1):
 			## TAKE FITTED FRACTION
 			try:
-				fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				fr=1	
 			try:
-				er=FracErr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				er=FracErr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt)
 				er=1	
 			try:
-				bias=FracBias[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+				bias=FracBias[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
 				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
 				bias=1	

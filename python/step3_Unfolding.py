@@ -206,7 +206,7 @@ def Loop(systName=""):
 				
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.NONE) :
 				try:
-					er= FracErr[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					er= FracErr[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],JetPtThr[jpt]) ]
 				except (IndexError,KeyError):
 					er=1
 			else : er=0

@@ -830,9 +830,24 @@ void Analyzer::Smear()
 		}
 		break;
 	case ESCALEUP:
-		//done in apply energy Scale
+		if (!useEnergyScale) //otherwise done with shervin uncertainties
+			for(int i=0;i<int(photonPt->size());i++) //after regression
+			{
+			float oldE=(*photonE)[i];
+			float newE=oldE*1.06;
+			(*photonPt)[i]*=newE/oldE;
+			(*photonE)[i]*=newE/oldE;
+			}
 		break;
 	case ESCALEDN:
+		if (!useEnergyScale) //otherwise done with shervin uncertainties
+			for(int i=0;i<int(photonPt->size());i++) //after regression
+			{
+			float oldE=(*photonE)[i];
+			float newE=oldE*(1-0.06);
+			(*photonPt)[i]*=newE/oldE;
+			(*photonE)[i]*=newE/oldE;
+			}
 		break;
 	default: return;
 	}

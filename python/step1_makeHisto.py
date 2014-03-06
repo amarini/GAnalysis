@@ -140,5 +140,11 @@ for jetpt in JetPtThr:
 		print "--- LOOP ON SYST ---- JER UP --"
 		A.currentSyst= ROOT.Analyzer.JERUP
 		A.Loop()
+		print "--- LOOP ON SYST ---- ESCALE UP --"
+		A.currentSyst= ROOT.Analyzer.ESCALEUP
+		A.Loop()
+		print "--- LOOP ON SYST ---- ESCALE DN --"
+		A.currentSyst= ROOT.Analyzer.ESCALEDN
+		A.Loop()
 	
 	if(DEBUG>0): print "----- END ------"
