@@ -63,6 +63,8 @@ SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 
 BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
+JetPtThr=ReadFromDat(config,"JetPt",[30],"-->Default JetPT")
+
 inputFileNameFit=WorkDir + "/fit.txt"  
 inputFileNameRoot= WorkDir + ReadFromDat(config,"outputFileName","output","--> Default outputFileName")
 inputFileNameRootMC= WorkDirMC + ReadFromDat(configMC,"outputFileName","output","--> Default outputFileName")
@@ -104,6 +106,8 @@ for line in fFit:
 			ht=float(l[iWord+1])
 		elif "nJets" in l[iWord]:
 			nj=float(l[iWord+1])
+		elif "jetPt" in l[iWord]:
+			jpt=float(l[iWord+1])
 		elif "Fraction" in l[iWord]:
 			fr=float(l[iWord+1])
 		elif "TOYS" in l[iWord]: #read error from toys
@@ -115,19 +119,19 @@ for line in fFit:
 		elif ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) in l[iWord]:
 			fr_bkgcorr=float(l[iWord+1])
 	try:
-		Frac[ (ptmin,ptmax,ht,nj) ] = fr
+		Frac[ (ptmin,ptmax,ht,nj,jpt) ] = fr
 	except NameError: pass;
 	try:
-		FracSigCorr[ (ptmin,ptmax,ht,nj) ] = fr_sigcorr
+		FracSigCorr[ (ptmin,ptmax,ht,nj,jpt) ] = fr_sigcorr
 	except NameError: pass;
 	try:
-		FracBkgCorr[ (ptmin,ptmax,ht,nj) ] = fr_bkgcorr
+		FracBkgCorr[ (ptmin,ptmax,ht,nj,jpt) ] = fr_bkgcorr
 	except NameError: pass;
 	try:
-		FracErr[ (ptmin,ptmax,ht,nj) ] = er;
+		FracErr[ (ptmin,ptmax,ht,nj,jpt) ] = er;
 	except NameError: pass
 	try:
-		FracBias[ (ptmin,ptmax,ht,nj) ] = bias;
+		FracBias[ (ptmin,ptmax,ht,nj,jpt) ] = bias;
 	except NameError: pass
 
 if DEBUG>0:
@@ -161,9 +165,11 @@ PtBins=ROOT.Bins()
 
 #LOOP OVER THE BINs
 def Loop(systName=""):
+ for jpt in range(0,len(JetPtThr)):
    for h in range(0,len(HtCuts)):
 	for nj in range(0,len(nJetsCuts)):
-		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;	
+		if nJetsCuts[nj] != 1 and HtCuts[h] !=0:continue;
+		if JetPtThr[jpt] != 30 and (nJetsCuts[nj]!=1 and HtCuts[h]!=0): continue;  # do 1jetPt>30 only for the nJets=1 and Ht=0 
 		#CREATE TARGET HISTO
 		try:
 			PtCuts2_tmp=PtCuts[0:PtCuts.index(-1) ]
@@ -176,7 +182,9 @@ def Loop(systName=""):
 		for c in range(0,len(PtCuts2)):
 			PtBins.PtBins[c]=PtCuts2_tmp[c]#bins of histos with high precision
 
-		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])+systName
+		Bin="Ht_"+str(HtCuts[h])+"_nJets_"+str(nJetsCuts[nj])
+		if(JetPtThr!=30): Bin+="_JPt_"+str(JetPtThr[jpt])
+		Bin+=systName
 		#Will it work?
 		H=ROOT.TH1D("m_"+Bin,"Measured_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
@@ -184,13 +192,13 @@ def Loop(systName=""):
 			## TAKE FITTED FRACTION
 			try:
 				if   systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) :
-					fr=FracSigCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracSigCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],JetPtThr[jpt]) ]
 				elif systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE):
-					fr=FracBkgCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracBkgCorr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],JetPtThr[jpt]) ]
 				elif  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) :
-					fr=FracBias[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=FracBias[  (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],JetPtThr[jpt]) ]
 				else: ##DEFAULT
-					fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) ]
+					fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],JetPtThr[jpt]) ]
 
 			except (IndexError,KeyError): 
 				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])+" SYST="+systName
@@ -207,9 +215,13 @@ def Loop(systName=""):
 			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD): 
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
-			print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
+			cutsSig=ROOT.Analyzer.CUTS(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],8000.,SigPhId[0],SigPhId[1],int(nJetsCuts[nj]) )
+			cutsSig.JetPtThreshold=JetPtThr[jpt]
+			#print "Getting histo gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto
+			print "Getting Histo gammaPt_"+cutsSig.name()+systNameForHisto
 			try:
-				hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
+				#hBin=fRoot.Get("gammaPt_VPt_%.0f_%.0f_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto )
+				hBin=fRoot.Get("gammaPt_"+cutsSig.name() + systNameForHisto )
 				rawError= ROOT.Double(0)
 				rawYield=hBin.IntegralAndError(1,hBin.GetNbinsX(),rawError)
 			except AttributeError:
@@ -224,21 +236,38 @@ def Loop(systName=""):
 				corErr=1
 			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corYield )
 			H.SetBinError(   H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), corErr )
+			### END LOOP ON PT 
+
+		cutsSig=ROOT.Analyzer.CUTS(0,8000,HtCuts[h],8000.,SigPhId[0],SigPhId[1],int(nJetsCuts[nj]) )
+		cutsSig.JetPtThreshold=JetPtThr[jpt]
+
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
 		if systName != ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD):
-			M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			#M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			print "Going to Get: MC" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto
+			M=fRootMC.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto)
+			#G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			print "Going to Get: MC" + "gammaPtGEN_"+cutsSig.name()+systNameForHisto
+			G=fRootMC.Get("gammaPtGEN_"+cutsSig.name()+systNameForHisto)
+			#R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			print "Going to Get: MC" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto
+			R=fRootMC.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto)
 		else:
-			M=fRootMC2.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			G=fRootMC2.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			R=fRootMC2.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
+			print "Going to Get: MC2" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto
+			M=fRootMC2.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto)
+			print "Going to Get: MC2" + "gammaPtGEN_"+cutsSig.name()+systNameForHisto
+			G=fRootMC2.Get("gammaPtGEN_"+cutsSig.name()+systNameForHisto)
+			print "Going to Get: MC2" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto
+			R=fRootMC2.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto)
 
 		try:
+			if M==None: print "ERROR Matrix=NONE"
+			if R==None: print "ERROR Reco=NONE"
+			if G==None: print "ERROR Gen=NONE"
 			Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
 			#Response= ROOT.RooUnfoldResponse(0,0,M,"Response"+Bin,"Response"+Bin)
 		except TypeError:
-			print "ERROR Unable to construct Matrix"
+			print "ERROR Unable to construct Matrix: "+Bin
 			continue;
 		if doUnfoldStudies and systName=="":
 			## UNFOLDSTUDIES

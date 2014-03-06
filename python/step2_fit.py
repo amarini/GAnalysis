@@ -18,6 +18,9 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC - must provided only in DoShapeCorrFit is set to true",default="")
 parser.add_option("","--checkTime" ,dest='checkTime',action='store_true',help="check Time usage by different Functions.",default=False)
 
+parser.add_option("","--nJobs" ,dest='nJobs',type='int',help="Total number of jobs. Useful to run on batch",default=-1)
+parser.add_option("","--jobId" ,dest='jobId',type='int',help="Current job number. Useful to run on batch",default=0)
+
 (options,args)=parser.parse_args()
 
 from common import *
@@ -48,6 +51,8 @@ DoShapeCorrFit=ReadFromDat(config,"DoShapeCorrFit",0,"--> Set Shape Corr For Fit
 DoBiasStudies=ReadFromDat(config,"DoBiasStudies",0,"--> Set Do Bias Studies to 0");
 
 JetPtThr=ReadFromDat(config,"JetPt",[30],"-->Default JetPT")
+
+isFirstJob=True
 
 configMC={}
 WorkDirMC=""
@@ -124,6 +129,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 	BkgCorr=[]
         if options.checkTime: A.checkTimeUsage(0,"Begin");
 	for p in range(0,len(PtCuts)-1):
+		if jpt > 250 and PtCuts[p]<200:continue; ##avoid trying to fit: no bkg
 		cutSig=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets);
 		cutSig.JetPtThreshold=jetPt;
 		cutBkg=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets);
@@ -186,12 +192,23 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 					doShapeCorrFit=0 # Turn Off Local var
 
         if options.checkTime: A.checkTimeUsage(1,"GetHisto");
-	
-	if nJets == 1 and Ht ==0 and jetPt==30:
+
+	if options.nJobs >0 :
+		if isFirstJob:
+			o_txt=open(WorkDir+"/fit_%d_%d.txt"%(options.jobId,options.nJobs),"w")
+			o_pars=open(WorkDir+"/fitPars_%d_%d.txt"%(options.jobId,options.nJobs),"w")
+		else:	
+			o_txt=open(WorkDir+"/fit_%d_%d.txt"%(options.jobId,options.nJobs),"a")
+			o_pars=open(WorkDir+"/fitPars_%d_%d.txt"%(options.jobId,options.nJobs),"a")
+
+	elif nJets == 1 and Ht ==0 and jetPt==30: ## not Job -- can be unified with jobs
 		o_txt=open(WorkDir+"/fit.txt","w")
 		o_pars=open(WorkDir+"/fitPars.txt","w")
 		try:
-			os.remove(WorkDir+"/fitresults.root")
+			if options.nJobs<0:
+				os.remove(WorkDir+"/fitresults.root")
+			else:
+				os.remove(WorkDir+"/fitresults_%d_%d.root"%(options.jobId,options.nJobs))
 		except OSError: print "file doesn't exist: not removed"
 	else: 
 		o_txt=open(WorkDir+"/fit.txt","a")
@@ -199,6 +216,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 
 	
 	for p in range(0,len(PtToFit)-1):
+		if jpt > 250 and PtToFit[p]<200:continue; ##avoid trying to fit: no bkg
 		#find pt bin for sig
         	if options.checkTime: A.checkTimeUsage(0,"Begin");
 		Sbin=-1
@@ -251,9 +269,11 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 		#v=ROOT.std.vector(float)()
 		if jetPt == 30: extra=""
 		else: extra = "_JPT_%.1f"%jetPt
+		fitResultName="fitresults.root"
+		if options.nJobs>0: fitResultName="fitresults_%d_%d.root"%(options.jobId,options.nJobs)
 		fitR=ROOT.std.map(ROOT.std.string,float)()
 		f=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgTemplate[Bbin],
-				WorkDir+"/fitresults.root",
+				WorkDir+"/"+fitResultName,
 				"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) +extra,
 				fitR
 				)
@@ -261,8 +281,8 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 
 		if doShapeCorrFit:
 			print "-> FIT SIGSHAPE CORR"
-			fSigCorr=ROOT.FIT.fit(ToFitTemplate[p],SigCorr[Sbin],BkgTemplate[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) )
-			fBkgCorr=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgCorr[Bbin],WorkDir+"/fitresults.root","Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) )
+			fSigCorr=ROOT.FIT.fit(ToFitTemplate[p],SigCorr[Sbin],BkgTemplate[Bbin],WorkDir+"/"+fitResultName,"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) )
+			fBkgCorr=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgCorr[Bbin],WorkDir+"/"+fitResultName,"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) )
 
         	if options.checkTime: A.checkTimeUsage(3,"Shape Corr Fit");
 		#UNBINNED
@@ -333,12 +353,29 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			fOut.Close();
 	if(options.checkTime):A.checkTimeUsage(-1,"Print");
 
-#TODO ADD JetPTThr here
+#MAIN LOOP
+ListOfJobs=[]
+
 for jpt in JetPtThr:
      for h in HtCuts:
 	for n in nJetsCuts:
 		if jpt !=30 and (n!=1 or h!=0): continue #only inclusive for different jpt
 		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
-		FIT(file,int(n),h,jpt,DoShapeCorrFit,fileMC)
+		ListOfJobs.append((int(n),h,jpt))
 
+JobBegin=(len(ListOfJobs)/options.nJobs+1)*options.jobId;
+JobEnd  =(len(ListOfJobs)/options.nJobs+1)*(options.jobId+1);
+if JobEnd > len(ListOfJobs): JobEnd=len(ListOfJobs)
+if options.nJobs<0: 
+	JobBegin=0
+	JobEnd=len(ListOfJobs)
+
+if DEBUG>0: 
+	print "JobBegin=",JobBegin
+	print "JobEnd=",JobEnd
+	print "ListOfJobs:",ListOfJobs
+for iJob in range(JobBegin,JobEnd):
+		if iJob != JobBegin: isFirstJob=False
+		(n,h,jpt)=ListOfJobs[iJob]
+		FIT(file,int(n),h,jpt,DoShapeCorrFit,fileMC)
 if(DEBUG>0): print "----- END ------"

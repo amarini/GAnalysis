@@ -3,6 +3,8 @@ import sys,os
 import array
 
 def read_dat(filename):
+	''' Read A dat file configuration from filename 
+	'''
 	Dat={}
 	try:
 		f=open(filename,"r")
@@ -133,6 +135,7 @@ def read_dat(filename):
 	return Dat
 
 def PrintDat(dat):
+	''' Print a Dat File '''
 	print "--------------------------------------------------------"
 	for name in dat:
 		print "Dat contains key " +str(name) + " with value: " + str(dat[name])
@@ -140,16 +143,24 @@ def PrintDat(dat):
 	print 
 	print 
 def ReadFromDat(dat,what,default,Error):
+	''' Read From a Dat file:
+	dat is the dat file
+	what is the parameter
+	default is the default value
+	Error is the error message if what is not found 
+	'''
 	try:
 		return dat[what]
 	except KeyError:
 		print Error
 		return default
 def SetAttribute(Analyzer, attr,value ):
+	''' Set Attribute attr with value in the Analyzer'''
 	print "Set Attribute %s to %s"%(attr,value)
 	exec("Analyzer.%s=%s"%(attr,value))
 	return
 def SetFunction(Analyzer, attr ):
+	'''Call Function attr in the analyzer: attr=Init() ->Analyzer.Init()'''
 	print "Executing Functions '%s'"%attr
 	print "Analyzer.%s"%(attr)
 	exec("Analyzer.%s"%(attr))

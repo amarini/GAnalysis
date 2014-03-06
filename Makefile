@@ -2,7 +2,7 @@
 
 
 .PHONY:all
-all: src tar
+all: src
 	cp src/libGAnalysis.so ./
 
 .PHONY:src
@@ -10,7 +10,7 @@ src:
 	$(MAKE) -C src  all 
 
 .PHONY:tar
-tar: GAnalysis.tar.gz
+tar: all GAnalysis.tar.gz
 
 GAnalysis.tar.gz: libGAnalysis.so data/* python/* aux/* test/* 
 	tar -czf GAnalysis.tar.gz libGAnalysis.so data python aux test

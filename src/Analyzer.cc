@@ -163,6 +163,7 @@ void Analyzer::Loop()
 		entryEnd=(nentries/nJobs+1)*(jobId+1);
 		}	   
    if(entryBegin<=0 && entryEnd<=0) {entryBegin=0; entryEnd=nentries; }
+   if (entryEnd>=nentries) entryEnd=nentries;
    cout<<"***  jentry in [ "<< entryBegin  <<","<< entryEnd <<") of "<<nentries<<" ***"<<endl; // +1 instead of doing ceil. 
 
    //LOOP
@@ -243,7 +244,7 @@ void Analyzer::Loop()
 			//-----
 			Fill( string("gammaPtGEN_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
 			Fill( string("gammaEtaGEN_")+cutsContainer[iCut].name()+SystName() , gGEN.Eta(),eventWeight,"");
-			Fill( string("HtGEN_")+cutsContainer[iCut].name()+SystName() , gGEN.Eta(),eventWeight,"");
+			Fill( string("HtGEN_")+cutsContainer[iCut].name()+SystName() , HtGEN,eventWeight,"");
 			//-----
 			} // iCut
 	} //isMC
@@ -959,12 +960,16 @@ void Analyzer::ApplyReWeights(){
     string name=fChain->GetCurrentFile()->GetName();
     //find index mc
     TObjArray *a=fChain->GetListOfFiles();
-    int indexFile=0;
-   for(int i=0;i<  a->GetEntries();i++ )
-	{
-	if (string(a->At(i)->GetName()) == name ) indexFile=i;
-	}
+    int indexFile=fCurrent;
+//   for(int i=0;i<  a->GetEntries();i++ )
+//	{
+//	if (string(a->At(i)->GetName()) == name ) indexFile=i;
+//	}
     eventWeight=xSec[indexFile]*1000./nEvents[indexFile];
+    if( fabs(oldew - eventWeight)/eventWeight > .4 ) {
+	    cout<<"Possible errors in eventWeight: old="<<oldew<<" new="<<eventWeight<<endl;
+	    cout << "Index="<<indexFile<<" nEv="<<nEvents[indexFile]<<" xSec="<<xSec[indexFile]<<" name="<<name <<endl;
+   	 }
 	
  	TH1D* PU=puMCHistos[indexFile];
     
@@ -1040,10 +1045,12 @@ void Analyzer::InitReWeights(){
 		mcPU->Reset("ICES");
 		//for(int iBin=1;iBin<mcPU->GetNbinsX()+1;iBin++){mcPU->SetBinContent(iBin,0);mcPU->SetBinError(iBin,0);}
 		//mcPU->SetEntries(0);
+		SumEvents=t->GetEntries();
+		cout<<"PossibleError = SumEvents=fast"<<endl;
 		for (unsigned long long iEntry=0;iEntry<t->GetEntries();iEntry++)
 			{
 			t->GetEntry(iEntry);
-			SumEvents+=mcWeight_;
+			//SumEvents+=mcWeight_;
 			mcPU->Fill(puTrueINT_,mcWeight_);
 			}
 		mcPU->Scale(1./mcPU->Integral());

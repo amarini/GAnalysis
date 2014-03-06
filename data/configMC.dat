@@ -1,12 +1,13 @@
 #
 include=config.dat
 # CHANGE THIS TWO LINES FROM DATA 
-#DATATREE=root://eoscms///store/user/amarini/V00-14/GJet*.root root://eoscms///store/user/amarini/V00-14/QCD*.root root://eoscms///store/user/amarini/V00-14/DY*.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/QCD* root://eoscms///store/user/webermat/zgfiles_V00-14/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/DiPhotonJets_8TeV-madgraph-tarball-v2_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/webermat/zgfiles_V00-14/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v2.root 
-DATATREE=root://eoscms///store/user/amarini/V00-14/GJets_HT-100To200_8TeV-madgraph_Summer12_DR53X-PU_S10_START53_V19-v1_AODSIM.root root://eoscms///store/user/amarini/V00-14/GJets_HT-200To400_8TeV-madgraph_v2_Summer12_DR53X-PU_S10_START53_V7A-v1_AODSIM/*.root root://eoscms///store/user/amarini/V00-14/GJets_HT-400ToInf_8TeV-madgraph_v3_Summer12_DR53X-PU_S10_START53_V7C-v1_AODSIM/*.root root://eoscms///store/user/amarini/V00-14/GJets_HT-40To100_8TeV-madgraph_Summer12_DR53X-PU_S10_START53_V19-v1_AODSIM.root
+#DATATREE=root://eoscms///store/user/amarini/V00-14/GJets_HT-100To200_8TeV-madgraph_Summer12_DR53X-PU_S10_START53_V19-v1_AODSIM.root root://eoscms///store/user/amarini/V00-14/GJets_HT-200To400_8TeV-madgraph_v2_Summer12_DR53X-PU_S10_START53_V7A-v1_AODSIM/*.root root://eoscms///store/user/amarini/V00-14/GJets_HT-400ToInf_8TeV-madgraph_v3_Summer12_DR53X-PU_S10_START53_V7C-v1_AODSIM/*.root root://eoscms///store/user/amarini/V00-14/GJets_HT-40To100_8TeV-madgraph_Summer12_DR53X-PU_S10_START53_V19-v1_AODSIM.root
+
+DATATREE=root://eoscms///store/user/amarini/V00-14/GJets*.root root://eoscms///store/user/amarini/V00-14/QCD_*.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/QCD*.root root://eoscms///store/user/webermat/zgfiles_V00-14/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/DiPhotonJets_8TeV-madgraph-tarball-v2_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/webermat/zgfiles_V00-14/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v2.root 
 WorkDir=/afs/cern.ch/user/a/amarini/work/V00-14_MC/
 Lumi=1
 dumpAscii=0
 
 Attribute=useReWeights:1
-Functions=InitReWeights()
 Functions=SetCommonWeightConfiguration()
+Functions=InitReWeights()
