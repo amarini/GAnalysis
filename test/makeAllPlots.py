@@ -29,6 +29,8 @@ doParsPlots=True
 doUnfoldPlots=True
 doUnfoldStudies=True
 doTemplatePlots=True
+doElectronFakeRate=True
+
 isMC=False
 if "mc" in options.inputDat.lower():
 	doUnfoldStudies=False
@@ -98,4 +100,8 @@ if doUnfoldStudies:
 if doTemplatePlots:
 	print >>sys.stderr, " --- TEMPLATE PLOTS --- "
 	cmd=["python","test/makeTemplatePlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
+
+if doElectronFakeRate:
+	print >>sys.stderr, " --- ELECTRON FRACTION PLOTS --- "
+	cmd=["python","test/makeElectroFractionPlots.py","--inputDatMC="+options.inputDatMC]
 
