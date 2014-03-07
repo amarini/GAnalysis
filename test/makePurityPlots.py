@@ -148,17 +148,17 @@ for h in range(0,len(HtCuts)):
 			try:
 				fr=Frac[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN FRACTION: Pt %.1f %.1f Ht %.0f nJ %.0f JetPt %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt)
 				fr=1	
 			try:
 				er=FracErr[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt)
+				print "ERROR IN ERR: Pt %.1f %.1f Ht %.0f nJ %.0f JetPt %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt)
 				er=1	
 			try:
 				bias=FracBias[ (PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt) ]
 			except (IndexError,KeyError): 
-				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])
+				print "ERROR IN BIAS: Pt %.1f %.1f Ht %.0f nJ %.0f JetPt %.0f"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj],jpt)
 				bias=1	
 			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
 			H.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), er )

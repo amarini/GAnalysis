@@ -100,8 +100,10 @@ if doUnfoldStudies:
 if doTemplatePlots:
 	print >>sys.stderr, " --- TEMPLATE PLOTS --- "
 	cmd=["python","test/makeTemplatePlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
+	call(cmd)
 
 if doElectronFakeRate:
 	print >>sys.stderr, " --- ELECTRON FRACTION PLOTS --- "
 	cmd=["python","test/makeElectroFractionPlots.py","--inputDatMC="+options.inputDatMC]
+	call(cmd)
 
