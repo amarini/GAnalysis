@@ -49,8 +49,8 @@ SigPhId	        = ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 BkgPhId         = ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 ROOT.gSystem.Load("libGAnalysis.so") ##for syst names
-fRoot   = ROOT.TFile.Open(InputFileName)
-fRootMC = ROOT.TFile.Open(InputFileNameMC)
+fRoot   = ROOT.TFile.Open(WorkDir+"/"+InputFileName)
+fRootMC = ROOT.TFile.Open(WorkDirMC+"/"+InputFileNameMC)
 
 
 def SetDataStyle(h):
@@ -66,7 +66,7 @@ def SetTruthStyle(h):
 
 Ht=0
 nJets=1
-jpt=30
+jetPt=30
 for p in range(0,len(PtCuts)-1):
 	#if jpt > 250 and PtCuts[p]<200:continue; ##avoid trying to fit: no bkg
 	cutSig=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets);
@@ -100,9 +100,9 @@ for p in range(0,len(PtCuts)-1):
 	Sig["data"].Draw("P")
 	Sig["mc"].Draw("HIST SAME")
 	Sig["truth"].Draw("HIST SAME")
-	l.Add(Sig["data"],"data","PF")
-	l.Add(Sig["mc"],"mc","L")
-	l.Add(Sig["truth"],"mc-truth","L")
+	l.AddEntry(Sig["data"],"data","PF")
+	l.AddEntry(Sig["mc"],"mc","L")
+	l.AddEntry(Sig["truth"],"mc-truth","L")
 	l.Draw()
 
 	C.cd(2)
@@ -114,9 +114,9 @@ for p in range(0,len(PtCuts)-1):
 	Bkg["data"].Draw("P")
 	Bkg["mc"].Draw("HIST SAME")
 	Bkg["truth"].Draw("HIST SAME")
-	l.Add(Bkg["data"],"data","PF")
-	l.Add(Bkg["mc"],"mc","L")
-	l.Add(Bkg["truth"],"mc-truth","L")
+	l.AddEntry(Bkg["data"],"data","PF")
+	l.AddEntry(Bkg["mc"],"mc","L")
+	l.AddEntry(Bkg["truth"],"mc-truth","L")
 	l.Draw()
 
 	C.SaveAs(WorkDir+"/plots/Templates_Pt%.0f_%.0f.pdf"%(PtCuts[p],PtCuts[p+1]))
