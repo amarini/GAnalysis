@@ -86,6 +86,9 @@ for p in range(0,len(PtCuts)-1):
 	Bkg["mc"]   = fRootMC.Get("photoniso_"+cutBkg.name() )
 	Bkg["truth"]= fRootMC.Get("photoniso_NOTMATCHED_"+cutSig.name() )  #Truth=Sig cuts
 
+	if Bkg['data']==None: continue;
+	if Sig['data']==None: continue;
+
 	C=ROOT.TCanvas("c","c")
 	C.Divide(2);
 	txt=ROOT.TLatex()

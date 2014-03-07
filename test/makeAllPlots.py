@@ -28,6 +28,7 @@ doFitPlots=True
 doParsPlots=True
 doUnfoldPlots=True
 doUnfoldStudies=True
+doTemplatePlots=True
 isMC=False
 if "mc" in options.inputDat.lower():
 	doUnfoldStudies=False
@@ -93,3 +94,8 @@ if doUnfoldPlots:
 if doUnfoldStudies:
 	print >>sys.stderr, " --- UNFOLD STUDIES --- "
 	cmd=["python","test/makeUnfoldStudiesPlots.py","--inputDat="+options.inputDat]
+
+if doTemplatePlots:
+	print >>sys.stderr, " --- TEMPLATE PLOTS --- "
+	cmd=["python","test/makeTemplatePlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
+
