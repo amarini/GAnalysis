@@ -109,7 +109,12 @@ def ReadRatioDat( inputDat ):
 		elif parts[0] == 'Out':
 			R['Out']=parts[1]
 		elif parts[0] == 'PrePendSyst':
-			R['PrePendSyst']=parts[1]
+			K =  parts[1:]
+			R['PrePendSyst']=[]
+			for s in K:
+				s=s.replace("'","")
+				s=s.replace('"',"")
+				R['PrePendSyst'].append(s)
 	   except: 
 		print "Malformed line (probably ignored):"+l
 			
@@ -285,8 +290,8 @@ for cut in config['Cut']:
 	#take histo from file 1
 	
 	#for the histoname:
-	hn1=config['histoName1']
-	hn2=config['histoName2']
+	hn1=FixNames(config['histoName1'],cut,'')
+	hn2=FixNames(config['histoName2'],cut,'')
 	
 	hn1=FixNames( hn1,cut)
 	hn2=FixNames( hn2,cut)
@@ -427,7 +432,7 @@ for cut in config['Cut']:
 			s1=makeBands(h1up,h1dn,"Mean")
 		elif typ[0]==':':
 			h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
-			print "Going to get Histo " +h1nfirst
+			print "Going to get Histo " + h1nfirst
 			h1first=file1.Get(h1nfirst)
 			h1first=ConvertToTargetTH1(h1,h1first)
 			h1first.Scale(1./config["lumi1"])
@@ -435,9 +440,17 @@ for cut in config['Cut']:
 		elif typ[0]=='.':
 			s1=h1.Clone("syst1"+syst) #h1 is already scaled
 			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,0);
+		elif typ[0]=='&': #content of the histo is the error itsef
+			h1nerr=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
+			print "Going to get Histo "+ h1nerr 
+			h1err=file1.Get(h1nerr)
+			s1=h1.Clone("syst1"+syst) #h1 is already scaled
+			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1err.GetBinContent(i) );
 		else: print "error on type 0 of "+typ	
 			
 		if typ[1]=='+': #h1 double band
+			print config["PrePendSyst"]
+			print config['Up']
 			h2nup=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Up'][1])
 			h2ndn=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Down'][1])
 			print "Going to get Histo " +h2nup + " - " + h2ndn 
@@ -458,6 +471,12 @@ for cut in config['Cut']:
 		elif typ[1]=='.':
 			s2=h2.Clone("syst2"+syst) #h2 is already scale for lumi
 			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,0);
+		elif typ[1]=='&': #content of the histo is the error itsef
+			h2nerr=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
+			print "Going to get Histo "+ h2nerr 
+			h2err=file2.Get(h2nerr)
+			s2=h2.Clone("syst2"+syst) #h1 is already scaled
+			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2err.GetBinContent(i) );
 		else: print "error on type 1 of "+typ	
 		s=Ratio(s2,s1,False)
 		print "Syst %s:"%syst
