@@ -1,55 +1,7 @@
-### Z ###
-#file1 ~/Desktop/histograms_Zpt100.root
+include data/configRatio.dat
 file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_nJets2plus_jet30_V00-14.root
-#eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
-lumi1 1
 
-#### Gamma ###
-file2 ../V00-14/V00-14/UnfoldedDistributions.root
-#eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
-lumi2 19.7
-
-### histo name1
-histoName1 hData_leptons_combined
-#cov1  ???
-
-### histo name2
-histoName2 b_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}${SYST}
-cov2 cov_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
-
-### Load cuts
-#Cut Ht=0 nJets=1 ptJet=30
-#Cut Ht=300 nJets=1 ptJet=30
-#Cut Ht=0 nJets=3 ptJet=30
+NoCut
 Cut Ht=0 nJets=2 ptJet=30
 #
 
-mcName1 h_MG_GEN_leptons_combined
-mcName2 mc_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
-
-### syst
-Up UP UP
-Down DOWN DOWN
-PrePendSyst "_" "_"
-#Syst JES ++ - -
-#Syst JER ++ - -
-#Syst PU ++ - -
-#Syst SIG :: - - 
-#Syst BKG :: - - 
-#Syst LUM .. - - #equivalently . means ignore
-Syst LUM :: None None
-
-#Out /afs/cern.ch/user/a/amarini/work/V00-13/
-Out ../V00-14
-
-# + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err
-Syst JES &+ h${SYST}_unc_band_comb -
-Syst JER &+ h${SYST}_unc_band_comb -
-Syst PhBG &. h${SYST}_unc_band_comb -
-Syst PU &+ h${SYST}_unc_band_comb -
-Syst BIAS .: - - 
-Syst LUM .. h_Lumi_unc_band_comb - #equivalently . means ignore
-Syst UNF &. h_Unf_unc_band_comb -
-Syst SF &. h_SF_unc_band_comb - 
-Syst LepSCALE &. h_lepScale_unc_band_comb -
-Syst LepRES &. h_lepRES_unc_band_comb -

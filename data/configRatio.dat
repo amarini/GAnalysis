@@ -48,6 +48,15 @@ Syst PU &+ h${SYST}_unc_band_comb -
 Syst BIAS .: - - 
 Syst LUM .. h_Lumi_unc_band_comb - #equivalently . means ignore
 Syst UNF &. h_Unf_unc_band_comb -
+#trick two different systematic are not correlated. These two shold not simplify
+Syst UNFOLD .: - - 
 Syst SF &. h_SF_unc_band_comb - 
 Syst LepSCALE &. h_lepScale_unc_band_comb -
 Syst LepRES &. h_lepRES_unc_band_comb -
+
+
+# Style
+xaxis 0 0
+yaxis 0.0 0.06
+xlog 0
+ylog 0

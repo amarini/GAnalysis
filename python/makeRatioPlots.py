@@ -82,6 +82,8 @@ def ReadRatioDat( inputDat ):
 		elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
 		elif parts[0] == 'cov1': R["cov1"]=parts[1]
 		elif parts[0] == 'cov2': R["cov2"]=parts[1]
+		elif parts[0] == 'NoCut':
+			R['Cut']=[]
 		elif parts[0] == 'Cut':
 			#default
 			ht=0
@@ -115,9 +117,25 @@ def ReadRatioDat( inputDat ):
 				s=s.replace("'","")
 				s=s.replace('"',"")
 				R['PrePendSyst'].append(s)
+		elif parts[0] == 'xaxis' or parts[0]=='yaxis':
+			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
+		elif parts[0] == 'ylog' or parts[0]=='xlog':
+			R[parts[0]] = int(parts[1])
+		elif parts[0] == 'include':
+			tmp = ReadRatioDat( parts[1] )
+			for key in tmp:
+				R[ key ] = tmp[ key ]
 	   except: 
 		print "Malformed line (probably ignored):"+l
-			
+	#set default if not specified in dat file
+	if 'xaxis' not in R:
+		R['xaxis']=[0,0]
+	if 'yaxis' not in R:
+		R['yaxis']=[0,0]
+	if 'xlog' not in R:
+		R['xlog']=0
+	if 'ylog' not in R:
+		R['ylog']=0
 	return R;
 		
 config = ReadRatioDat(options.inputDat)
@@ -506,7 +524,8 @@ for cut in config['Cut']:
 	R.SetLineColor(ROOT.kBlack)
 	S.SetLineColor(ROOT.kRed)
 	#S.SetFillColor(ROOT.kRed)
-	S.SetFillColor(50)##blue=38
+	#S.SetFillColor(50)##blue=38
+	S.SetFillColor(ROOT.kOrange-4);
 	#S.SetFillStyle(0)
 
 	L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
@@ -520,6 +539,13 @@ for cut in config['Cut']:
 	R.GetYaxis().SetDecimals()
 	#R.GetYaxis().SetRangeUser(0,2)
 	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		R.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
+	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
+		R.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
+	if config['xlog']: C.SetLogx()
+	if config['ylog']: C.SetLogy()
+
 	R.Draw("AXIS P")
 	S.Draw("P E2 SAME")
 	R.Draw("P SAME")
@@ -542,10 +568,13 @@ for cut in config['Cut']:
 	lat.SetNDC()
 	#lat.SetTextFont(62)
 	lat.SetTextSize(0.04)
-	lat.SetTextAlign(22)
+	lat.SetTextAlign(11)
 	text="Ht > %.0f N_{jets} #geq %.0f "%(float(cut[0]),float(cut[1]))
 	if ( float(cut[2])> 30 ) : text += " p_{T}^{jet} #geq %.0f"%(float(cut[2]))
-	lat.DrawLatex(.5+xshift,.85+yshift,text)
+	lat.DrawLatex(.15+xshift,.85+yshift,"CMS Preliminary,")
+	lat.SetTextFont(42)
+	lat.DrawLatex(.15+xshift,.80+yshift,"#sqrt{s} = 8TeV, L=19.7fb^{-1}")
+	lat.DrawLatex(.15+xshift,.75+yshift,text)
 	if not options.batch:
 		a=raw_input("Press Enter");
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
