@@ -494,23 +494,34 @@ for cut in config['Cut']:
 		print
 		#ENDDEBUG
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
+	ROOT.gPad.SetBottomMargin(0.15)
+	ROOT.gPad.SetTopMargin(0.05)
+	ROOT.gPad.SetLeftMargin(0.15)
+	ROOT.gPad.SetRightMargin(0.05)
+	xshift= ( ROOT.gPad.GetLeftMargin() - ROOT.gPad.GetRightMargin() )/2.0
+	yshift= ( ROOT.gPad.GetBottomMargin() - ROOT.gPad.GetTopMargin() )/2.0
+
 	R.SetMarkerStyle(20)
 	R.SetMarkerColor(ROOT.kBlack)
 	R.SetLineColor(ROOT.kBlack)
 	S.SetLineColor(ROOT.kRed)
-	S.SetFillColor(ROOT.kRed)
-	S.SetFillStyle(0)
+	#S.SetFillColor(ROOT.kRed)
+	S.SetFillColor(50)##blue=38
+	#S.SetFillStyle(0)
 
-	L=ROOT.TLegend(0.75,0.75,.89,.89)
+	L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
 	L.SetFillStyle(0);
 	L.SetBorderSize(0);
 	
 	R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
 	R.GetYaxis().SetTitle("d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}")
+	R.GetYaxis().SetTitleOffset(1.5)
+	R.GetXaxis().SetTitleOffset(1.5)
+	R.GetYaxis().SetDecimals()
 	#R.GetYaxis().SetRangeUser(0,2)
 	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
 	R.Draw("AXIS P")
-	S.Draw("P E4 SAME")
+	S.Draw("P E2 SAME")
 	R.Draw("P SAME")
 	R.Draw("AXIS X+ Y+ SAME")
 	R.Draw("AXIS SAME")
@@ -526,7 +537,15 @@ for cut in config['Cut']:
 		mcN.Draw("HIST SAME")
 		L.AddEntry(mcR,"MG","F");
 		L.AddEntry(mcN,"MG Norm.","F");
-	L.Draw();	
+	L.Draw();
+	lat=ROOT.TLatex()
+	lat.SetNDC()
+	#lat.SetTextFont(62)
+	lat.SetTextSize(0.04)
+	lat.SetTextAlign(22)
+	text="Ht > %.0f N_{jets} #geq %.0f "%(float(cut[0]),float(cut[1]))
+	if ( float(cut[2])> 30 ) : text += " p_{T}^{jet} #geq %.0f"%(float(cut[2]))
+	lat.DrawLatex(.5+xshift,.85+yshift,text)
 	if not options.batch:
 		a=raw_input("Press Enter");
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
