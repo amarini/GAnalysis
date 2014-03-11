@@ -17,12 +17,14 @@ parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Con
 parser.add_option("-b","--batch" ,dest='batch',action='store_true',help="ROOT Batch",default=False)
 parser.add_option("-s","--syst" ,dest='syst',action='store_true',help="Syst does not include stat",default=False)
 parser.add_option("-c","--cov" ,dest='cov',action='store_true',help="Use Covariance Matrix",default=False)
-parser.add_option("-m","--mc" ,dest='mc',action='store_true',help="Add MC:TODO",default=False)
+parser.add_option("-m","--mc" ,dest='mc',action='store_true',help="Add MC plots",default=False)
+parser.add_option("-t","--table" ,dest='table',action='store_true',help="Print Table for syst. TODO",default=False)
 
 (options,args)=parser.parse_args()
 import ROOT
 if options.batch:
 	ROOT.gROOT.SetBatch()
+
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetOptTitle(0)
 
@@ -32,6 +34,7 @@ sys.path.insert(0,os.getcwd())
 print "inserting in path cwd/python"
 sys.path.insert(0,os.getcwd()+'/python')
 from common import *
+
 ### READ DAT#########
 def ReadRatioDat( inputDat ):
 	f=open( inputDat,"r" )
@@ -121,10 +124,18 @@ def ReadRatioDat( inputDat ):
 			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
 		elif parts[0] == 'ylog' or parts[0]=='xlog':
 			R[parts[0]] = int(parts[1])
+		elif parts[0] == 'Merge1' or parts[0]=='Merge2':
+			if parts[0] not in R:
+				R[parts[0]]=[]
+			R[parts[0]].append( (float(parts[1]),float(parts[2])) )
 		elif parts[0] == 'include':
 			tmp = ReadRatioDat( parts[1] )
 			for key in tmp:
 				R[ key ] = tmp[ key ]
+		elif parts[0] == 'mc' or parts[0] == 'table': ## set mc in the config file
+			R[ parts[0] ] = int(parts[1])
+		else:
+			if len(parts)>0 and parts[0].replace(' ','').replace('\t','') != '' :print "Malformed line (probably ignored):"+l
 	   except: 
 		print "Malformed line (probably ignored):"+l
 	#set default if not specified in dat file
@@ -139,6 +150,9 @@ def ReadRatioDat( inputDat ):
 	return R;
 		
 config = ReadRatioDat(options.inputDat)
+
+if 'mc' in config and config['mc']: options.mc=True;
+if 'table' in config and config['table']: options.table=True;
 ##########################
 
 def makeBands(h1,h2,type="Mean"):
@@ -289,13 +303,6 @@ def ConvertToTargetTH1( h1, h2):
 		h.SetBinContent(iBin,  h2.GetBinContent(h2.FindBin(h.GetBinCenter(iBin)) ))
 		h.SetBinError(iBin,    h2.GetBinError  (h2.FindBin(h.GetBinCenter(iBin)) ))
 	return h
-	
-	
-#open files
-file1 = ROOT.TFile.Open(config['file1'])
-file2 = ROOT.TFile.Open(config['file2'])
-
-AllCanvas=[]
 
 ROOT.gROOT.ProcessLine("struct Bins{ \
 		Double_t PtBins[1023];\
@@ -304,8 +311,89 @@ ROOT.gROOT.ProcessLine("struct Bins{ \
 
 from ROOT import Bins
 
+def MergeBins(l,h):
+	#l=[ (Bin0,Bin1),(Bin0,Bin1)]
+	if len(l)==0: return h
+
+	listOfBins=ROOT.Bins()
+	listOfBins.nBins=0;
+	for iBin in range(1,h.GetNbinsX()+2):
+		isVeto=False
+		for bound in l:
+			if not( bound[0]<=h.GetBinLowEdge(iBin) and h.GetBinLowEdge(iBin)<bound[1]):
+				isVeto=True
+		if isVeto:
+			listOfBins.PtBins[listOfBins.nBins] = h.GetBinLowEdge(iBin)
+			listOfBins.nBins += 1
+	listOfBins.nBins -= 1
+	h2 = ROOT.TH1D(h.GetName()+"_rebin",h.GetTitle(),listOfBins.nBins,listOfBins.PtBins)
+	print "Merging"
+	for iBin in range(1,h.GetNbinsX()+1):
+		Bin2=h2.FindBin( h.GetBinCenter(iBin) )
+		w1=h.GetBinWidth( iBin )
+		w2=h2.GetBinWidth( Bin2 )
+
+		e1=h.GetBinError( iBin ) * w1
+		e2=h2.GetBinError( Bin2 ) * w2
+		c1=h.GetBinContent( iBin ) * w1
+		c2=h2.GetBinContent( Bin2 ) * w2
+		
+		if e1 != 0 and e2 !=0:
+			#mean
+			#h2.SetBinContent(Bin2, ( c1/(e1**2) + c2/(e2**2) ) / ( 1./(e1**2) + 1./(e2**2)  ) )
+			#h2.SetBinError(Bin2, math.sqrt(1./ ( 1./(e1**2) + 1./(e2**2) )) )
+			h2.SetBinContent(Bin2, c1 + c2  ) 
+			h2.SetBinError(Bin2, math.sqrt(e1**2 + e2**2) )
+		elif e1 !=0:
+			h2.SetBinContent(Bin2,c1)
+			h2.SetBinError(Bin2,e1)
+		elif e2 !=0:
+			h2.SetBinContent(Bin2,c2)
+			h2.SetBinError(Bin2,e2)
+
+		h2.SetBinContent(Bin2, h2.GetBinContent(Bin2)/w2)
+		h2.SetBinError(Bin2, h2.GetBinError(Bin2)/w2)
+
+	if DEBUG>1:
+	   for iBin2 in range(1,h2.GetNbinsX()+1):
+		x=h2.GetBinCenter(iBin2)
+		line1="Bin %.0f <- ["%(x)
+		line2="    (%.3f +o- %.3f) <- ["%(h2.GetBinContent(iBin2),h2.GetBinError(iBin2))
+		for jBin in range(1,h.GetNbinsX()+1):
+			if h.GetBinCenter(jBin)>h2.GetBinLowEdge(iBin2)  and h.GetBinCenter(jBin)<h2.GetBinLowEdge(iBin2+1):
+					line1 += " %.0f" % h.GetBinCenter(jBin)
+					line2 += " (%.3f +- %.3f) , " % (h.GetBinContent(jBin),h.GetBinError(jBin))
+		line1 += "]"
+		line2 += "]"
+		print line1
+		print line2
+	return h2
+
+def ConvertToLatex(T):
+	L="\\begin{tabular}{c|"
+	for i in range(1,len(T[0])): #n.of cols
+		L+= "c"
+	L += "}\n\\hline\n"
+	L += " &".join(T[0])
+	L+=" \\\\ \n \\hline\n"
+	for row in T[1:-1]:
+		L+=" & ".join(row)
+		L+=" \\\\ \n "
+	L += " &".join(T[-1])
+	L += "\n" # no \\
+	L += "\\end{tabular}"
+	return L
+
+
+#open files
+file1 = ROOT.TFile.Open(config['file1'])
+file2 = ROOT.TFile.Open(config['file2'])
+
+AllCanvas=[]
+
 for cut in config['Cut']:
 	#take histo from file 1
+	Table=[]
 	
 	#for the histoname:
 	hn1=FixNames(config['histoName1'],cut,'')
@@ -333,15 +421,26 @@ for cut in config['Cut']:
 	h1Raw.Scale(1./config['lumi1'])
 	h2Raw.Scale(1./config['lumi2'])
 
+	# MERGE BINS IF NECESSARY
+	if 'Merge1' in config:
+		#print "Bins not merged"
+		h1Raw=MergeBins(config['Merge1'],h1Raw)
+	if 'Merge2' in config:
+		#print "Bins not merged"
+		h2Raw=MergeBins(config['Merge2'],h2Raw)
+
+	#k=ROOT.TCanvas("k","k")
+	#h2Raw.Draw("HIST");
+	
 	print "Histo1 Available Bins:"
 	h1Bin=[]
-	for iBin in range(1,h1Raw.GetNbinsX()+1):
+	for iBin in range(1,h1Raw.GetNbinsX()+2):
 		h1Bin.append( int(round(h1Raw.GetBinLowEdge(iBin))) )
 		print str(h1Raw.GetBinLowEdge(iBin))+"->"+str(h1Bin[-1]),
 	print
 	print "Histo2 Available Bins:"
 	h2Bin=[]
-	for iBin in range(1,h2Raw.GetNbinsX()+1):
+	for iBin in range(1,h2Raw.GetNbinsX()+2):
 		h2Bin.append( int(round(h2Raw.GetBinLowEdge(iBin))) )
 		print str(h2Raw.GetBinLowEdge(iBin))+"->"+str(h2Bin[-1]),
 	print
@@ -357,10 +456,10 @@ for cut in config['Cut']:
 	## Convert to Target TH1
 	h1=ConvertToTargetTH1(h1,h1Raw)
 	h2=ConvertToTargetTH1(h2,h2Raw)
-	print "Values"
+	if DEBUG>1: print "Values"
 	for iBin in range(1,h2.GetNbinsX()+1):
-		print " ["+str(h1.GetBinCenter(iBin))+"->"+str(h1.GetBinContent(iBin)) + ","+str(h2.GetBinContent(iBin))+"]",
-	print
+		if DEBUG>1:print " ["+str(h1.GetBinCenter(iBin))+"->"+str(h1.GetBinContent(iBin)) + ","+str(h2.GetBinContent(iBin))+"]",
+	if DEBUG>1: print
 	#get syst	
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	#R=Ratio(h1,h2,True)
@@ -412,6 +511,10 @@ for cut in config['Cut']:
 		print "Going to Get",mc1name,"from ",config['file1'],"and",mc2name,"from",config['file2']
 		mc1Raw=file1.Get(mc1name)
 		mc2Raw=file2.Get(mc2name)
+		if 'Merge1' in config:
+			mc1Raw=MergeBins(config['Merge1'],mc1Raw)
+		if 'Merge2' in config:
+			mc2Raw=MergeBins(config['Merge2'],mc2Raw)
 
 		mc1=ROOT.TH1D("mc1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
 		mc2=ROOT.TH1D("mc2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
@@ -425,6 +528,20 @@ for cut in config['Cut']:
 		mcR=Ratio(mc2,mc1,True)
 		mcR.SetLineColor(ROOT.kBlue)
 
+	if options.table:
+		Table.append(["Bin"])          #  0 
+		Table.append(["Bound"])        #  1
+		Table.append(["$Z$"])            #  2
+		Table.append(["$\\gamma$"])      #  3
+		Table.append(["R"])            #  4
+		Table.append(["Stat ($\\%$)"])    #  5
+		for i in range(1,R.GetNbinsX()+1):
+			Table[0].append( "$%d$"%i)
+			Table[1].append( "$%.0f$--$%.0f$"%(R.GetBinLowEdge(i),R.GetBinLowEdge(i+1)))
+			Table[2].append( "$%.1f$"%h1.GetBinContent(i))
+			Table[3].append( "$%.1f$"%h2.GetBinContent(i))
+			Table[4].append( "$%f$"%R.GetBinContent(i))
+			Table[5].append( "$%.1f$"%(R.GetBinError(i)/R.GetBinContent(i) * 100) )
 	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )	
 	if options.syst:
 		for iBin in range(1,S.GetNbinsX()+1):S.SetBinError(iBin,0)
@@ -443,6 +560,9 @@ for cut in config['Cut']:
 			print "Going to get Histo " +h1nup + " - " + h1ndn
 			h1up=file1.Get(h1nup)
 			h1dn=file1.Get(h1ndn)
+			if 'Merge1' in config:
+				h1up=MergeBins(config['Merge1'],h1up)
+				h1dn=MergeBins(config['Merge1'],h1dn)
 			h1up=ConvertToTargetTH1(h1,h1up)
 			h1dn=ConvertToTargetTH1(h1,h1dn)
 			h1up.Scale(1./config["lumi1"])
@@ -452,6 +572,8 @@ for cut in config['Cut']:
 			h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
 			print "Going to get Histo " + h1nfirst
 			h1first=file1.Get(h1nfirst)
+			if 'Merge1' in config:
+				h1first=MergeBins(config['Merge1'],h1first)
 			h1first=ConvertToTargetTH1(h1,h1first)
 			h1first.Scale(1./config["lumi1"])
 			s1=makeBands(h1,h1first,"First")
@@ -462,8 +584,17 @@ for cut in config['Cut']:
 			h1nerr=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
 			print "Going to get Histo "+ h1nerr 
 			h1err=file1.Get(h1nerr)
+			h1err=ConvertToTargetTH1(h1,h1err)
 			s1=h1.Clone("syst1"+syst) #h1 is already scaled
-			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1err.GetBinContent(i) );
+			if 'Merge1' in config:
+				s1=MergeBins(config['Merge1'],s1)
+			for i in range(1,s1.GetNbinsX()+1): 
+				#print "DEBUG Z ",syst,"Bin%d"%i,"%.0f %%"%( h1err.GetBinContent(i)/h1.GetBinContent(i) ), " %.0f-%.0f"%( h1err.GetBinCenter(i),h1.GetBinCenter(i) ),"%f/%f"%(h1err.GetBinContent(i),h1.GetBinContent(i))
+				s1.SetBinError(i,h1err.GetBinContent(i) );
+		elif typ[0]=='%': #content of the histo is the error itsef
+			e=float(hns1)/100.
+			s1=h1.Clone("syst1"+syst) #h1 is already scaled
+			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1.GetBinContent(i) * e );
 		else: print "error on type 0 of "+typ	
 			
 		if typ[1]=='+': #h1 double band
@@ -474,6 +605,9 @@ for cut in config['Cut']:
 			print "Going to get Histo " +h2nup + " - " + h2ndn 
 			h2up=file2.Get(h2nup)
 			h2dn=file2.Get(h2ndn)
+			if 'Merge2' in config:
+				h2up=MergeBins(config['Merge2'],h2up)
+				h2dn=MergeBins(config['Merge2'],h2dn)
 			h2up=ConvertToTargetTH1(h2,h2up)
 			h2dn=ConvertToTargetTH1(h2,h2up)
 			h2up.Scale(1./config["lumi2"])
@@ -483,6 +617,8 @@ for cut in config['Cut']:
 			h2nfirst=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
 			print "Going to get Histo " +h2nfirst
 			h2first=file2.Get(h2nfirst)
+			if 'Merge2' in config:
+				h2first=MergeBins(config['Merge2'],h2first)
 			h2first=ConvertToTargetTH1(h2,h2first)
 			h2first.Scale(1./config["lumi2"])
 			s2=makeBands(h2,h2first,"First")
@@ -493,13 +629,34 @@ for cut in config['Cut']:
 			h2nerr=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
 			print "Going to get Histo "+ h2nerr 
 			h2err=file2.Get(h2nerr)
+			h2err=ConvertToTargetTH1(h2,h2err)
 			s2=h2.Clone("syst2"+syst) #h1 is already scaled
+			if 'Merge2' in config:
+				s2=MergeBins(config['Merge2'],s2)
 			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2err.GetBinContent(i) );
+		elif typ[1]=='%': #content of the histo is the error itsef
+			e=float(hns2)/100.
+			s2=h2.Clone("syst2"+syst) #h1 is already scaled
+			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2.GetBinContent(i) *e );
 		else: print "error on type 1 of "+typ	
 		s=Ratio(s2,s1,False)
 		print "Syst %s:"%syst
 		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
 		print
+		if options.table:
+			curRow=len(Table)
+			Table.append(["%s ($\%%$)"%(syst)])
+			for i in range(1,R.GetNbinsX()+1):
+				Table[curRow].append("$%.0f$" % (s.GetBinError(i)/R.GetBinContent(i) * 100.))
+			# Z #
+			curRow=len(Table)
+			Table.append(["%s:Z ($\%%$)"%(syst)])
+			for i in range(1,R.GetNbinsX()+1):
+				Table[curRow].append("$%.0f$" % (s1.GetBinError(i)/h1.GetBinContent(i) * 100.))
+			curRow=len(Table)
+			Table.append(["%s:$\\gamma$ ($\%%$)"%(syst)])
+			for i in range(1,R.GetNbinsX()+1):
+				Table[curRow].append("$%.0f$" % (s2.GetBinError(i)/h2.GetBinContent(i) * 100.))
 		sqrtSum(S,s)
 		#DEBUG
 		print
@@ -511,6 +668,13 @@ for cut in config['Cut']:
 		print
 		print
 		#ENDDEBUG
+	## ADD TOT SYST
+	if options.table:
+		curRow=len(Table)
+		Table.append(["Tot Syst ($\\%$)"])
+		for i in range(1,R.GetNbinsX()+1):
+			Table[curRow].append("$%.0f$" % (S.GetBinError(i)/R.GetBinContent(i) * 100.))
+
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	ROOT.gPad.SetBottomMargin(0.15)
 	ROOT.gPad.SetTopMargin(0.05)
@@ -522,10 +686,11 @@ for cut in config['Cut']:
 	R.SetMarkerStyle(20)
 	R.SetMarkerColor(ROOT.kBlack)
 	R.SetLineColor(ROOT.kBlack)
-	S.SetLineColor(ROOT.kRed)
+	S.SetLineColor(ROOT.kOrange)
 	#S.SetFillColor(ROOT.kRed)
 	#S.SetFillColor(50)##blue=38
 	S.SetFillColor(ROOT.kOrange-4);
+	S.SetFillStyle(3001);
 	#S.SetFillStyle(0)
 
 	L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
@@ -539,12 +704,13 @@ for cut in config['Cut']:
 	R.GetYaxis().SetDecimals()
 	#R.GetYaxis().SetRangeUser(0,2)
 	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
-	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
-		R.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
-	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
-		R.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
 	if config['xlog']: C.SetLogx()
 	if config['ylog']: C.SetLogy()
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		R.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
+		print "x range set to ",config['xaxis'][0],config['xaxis'][1]
+	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
+		R.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
 
 	R.Draw("AXIS P")
 	S.Draw("P E2 SAME")
@@ -583,6 +749,12 @@ for cut in config['Cut']:
 	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.root"%cut)
 	print "Going to save "+ name
 	C.SaveAs( name)	
+	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.tex"%cut)
+	if options.table:
+		txt = open(name,"w")
+		txt.write( ConvertToLatex(Table) )
+		txt.write("\n")
+		txt.close()
 	AllCanvas.append(C)
 
 
