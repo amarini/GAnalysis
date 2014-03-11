@@ -183,7 +183,7 @@ def sqrtSum(h1,h2,epsilon=0.0001):
 			e=epsilon
 		h1.SetBinError(i, e)
 
-def Ratio(H,H1,NoErrorH=False):
+def Ratio(H,H1,NoErrorH=False,FullCorr=False):
 	R=H1.Clone(H1.GetName()+"_ratio")
 	hTmp=H.Clone("tmp")
 	#in order to account error properly in ratios
@@ -191,6 +191,12 @@ def Ratio(H,H1,NoErrorH=False):
 		for i in range(1,hTmp.GetNbinsX()+1):
 			hTmp.SetBinError(i,0)
 	R.Divide(hTmp)
+	if FullCorr:
+		for i in range(1,R.GetNbinsX()+1):
+			up=(H1.GetBinContent(i)+H1.GetBinError(i))/(H.GetBinContent(i)+H.GetBinError(i))
+			dn=(H1.GetBinContent(i)-H1.GetBinError(i))/(H.GetBinContent(i)-H.GetBinError(i))
+			err= math.fabs((up-dn)/2.0)
+			R.SetBinError(i,err)
 	return R
 
 import gzip
@@ -463,7 +469,7 @@ for cut in config['Cut']:
 	#get syst	
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	#R=Ratio(h1,h2,True)
-	R=Ratio(h2,h1,True)
+	R=Ratio(h2,h1,NoErrorH=False)
 	print "Ratio"
 	for iBin in range(1,h2.GetNbinsX()+1):
 		print str(R.GetBinContent(iBin)),
@@ -525,7 +531,7 @@ for cut in config['Cut']:
 		mc2.Scale(1./config['lumi2'])
 
 		mc1.SetName("MC_Ht_%s_nJets_%s_ptJet_%s"%cut )
-		mcR=Ratio(mc2,mc1,True)
+		mcR=Ratio(mc2,mc1,False)
 		mcR.SetLineColor(ROOT.kBlue)
 
 	if options.table:
@@ -639,7 +645,7 @@ for cut in config['Cut']:
 			s2=h2.Clone("syst2"+syst) #h1 is already scaled
 			for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2.GetBinContent(i) *e );
 		else: print "error on type 1 of "+typ	
-		s=Ratio(s2,s1,False)
+		s=Ratio(s2,s1,False,FullCorr=True)
 		print "Syst %s:"%syst
 		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
 		print
