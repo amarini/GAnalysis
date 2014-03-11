@@ -99,7 +99,7 @@ if doUnfoldStudies:
 
 if doTemplatePlots:
 	print >>sys.stderr, " --- TEMPLATE PLOTS --- "
-	cmd=["python","test/makeTemplatePlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
+	cmd=["python","test/makeTemplatesPlots.py","--inputDat="+options.inputDat,"--inputDatMC="+options.inputDatMC]
 	call(cmd)
 
 if doElectronFakeRate:

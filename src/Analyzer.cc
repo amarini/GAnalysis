@@ -834,7 +834,7 @@ void Analyzer::Smear()
 			for(int i=0;i<int(photonPt->size());i++) //after regression
 			{
 			float oldE=(*photonE)[i];
-			float newE=oldE*1.06;
+			float newE=oldE*1.006;
 			(*photonPt)[i]*=newE/oldE;
 			(*photonE)[i]*=newE/oldE;
 			}
@@ -844,7 +844,7 @@ void Analyzer::Smear()
 			for(int i=0;i<int(photonPt->size());i++) //after regression
 			{
 			float oldE=(*photonE)[i];
-			float newE=oldE*(1-0.06);
+			float newE=oldE*(1-0.006);
 			(*photonPt)[i]*=newE/oldE;
 			(*photonE)[i]*=newE/oldE;
 			}

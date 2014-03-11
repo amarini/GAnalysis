@@ -129,7 +129,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 	BkgCorr=[]
         if options.checkTime: A.checkTimeUsage(0,"Begin");
 	for p in range(0,len(PtCuts)-1):
-		if jpt > 250 and PtCuts[p]<200:continue; ##avoid trying to fit: no bkg
+	   try:
 		cutSig=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,SigPhId[0],SigPhId[1],nJets);
 		cutSig.JetPtThreshold=jetPt;
 		cutBkg=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets);
@@ -137,6 +137,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 		if( PtCuts[p] <0 ): 
 			Bin+=1		
 			continue
+		if jpt > 250 and PtCuts[p]<200:continue; ##avoid trying to fit: no bkg
 		if( PtCuts[p+1] <0 ): continue
 		if( Bin == ToFitBin):
 			ToFitTemplate.append(file.Get("photoniso_"+cutSig.name() ) )
@@ -190,32 +191,49 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 					print "-- histos: "+"photoniso_"+cutBkg.name()
 					print "-- histos: "+"photoniso_NOTMATCHED_"+cutSig.name()
 					doShapeCorrFit=0 # Turn Off Local var
+	   ###
+	   except ReferenceError: pass
 
         if options.checkTime: A.checkTimeUsage(1,"GetHisto");
 
-	if options.nJobs >0 :
-		if isFirstJob:
+	#if options.nJobs >0 :
+	if isFirstJob:
+		if options.nJobs> 0:
 			o_txt=open(WorkDir+"/fit_%d_%d.txt"%(options.jobId,options.nJobs),"w")
 			o_pars=open(WorkDir+"/fitPars_%d_%d.txt"%(options.jobId,options.nJobs),"w")
-		else:	
-			o_txt=open(WorkDir+"/fit_%d_%d.txt"%(options.jobId,options.nJobs),"a")
-			o_pars=open(WorkDir+"/fitPars_%d_%d.txt"%(options.jobId,options.nJobs),"a")
+		else:
+			o_txt=open(WorkDir+"/fit.txt","w")
+			o_pars=open(WorkDir+"/fitPars.txt","w")
 
-	elif nJets == 1 and Ht ==0 and jetPt==30: ## not Job -- can be unified with jobs
-		o_txt=open(WorkDir+"/fit.txt","w")
-		o_pars=open(WorkDir+"/fitPars.txt","w")
 		try:
 			if options.nJobs<0:
 				os.remove(WorkDir+"/fitresults.root")
 			else:
 				os.remove(WorkDir+"/fitresults_%d_%d.root"%(options.jobId,options.nJobs))
 		except OSError: print "file doesn't exist: not removed"
-	else: 
-		o_txt=open(WorkDir+"/fit.txt","a")
-		o_pars=open(WorkDir+"/fitPars.txt","a")
+	else:	
+		if options.nJobs >0:
+			o_txt=open(WorkDir+"/fit_%d_%d.txt"%(options.jobId,options.nJobs),"a")
+			o_pars=open(WorkDir+"/fitPars_%d_%d.txt"%(options.jobId,options.nJobs),"a")
+		else:
+			o_txt=open(WorkDir+"/fit.txt","a")
+			o_pars=open(WorkDir+"/fitPars.txt","a")
 
+#	elif nJets == 1 and Ht ==0 and jetPt==30: ## not Job -- can be unified with jobs
+#		o_txt=open(WorkDir+"/fit.txt","w")
+#		o_pars=open(WorkDir+"/fitPars.txt","w")
+#		try:
+#			if options.nJobs<0:
+#				os.remove(WorkDir+"/fitresults.root")
+#			else:
+#				os.remove(WorkDir+"/fitresults_%d_%d.root"%(options.jobId,options.nJobs))
+#		except OSError: print "file doesn't exist: not removed"
+#	else: 
+#		o_txt=open(WorkDir+"/fit.txt","a")
+#		o_pars=open(WorkDir+"/fitPars.txt","a")
 	
 	for p in range(0,len(PtToFit)-1):
+	   try:
 		if jpt > 250 and PtToFit[p]<200:continue; ##avoid trying to fit: no bkg
 		#find pt bin for sig
         	if options.checkTime: A.checkTimeUsage(0,"Begin");
@@ -281,8 +299,11 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 
 		if doShapeCorrFit:
 			print "-> FIT SIGSHAPE CORR"
-			fSigCorr=ROOT.FIT.fit(ToFitTemplate[p],SigCorr[Sbin],BkgTemplate[Bbin],WorkDir+"/"+fitResultName,"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE) )
-			fBkgCorr=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgCorr[Bbin],WorkDir+"/"+fitResultName,"Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets) + ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) )
+			BinName="Bin_PT_"+str(round(PtToFit[p],1))+"_"+str(round(PtToFit[p+1],1))+"_HT_"+str(Ht) +"_nJets_"+str(nJets);
+			if jpt > 35: BinName += "_JetPt_"+str(jpt) 
+			#BinName += ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)
+			fSigCorr=ROOT.FIT.fit(ToFitTemplate[p],SigCorr[Sbin],BkgTemplate[Bbin],WorkDir+"/"+fitResultName,BinName + ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
+			fBkgCorr=ROOT.FIT.fit(ToFitTemplate[p],SigTemplate[Sbin],BkgCorr[Bbin],WorkDir+"/"+fitResultName,BinName + ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
 
         	if options.checkTime: A.checkTimeUsage(3,"Shape Corr Fit");
 		#UNBINNED
@@ -351,6 +372,7 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			TruthBkg[Bbin].Write("",ROOT.TObject.kOverwrite)	
 			BkgCorr[Bbin].Write("",ROOT.TObject.kOverwrite)	
 			fOut.Close();
+	   except ReferenceError: pass
 	if(options.checkTime):A.checkTimeUsage(-1,"Print");
 
 #MAIN LOOP
@@ -359,7 +381,7 @@ ListOfJobs=[]
 for jpt in JetPtThr:
      for h in HtCuts:
 	for n in nJetsCuts:
-		if jpt !=30 and (n!=1 or h!=0): continue #only inclusive for different jpt
+		if jpt !=30 and (n!=1 and h!=0): continue #only inclusive for different jpt
 		if n!=1 and h!=0: continue; ##don't overlap cuts in njets & ht
 		ListOfJobs.append((int(n),h,jpt))
 

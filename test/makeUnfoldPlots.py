@@ -223,7 +223,7 @@ for jpt in [30.0,300.0]:
 		H_UNFOLD.SetFillColor  (ROOT.kGreen+2)
 		H_UNFOLD.SetMarkerColor(ROOT.kGreen+2)
 		H_UNFOLD.SetLineColor  (ROOT.kGreen+2)
-		H_UNFOLD.SetFillStyle(3001)
+		H_UNFOLD.SetFillStyle(3010)
 
 		H_LUM.SetMarkerStyle(0)
 		H_LUM.SetFillColor  (ROOT.kOrange)
@@ -297,6 +297,7 @@ for jpt in [30.0,300.0]:
 		L.AddEntry(H_BKG,"BKG shape Syst")
 		L.AddEntry(H_BIAS,"BIAS shape Syst")
 		L.AddEntry(H_LUM,"LUM shape Syst")
+		L.AddEntry(H_UNFOLD,"UNFOLD shape Syst")
 		if doMC:
 			L.AddEntry(H_MC,"MC")
 
@@ -321,13 +322,13 @@ for jpt in [30.0,300.0]:
 
 		R_H.Draw("P")
 		R_H.Draw("AXIS X+ Y+ SAME")
+		R_BIAS.Draw("P E2 SAME")
+		R_LUM.Draw("P E2 SAME")
 		R_BKG.Draw("P E2 SAME")
 		R_PU.Draw("P E2 SAME")
 		R_JES.Draw("P E2 SAME")
 		R_JER.Draw("P E2 SAME")
 		R_SIG.Draw("P E2 SAME")
-		R_BIAS.Draw("P E2 SAME")
-		R_LUM.Draw("P E2 SAME")
 		R_TOT.Draw("E3 SAME")
 		
 		L.Draw("SAME")
