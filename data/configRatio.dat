@@ -27,7 +27,7 @@ mcName2 mc_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
 
 ### syst
 Up UP UP
-Down DOWN DN
+Down DN DN
 PrePendSyst "_" "_"
 #Syst JES ++ - -
 #Syst JER ++ - -

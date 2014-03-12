@@ -1,0 +1,408 @@
+
+import math
+import sys,os
+import array
+
+import ROOT
+ROOT.gROOT.SetBatch()
+
+DEBUG=1
+### READ DAT#########
+def ReadRatioDat( inputDat ):
+	f=open( inputDat,"r" )
+	R={}
+	R['Cut']=[]
+	R['Syst']=[]
+	for l in f:
+	   try:
+		l0=l.split('#')[0]
+		if l0 == "" : continue;
+		l0=l0.replace('\n','')
+		l0=l0.replace('\r','')
+		parts=l0.split(' ')
+		if len(parts) == 0 : continue;
+		if   parts[0] == 'file1': 
+			R["file1"]=parts[1]
+			if 'eventList1' not in R: R['eventList1']=''
+		elif parts[0] == 'file2': 
+			R["file2"]=parts[1]
+			if 'eventList2' not in R: R['eventList2']=''
+		elif parts[0] == 'lumi1': 
+			R["lumi1"]=float(parts[1])
+		elif parts[0] == 'lumi2': 
+			R["lumi2"]=float(parts[1])
+		elif parts[0] == 'eventList1': 
+			R['eventList1Compress']=0
+			R['eventList1HistoName']=''
+			for i in range(1,len(parts)):
+				if parts[i].split('=')[0] == 'file':
+					R['eventList1']=parts[i].split('=')[1]
+				elif parts[i].split('=')[0] == 'compress':
+					R['eventList1Compress']=int(parts[i].split('=')[1])
+				elif parts[i].split('=')[0] == 'histoName':
+					R['eventList1HistoName']=parts[i].split('=')[1]
+		elif parts[0] == 'eventList2': 
+			R['eventList2Compress']=0
+			R['eventList2HistoName']=''
+			for i in range(1,len(parts)):
+				if parts[i].split('=')[0] == 'file':
+					R['eventList2']=parts[i].split('=')[1]
+				elif parts[i].split('=')[0] == 'compress':
+					R['eventList2Compress']=int(parts[i].split('=')[1])
+				elif parts[i].split('=')[0] == 'histoName':
+					R['eventList2HistoName']=parts[i].split('=')[1]
+		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
+		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
+		elif parts[0] == 'mcName1': R["mcName1"]=parts[1]
+		elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
+		elif parts[0] == 'cov1': R["cov1"]=parts[1]
+		elif parts[0] == 'cov2': R["cov2"]=parts[1]
+		elif parts[0] == 'NoCut':
+			R['Cut']=[]
+		elif parts[0] == 'Cut':
+			#default
+			ht=0
+			nj=1
+			ptj=30
+			for j in range(1,len(parts)):
+				if 'Ht' == parts[j].split('=')[0]:ht=parts[j].split('=')[1]
+				if 'nJets' == parts[j].split('=')[0]:nj=parts[j].split('=')[1]
+				if 'ptJet' == parts[j].split('=')[0]:ptj=parts[j].split('=')[1]
+			R['Cut'].append( (ht,nj,ptj) );
+		elif parts[0] == 'Syst':
+			name=parts[1]
+			typ=parts[2]
+			hn1=parts[3]
+			hn2=parts[4]
+			R['Syst'].append( (name,typ,hn1,hn2) )
+		elif parts[0] == 'Up':
+			R['Up']=[]
+			R['Up'].append(parts[1])
+			R['Up'].append(parts[2])
+		elif parts[0] == 'Down':
+			R['Down']=[]
+			R['Down'].append(parts[1])
+			R['Down'].append(parts[2])
+		elif parts[0] == 'Out':
+			R['Out']=parts[1]
+		elif parts[0] == 'PrePendSyst':
+			K =  parts[1:]
+			R['PrePendSyst']=[]
+			for s in K:
+				s=s.replace("'","")
+				s=s.replace('"',"")
+				R['PrePendSyst'].append(s)
+		elif parts[0] == 'xaxis' or parts[0]=='yaxis':
+			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
+		elif parts[0] == 'ylog' or parts[0]=='xlog':
+			R[parts[0]] = int(parts[1])
+		elif parts[0] == 'Merge1' or parts[0]=='Merge2':
+			if parts[0] not in R:
+				R[parts[0]]=[]
+			R[parts[0]].append( (float(parts[1]),float(parts[2])) )
+		elif parts[0] == 'include':
+			tmp = ReadRatioDat( parts[1] )
+			for key in tmp:
+				R[ key ] = tmp[ key ]
+		elif parts[0] == 'mc' or parts[0] == 'table': ## set mc in the config file
+			R[ parts[0] ] = int(parts[1])
+		else:
+			if len(parts)>0 and parts[0].replace(' ','').replace('\t','') != '' :print "Malformed line (probably ignored):"+l
+	   except: 
+		print "Malformed line (probably ignored):"+l
+	#set default if not specified in dat file
+	if 'xaxis' not in R:
+		R['xaxis']=[0,0]
+	if 'yaxis' not in R:
+		R['yaxis']=[0,0]
+	if 'xlog' not in R:
+		R['xlog']=0
+	if 'ylog' not in R:
+		R['ylog']=0
+	return R;
+
+def makeBands(h1,h2,type="Mean"):
+	H=h1.Clone(h1.GetName()+"_band")
+	for i in range(1,h1.GetNbinsX()+1):
+		if type=="First":
+			H.SetBinContent(i, h1.GetBinContent(i))
+			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) ))
+		else: #type = "Mean"
+			H.SetBinContent(i, (h1.GetBinContent(i)+h2.GetBinContent(i) )/2.0)
+			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) )/2.0)
+	return H
+
+def sqrtSum(h1,h2,epsilon=0.0001):
+	for i in range (1,h2.GetNbinsX()+1):
+		if h1.GetBinError(i)  > epsilon and h2.GetBinError(i)  > epsilon:
+			e=math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 )
+		elif h1.GetBinError(i) <= epsilon and h2.GetBinError(i) <= epsilon:
+			e=epsilon
+		elif h1.GetBinError(i) > epsilon:
+			e=h1.GetBinError(i)
+		elif h2.GetBinError(i) > epsilon:
+			e=h2.GetBinError(i)
+		elif ROOT.TMath.IsNaN( h1.GetBinError(i) ) or ROOT.TMath.IsNaN( h2.GetBinError(i) ):
+			e=epsilon
+		else:
+			print "-- assertion error -- %f -- %f -- %f"%(h1.GetBinError(i),h2.GetBinError(i),epsilon)
+			e=epsilon
+		h1.SetBinError(i, e)
+
+def Ratio(H,H1,NoErrorH=False,FullCorr=False):
+	R=H1.Clone(H1.GetName()+"_ratio")
+	hTmp=H.Clone("tmp")
+	#in order to account error properly in ratios
+	if NoErrorH:
+		for i in range(1,hTmp.GetNbinsX()+1):
+			hTmp.SetBinError(i,0)
+	R.Divide(hTmp)
+	if FullCorr:
+		for i in range(1,R.GetNbinsX()+1):
+			up=(H1.GetBinContent(i)+H1.GetBinError(i))/(H.GetBinContent(i)+H.GetBinError(i))
+			dn=(H1.GetBinContent(i)-H1.GetBinError(i))/(H.GetBinContent(i)-H.GetBinError(i))
+			err = math.fabs((up-dn)/2.0)
+			R.SetBinError(i,err)
+	return R
+
+import gzip
+def computeOverlap(eventList1,compress1,name1,pt1,eventList2,compress2,name2,pt2):
+	if eventList1=='' or eventList2=='': return (0,1,1);
+	l1=glob(eventList1);
+	l2=glob(eventList2);
+	EventList1={}
+	EventList2={}
+	for fileName in l1:
+		if compress1:file1 = gzip.open(fileName,"r")
+		else:        file1 =      open(fileName,"r")
+		
+		for l in file1:
+			parts=l.split();
+			run = -1 
+			lumi= -1
+			event= -1
+			name=''
+			high=-1
+			low=-1
+			for p in parts:
+				if p.split(':')[0]=='run':run = int (p.split(':')[1] )
+				elif p.split(':')[0]=='lumi':lumi = int (p.split(':')[1] )
+				elif p.split(':')[0]=='event':event = int (p.split(':')[1] )
+				elif p.split(':')[0]=='name':name = str (p.split(':')[1] )
+				elif p.split(':')[0]=='high':high = float (p.split(':')[1] )
+				elif p.split(':')[0]=='low':low = float (p.split(':')[1] )
+			if (not (pt1>=low and pt1<high)) and pt1>=0:continue;
+			if name1 != "" and name != name1:continue;
+			EventList1[ (run,lumi,event) ] = 1
+		file1.close();
+	for fileName in l2:
+		if compress2:file2 = gzip.open(fileName,"r")
+		else:        file2 =      open(fileName,"r")
+		
+		for l in file2:
+			parts=l.split();
+			run = -1 
+			lumi= -1
+			event= -1
+			name=''
+			high=-1
+			low=-1
+			for p in parts:
+				if p.split(':')[0]=='run':run = int (p.split(':')[1] )
+				elif p.split(':')[0]=='lumi':lumi = int (p.split(':')[1] )
+				elif p.split(':')[0]=='event':event = int (p.split(':')[1] )
+				elif p.split(':')[0]=='name':name = str (p.split(':')[1] )
+				elif p.split(':')[0]=='high':high = float (p.split(':')[1] )
+				elif p.split(':')[0]=='low':low = float (p.split(':')[1] )
+			if (not (pt2>=low and pt2<high)) and pt2>=0:continue;
+			if name2 != "" and name != name2:continue;
+			EventList2[ (run,lumi,event) ] = 1
+		file2.close();
+	common=0;
+	only1=0;
+	only2=0
+	for (run,lumi,event) in EventList1:
+		if (run,lumi,event) in EventList2:
+			common+=1	
+			EventList2[(run,lumi,event)]=0
+		else: only1+=1
+	for (run,lumi,event) in EventList2:
+		if EventList2[(run,lumi,event)] == 0: only2+=1
+	return (common,only1,only2)				
+
+def FixNames(histoName,cut,syst=''):
+	n=histoName.find('$')
+	if n<0: return histoName;
+	if histoName[n+1] != '{': print 'PUT ${} things that must be sub'
+	#look for first }
+	r=histoName.find('}')
+	if (r<n):print "error } $"
+	
+	#copy from n to r
+	substring=histoName[n+2:r] ## keep out ${}
+	#cut[0]=ht cut[1]=njets cut[2]=pt
+	if 'HT' in substring:
+		var =float(cut[0])
+		substring=substring.replace('HT','')
+		if substring=='': substring='%d'
+		else: substring='%'+substring
+	elif 'NJETS' in substring:
+		var=float(cut[1])
+		substring=substring.replace('NJETS','')
+		if substring=='': substring='%d'
+		else: substring='%'+substring
+	elif 'PTJ' in substring:
+		var=float(cut[2])
+		substring=substring.replace('PTJ','')
+		if substring=='': substring='%d'
+		else: substring='%'+substring
+	elif 'SYST' in substring:
+		var=syst
+		substring=substring.replace('SYST','')
+		if substring=='': substring='%s'
+		else: substring='%'+substring
+	else: 
+		print "error: unknown substitution"
+		var=''
+	#print "histoname=" + histoName[:n] + "   substri="+ substring + "    histoname="+histoName[r+1:] 
+	name=(histoName[:n] + substring + histoName[r+1:] )%(var)
+	return FixNames(name,cut,syst)
+
+def ConvertToTargetTH1( h1, h2):
+	h2.SetName("old_"+h2.GetName())
+	h=h1.Clone(h2.GetName());
+	for iBin in range(1,h.GetNbinsX()+1):
+		h.SetBinContent(iBin,  h2.GetBinContent(h2.FindBin(h.GetBinCenter(iBin)) ))
+		h.SetBinError(iBin,    h2.GetBinError  (h2.FindBin(h.GetBinCenter(iBin)) ))
+	return h
+
+
+ROOT.gROOT.ProcessLine("struct Bins{ \
+		Double_t PtBins[1023];\
+		int nBins;\
+		};")
+
+from ROOT import Bins
+
+def MergeBins(l,h):
+	#l=[ (Bin0,Bin1),(Bin0,Bin1)]
+	if len(l)==0: return h
+
+	listOfBins=ROOT.Bins()
+	listOfBins.nBins=0;
+	for iBin in range(1,h.GetNbinsX()+2):
+		isVeto=False
+		for bound in l:
+			if not( bound[0]<=h.GetBinLowEdge(iBin) and h.GetBinLowEdge(iBin)<bound[1]):
+				isVeto=True
+		if isVeto:
+			listOfBins.PtBins[listOfBins.nBins] = h.GetBinLowEdge(iBin)
+			listOfBins.nBins += 1
+	listOfBins.nBins -= 1
+	h2 = ROOT.TH1D(h.GetName()+"_rebin",h.GetTitle(),listOfBins.nBins,listOfBins.PtBins)
+	print "Merging"
+	for iBin in range(1,h.GetNbinsX()+1):
+		Bin2=h2.FindBin( h.GetBinCenter(iBin) )
+		w1=h.GetBinWidth( iBin )
+		w2=h2.GetBinWidth( Bin2 )
+
+		e1=h.GetBinError( iBin ) * w1
+		e2=h2.GetBinError( Bin2 ) * w2
+		c1=h.GetBinContent( iBin ) * w1
+		c2=h2.GetBinContent( Bin2 ) * w2
+		
+		if e1 != 0 and e2 !=0:
+			#mean
+			#h2.SetBinContent(Bin2, ( c1/(e1**2) + c2/(e2**2) ) / ( 1./(e1**2) + 1./(e2**2)  ) )
+			#h2.SetBinError(Bin2, math.sqrt(1./ ( 1./(e1**2) + 1./(e2**2) )) )
+			h2.SetBinContent(Bin2, c1 + c2  ) 
+			h2.SetBinError(Bin2, math.sqrt(e1**2 + e2**2) )
+		elif e1 !=0:
+			h2.SetBinContent(Bin2,c1)
+			h2.SetBinError(Bin2,e1)
+		elif e2 !=0:
+			h2.SetBinContent(Bin2,c2)
+			h2.SetBinError(Bin2,e2)
+
+		h2.SetBinContent(Bin2, h2.GetBinContent(Bin2)/w2)
+		h2.SetBinError(Bin2, h2.GetBinError(Bin2)/w2)
+
+	if DEBUG>1:
+	   for iBin2 in range(1,h2.GetNbinsX()+1):
+		x=h2.GetBinCenter(iBin2)
+		line1="Bin %.0f <- ["%(x)
+		line2="    (%.3f +o- %.3f) <- ["%(h2.GetBinContent(iBin2),h2.GetBinError(iBin2))
+		for jBin in range(1,h.GetNbinsX()+1):
+			if h.GetBinCenter(jBin)>h2.GetBinLowEdge(iBin2)  and h.GetBinCenter(jBin)<h2.GetBinLowEdge(iBin2+1):
+					line1 += " %.0f" % h.GetBinCenter(jBin)
+					line2 += " (%.3f +- %.3f) , " % (h.GetBinContent(jBin),h.GetBinError(jBin))
+		line1 += "]"
+		line2 += "]"
+		print line1
+		print line2
+	return h2
+
+def ConvertToLatex(T):
+	L="\\begin{tabular}{c|"
+	for i in range(1,len(T[0])): #n.of cols
+		L+= "c"
+	L += "}\n\\hline\n"
+	L += " &".join(T[0])
+	L+=" \\\\ \n \\hline\n"
+	for row in T[1:-1]:
+		L+=" & ".join(row)
+		L+=" \\\\ \n "
+	L += " &".join(T[-1])
+	L += "\n" # no \\
+	L += "\\end{tabular}"
+	return L
+
+
+def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
+		if hns1=='None' and n==0: typ='.'+typ[1]
+		if hns1=='None' and n==1: typ=typ[0]+'.'
+
+		if typ[n]=='+': #h1 double band
+			h1nup=FixNames(hns1,cut,config["PrePendSyst"][n]+syst+config['Up'][n])
+			h1ndn=FixNames(hns1,cut,config["PrePendSyst"][n]+syst+config['Down'][n])
+			print "Going to get Histo " +h1nup + " - " + h1ndn
+			h1up=file1.Get(h1nup)
+			h1dn=file1.Get(h1ndn)
+			if 'Merge%d'%(n+1) in config:
+				h1up=MergeBins(config['Merge%d'%(n+1)],h1up)
+				h1dn=MergeBins(config['Merge%d'%(n+1)],h1dn)
+			h1up=ConvertToTargetTH1(h1,h1up)
+			h1dn=ConvertToTargetTH1(h1,h1dn)
+			h1up.Scale(1./config["lumi%d"%(n+1)])
+			h1dn.Scale(1./config["lumi%d"%(n+1)])
+			s1=makeBands(h1up,h1dn,"Mean")
+		elif typ[n]==':':
+			h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][n]+syst)
+			print "Going to get Histo " + h1nfirst
+			h1first=file1.Get(h1nfirst)
+			if 'Merge%d'%(n+1) in config:
+				h1first=MergeBins(config['Merge%d'%(n+1)],h1first)
+			h1first=ConvertToTargetTH1(h1,h1first)
+			h1first.Scale(1./config["lumi%d"%(n+1)])
+			s1=makeBands(h1,h1first,"First")
+		elif typ[n]=='.':
+			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,0);
+		elif typ[n]=='&': #content of the histo is the error itsef
+			h1nerr=FixNames(hns1,cut,config["PrePendSyst"][n]+syst)
+			print "Going to get Histo "+ h1nerr 
+			h1err=file1.Get(h1nerr)
+			h1err=ConvertToTargetTH1(h1,h1err)
+			h1err.Scale(1./config["lumi%d"%(n+1)])
+			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			if 'Merge%d'%(n+1) in config:
+				s1=MergeBins(config['Merge%d'%(n+1)],s1)
+			for i in range(1,s1.GetNbinsX()+1): 
+				#print "DEBUG Z ",syst,"Bin%d"%i,"%.0f %%"%( h1err.GetBinContent(i)/h1.GetBinContent(i) ), " %.0f-%.0f"%( h1err.GetBinCenter(i),h1.GetBinCenter(i) ),"%f/%f"%(h1err.GetBinContent(i),h1.GetBinContent(i))
+				s1.SetBinError(i,h1err.GetBinContent(i) );
+		elif typ[n]=='%': #content of the histo is the error itsef
+			e=float(hns1)/100.
+			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1.GetBinContent(i) * e );
+		else: print "error on type "+str(n)+" of "+typ	
+		return s1
