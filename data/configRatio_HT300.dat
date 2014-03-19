@@ -1,8 +1,10 @@
 include data/configRatio.dat
-file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_HT_300_jet30_V00-14-1.root
+#file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_HT_300_jet30_V00-14-1.root
+file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_HT_300_jet30_V00-14_modJetLepVeto.root
 
 NoCut
 Cut Ht=300 nJets=1 ptJet=30
 #Cut Ht=0 nJets=3 ptJet=30
 #
 yaxis 0 0.07
+xaxis 200 800

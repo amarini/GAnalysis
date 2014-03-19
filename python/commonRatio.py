@@ -16,6 +16,7 @@ def ReadRatioDat( inputDat ):
 	for l in f:
 	   try:
 		l0=l.split('#')[0]
+		l0=l0.replace('@','#')
 		if l0 == "" : continue;
 		l0=l0.replace('\n','')
 		l0=l0.replace('\r','')
@@ -94,6 +95,8 @@ def ReadRatioDat( inputDat ):
 				R['PrePendSyst'].append(s)
 		elif parts[0] == 'xaxis' or parts[0]=='yaxis':
 			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
+		elif parts[0] == 'xtitle' or parts[0]=='ytitle' or parts[0]=='text':
+			R[parts[0]]= parts[1].replace('~',' ')
 		elif parts[0] == 'ylog' or parts[0]=='xlog':
 			R[parts[0]] = int(parts[1])
 		elif parts[0] == 'Merge1' or parts[0]=='Merge2':
@@ -104,8 +107,10 @@ def ReadRatioDat( inputDat ):
 			tmp = ReadRatioDat( parts[1] )
 			for key in tmp:
 				R[ key ] = tmp[ key ]
-		elif parts[0] == 'mc' or parts[0] == 'table': ## set mc in the config file
+		elif parts[0] == 'mc' or parts[0] == 'table' or parts[0] == 'StatCorr': ## set mc in the config file
 			R[ parts[0] ] = int(parts[1])
+		elif parts[0] == 'mcLO1' or parts[0] == 'mcLO2':
+			R[ parts[0] ] = float(parts[1])
 		else:
 			if len(parts)>0 and parts[0].replace(' ','').replace('\t','') != '' :print "Malformed line (probably ignored):"+l
 	   except: 
@@ -119,6 +124,8 @@ def ReadRatioDat( inputDat ):
 		R['xlog']=0
 	if 'ylog' not in R:
 		R['ylog']=0
+	if 'mcLO1' not in R: R['mcLO1']=1.
+	if 'mcLO2' not in R: R['mcLO2']=1.
 	return R;
 
 def makeBands(h1,h2,type="Mean"):
@@ -159,8 +166,12 @@ def Ratio(H,H1,NoErrorH=False,FullCorr=False):
 	R.Divide(hTmp)
 	if FullCorr:
 		for i in range(1,R.GetNbinsX()+1):
-			up=(H1.GetBinContent(i)+H1.GetBinError(i))/(H.GetBinContent(i)+H.GetBinError(i))
-			dn=(H1.GetBinContent(i)-H1.GetBinError(i))/(H.GetBinContent(i)-H.GetBinError(i))
+			if H.GetBinContent(i)+H.GetBinError(i) != 0:
+				up=(H1.GetBinContent(i)+H1.GetBinError(i))/(H.GetBinContent(i)+H.GetBinError(i))
+				dn=(H1.GetBinContent(i)-H1.GetBinError(i))/(H.GetBinContent(i)-H.GetBinError(i))
+			else: 
+				up=0
+				dn=0
 			err = math.fabs((up-dn)/2.0)
 			R.SetBinError(i,err)
 	return R

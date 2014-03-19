@@ -165,6 +165,34 @@ for cut in config['Cut']:
 		if math.abs( da2+dc2 - e2**2/N2**2 )> 0.01:print "Error don't match 1"
 		dr= N1/N2 * math.sqrt( ((a+b)/(a+c)) * ( (a/(a+b))**2 * db2 + (a/(a+c))**2 * dc2 + ( a*(b-c)/((a+c)*(a+b)) )**2 * da2  ))
 		R.SetBinError(i,dr)
+	if 'StatCorr' in config and config['StatCorr']:
+	   print "Stat Errors: A/(A+B)"
+	   for i in range(1,h1.GetNbinsX()+1):
+		e1=h1.GetBinError(i)
+		c1=h1.GetBinContent(i)
+		e2=h2.GetBinError(i)
+		c2=h2.GetBinContent(i)
+		a=c1
+		da=e1
+		b=c2-c1
+		if e2<e1:
+			print "Stat Error:", e2,">",e1 ," -- c2,c1 ", c2,">",c1
+			print "Setting db/b= dc2/c2"
+			db= e2/c2*b
+		else:
+			db=math.sqrt(e2**2-e1**2)
+		if a+b >0:
+			r=a/(a+b)
+		else :
+			r=0
+		if a==0 or a+b==0:
+			dr=1
+		else:
+			dr=r*math.sqrt( db**2/(a+b)**2 + b**2/(a**2 * (a+b)**2)) 
+		if r> 0 and math.fabs(R.GetBinContent(i) - r)/r >0.02 : 
+			print "Error in ratio from different computations"
+		R.SetBinError(i,dr)
+
 	if options.mc:
 		mc1name=FixNames(config['mcName1'],cut)
 		mc2name=FixNames(config['mcName2'],cut)
@@ -201,7 +229,10 @@ for cut in config['Cut']:
 			Table[2].append( "$%.1f$"%h1.GetBinContent(i))
 			Table[3].append( "$%.1f$"%h2.GetBinContent(i))
 			Table[4].append( "$%f$"%R.GetBinContent(i))
-			Table[5].append( "$%.1f$"%(R.GetBinError(i)/R.GetBinContent(i) * 100) )
+			r=0
+			try: r=R.GetBinError(i)/R.GetBinContent(i) * 100
+			except: pass
+			Table[5].append( "$%.1f$"%(r) )
 	S=R.Clone("Syst_Ht_%s_nJets_%s_ptJet_%s"%cut )	
 	if options.syst:
 		for iBin in range(1,S.GetNbinsX()+1):S.SetBinError(iBin,0)
@@ -309,33 +340,51 @@ for cut in config['Cut']:
 			curRow=len(Table)
 			Table.append(["%s ($\%%$)"%(syst)])
 			for i in range(1,R.GetNbinsX()+1):
-				Table[curRow].append("$%.1f$" % (s.GetBinError(i)/R.GetBinContent(i) * 100.))
+				if R.GetBinContent(i) != 0:
+					r=s.GetBinError(i)/R.GetBinContent(i) * 100.
+				else: 
+					r=0
+				Table[curRow].append("$%.1f$" % (r))
 			# Z #
 			curRow=len(Table)
 			Table.append(["%s:Z ($\%%$)"%(syst)])
 			for i in range(1,R.GetNbinsX()+1):
-				Table[curRow].append("$%.1f$" % (s1.GetBinError(i)/h1.GetBinContent(i) * 100.))
+				if h1.GetBinContent(i) !=0:
+					r=s1.GetBinError(i)/h1.GetBinContent(i) * 100.
+				else:
+					r=0
+				Table[curRow].append("$%.1f$" % (r))
 			curRow=len(Table)
 			Table.append(["%s:$\\gamma$ ($\%%$)"%(syst)])
 			for i in range(1,R.GetNbinsX()+1):
-				Table[curRow].append("$%.1f$" % (s2.GetBinError(i)/h2.GetBinContent(i) * 100.))
+				if h2.GetBinContent(i) !=0:
+					r=s2.GetBinError(i)/h2.GetBinContent(i) * 100.
+				else:
+					r=0
+				Table[curRow].append("$%.1f$" % (r))
 		sqrtSum(S,s)
 		#DEBUG
-		print
-		print "Relative Errors [tot s1 s2 TOT]%% %s:"%syst
-		for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %.1f]"%(s.GetBinError(i)/s.GetBinContent(i)*100, s1.GetBinError(i)/s1.GetBinContent(i)*100,s2.GetBinError(i)/s2.GetBinContent(i) *100, S.GetBinError(i)/S.GetBinContent(i) *100),
-		print
-		print "Absolute Vales"
-		for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %f]"%(s.GetBinContent(i), s1.GetBinContent(i),s2.GetBinContent(i) , S.GetBinContent(i)),
-		print
-		print
+		try:
+			print
+			print "Relative Errors [tot s1 s2 TOT]%% %s:"%syst
+			for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %.1f]"%(s.GetBinError(i)/s.GetBinContent(i)*100, s1.GetBinError(i)/s1.GetBinContent(i)*100,s2.GetBinError(i)/s2.GetBinContent(i) *100, S.GetBinError(i)/S.GetBinContent(i) *100),
+			print
+			print "Absolute Vales"
+			for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %f]"%(s.GetBinContent(i), s1.GetBinContent(i),s2.GetBinContent(i) , S.GetBinContent(i)),
+			print
+			print
+		except: pass
 		#ENDDEBUG
 	## ADD TOT SYST
 	if options.table:
 		curRow=len(Table)
 		Table.append(["Tot Syst ($\\%$)"])
 		for i in range(1,R.GetNbinsX()+1):
-			Table[curRow].append("$%.0f$" % (S.GetBinError(i)/R.GetBinContent(i) * 100.))
+			if R.GetBinContent(i) !=0:
+				r=S.GetBinError(i)/R.GetBinContent(i) * 100.
+			else:
+				r=0
+			Table[curRow].append("$%.0f$" % (r))
 
 	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	ROOT.gPad.SetBottomMargin(0.15)
@@ -360,19 +409,16 @@ for cut in config['Cut']:
 	L.SetBorderSize(0);
 	
 	R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
+	if 'xtitle' in config:
+		R.GetXaxis().SetTitle(config['xtitle'])
 	R.GetYaxis().SetTitle("d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}")
+	if 'ytitle' in config:
+		R.GetYaxis().SetTitle(config['ytitle'])
 	R.GetYaxis().SetTitleOffset(1.5)
 	R.GetXaxis().SetTitleOffset(1.5)
 	R.GetYaxis().SetDecimals()
 	#R.GetYaxis().SetRangeUser(0,2)
 	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
-	if config['xlog']: C.SetLogx()
-	if config['ylog']: C.SetLogy()
-	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
-		R.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
-		print "x range set to ",config['xaxis'][0],config['xaxis'][1]
-	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
-		R.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
 
 	R.Draw("AXIS P")
 	S.Draw("P E2 SAME")
@@ -383,14 +429,17 @@ for cut in config['Cut']:
 	L.AddEntry(S,"Stat+Syst","F");
 	if options.mc:
 		mcR.Draw("HIST SAME")
-		mcN=mcR.Clone("Normalize")
+		mcN=mcR.Clone("MG_Norm")
 		mcN.SetLineStyle(ROOT.kDashed)
 		print "Z Scale: %.3f"%(h1.Integral()/ mc1.Integral())
 		print "G Scale: %.3f"%(h2.Integral()/ mc2.Integral())
-		mcN.Scale(h1.Integral() * mc2.Integral() / (h2.Integral() * mc1.Integral() ))
+		#mcN.Scale(h1.Integral() * mc2.Integral() / (h2.Integral() * mc1.Integral() ))
+		#           LO   NNLO      
+		#mcN.Scale((2590./3503.71)/(1./1.))
+		mcN.Scale(config['mcLO1']/(config['mcLO2']))
 		mcN.Draw("HIST SAME")
 		L.AddEntry(mcR,"MG","F");
-		L.AddEntry(mcN,"MG Norm.","F");
+		L.AddEntry(mcN,"MG (LO/LO)","F");
 	L.Draw();
 	lat=ROOT.TLatex()
 	lat.SetNDC()
@@ -399,19 +448,40 @@ for cut in config['Cut']:
 	lat.SetTextAlign(11)
 	text="Ht > %.0f N_{jets} #geq %.0f "%(float(cut[0]),float(cut[1]))
 	if ( float(cut[2])> 30 ) : text += " p_{T}^{jet} #geq %.0f"%(float(cut[2]))
+	if 'text' in config:
+		text=FixNames(config['text'],cut)
 	lat.DrawLatex(.15+xshift,.85+yshift,"CMS Preliminary,")
 	lat.SetTextFont(42)
 	lat.DrawLatex(.15+xshift,.80+yshift,"#sqrt{s} = 8TeV, L=19.7fb^{-1}")
 	lat.DrawLatex(.15+xshift,.75+yshift,text)
+	C.Update()
+	ROOT.gPad.Update()
+
+	if config['xlog']: 
+		C.SetLogx()
+		R.GetXaxis().SetMoreLogLabels()
+		R.GetXaxis().SetNoExponent()
+	if config['ylog']: 
+		C.SetLogy()
+		R.GetYaxis().SetMoreLogLabels()
+		R.GetYaxis().SetNoExponent()
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		R.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
+		S.GetXaxis().SetRangeUser(config['xaxis'][0],config['xaxis'][1]);
+		print "x range set to ",config['xaxis'][0],config['xaxis'][1]
+	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
+		R.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
+		S.GetYaxis().SetRangeUser(config['yaxis'][0],config['yaxis'][1]);
+
+	C.Update()
+	ROOT.gPad.Update()
 	if not options.batch:
 		a=raw_input("Press Enter");
-	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.pdf"%cut)
-	print "Going to save "+ name
-	C.SaveAs( name )	
-	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.root"%cut)
-	print "Going to save "+ name
-	C.SaveAs( name)	
-	name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s.tex"%cut)
+	extensions=["pdf","root","png"]
+	for ext in extensions:
+		name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s."%cut + ext)
+		print "Going to save '"+ name+"'"
+		C.SaveAs( name )	
 	if options.table:
 		txt = open(name,"w")
 		txt.write( ConvertToLatex(Table) )
