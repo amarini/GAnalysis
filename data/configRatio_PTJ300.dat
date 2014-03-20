@@ -4,3 +4,5 @@ file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_pt1_300_jet30_V00-14_modJetLepVeto.root
 
 NoCut
 Cut Ht=0 nJets=1 ptJet=300
+
+xaxis 280 800
