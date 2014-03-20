@@ -1,12 +1,12 @@
 ### Z ###
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
-file1 ../Z/h_Zpt_hist_Zpt40_BY_Inf_njets2plus_jet30_V00-14_modJetLepVeto.root
+file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_njets2plus_jet30_V00-14_modJetLepVeto.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
-file2 ../Z/h_Zpt_hist_Zpt40_BY_Inf_jet30_V00-14_modJetLepVeto.root
+file2 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14_modJetLepVeto.root
 #eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi2 1
 
@@ -26,7 +26,15 @@ Cut Ht=0 nJets=1 ptJet=30
 #
 mcName1 h_MG_GEN_leptons_combined
 mcName2 h_MG_GEN_leptons_combined
+mcLeg MadGraph
 
+mcName1 h_SH_GEN_leptons_combined
+mcName2 h_SH_GEN_leptons_combined
+mcLeg Sherpa
+
+#mcName1 h_BH_GEN_leptons_combined
+#mcName2 h_BH_GEN_leptons_combined
+#mcLeg BlackHat
 ### syst
 Up UP UP
 Down DN DN
@@ -66,7 +74,7 @@ xlog 1
 ylog 0
 xtitle P_{T}^{Z}
 ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}/@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{Z}}
-text ~
+text |Y^{Z}|<1.4
 
 mc 1
 table 1

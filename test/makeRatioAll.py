@@ -2,17 +2,31 @@
 from subprocess import call
 
 cmd0=["python", "python/makeRatioPlots.py","--mc" ,"-b"]
+dats=["data/configRatio.dat",
+	"data/configRatio_PTJ300.dat",
+	"data/configRatio_NJets3.dat",
+	"data/configRatio_NJets2.dat",
+	"data/configRatio_HT300.dat",
+	"data/configRatio_G_nJets12.dat",
+	"data/configRatio_Z_nJets12.dat",
+	"data/configRatio_Z_nJets23.dat",
+	"data/configRatio_Z_nJets12_Yinf.dat",
+		]
 
-cmd= cmd0 + ["--inputDat=data/configRatio.dat" ]
-call(cmd)
-#cmd= cmd0+ ["--inputDat=data/configRatio_PTJ300.dat" ]
+for dat in dats:
+	cmd = cmd0+["--inputDat="+dat]
+	call(cmd)
+
+#cmd= cmd0 + ["--inputDat=data/configRatio.dat" ]
 #call(cmd)
-##cmd= cmd0+ ["--inputDat=data/configRatio_NJets2.dat" ]
+##cmd= cmd0+ ["--inputDat=data/configRatio_PTJ300.dat" ]
 ##call(cmd)
-cmd= cmd0+ ["--inputDat=data/configRatio_NJets3.dat" ]
-call(cmd)
-cmd= cmd0+ ["--inputDat=data/configRatio_HT300.dat" ]
-call(cmd)
+###cmd= cmd0+ ["--inputDat=data/configRatio_NJets2.dat" ]
+###call(cmd)
+#cmd= cmd0+ ["--inputDat=data/configRatio_NJets3.dat" ]
+#call(cmd)
+#cmd= cmd0+ ["--inputDat=data/configRatio_HT300.dat" ]
+#call(cmd)
 
 
 TMP="/tmp"

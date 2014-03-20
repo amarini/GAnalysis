@@ -194,8 +194,12 @@ for cut in config['Cut']:
 		R.SetBinError(i,dr)
 
 	if options.mc:
-		mc1name=FixNames(config['mcName1'],cut)
-		mc2name=FixNames(config['mcName2'],cut)
+	    mcR=[]
+	    colors=[ROOT.kBlue,ROOT.kRed,ROOT.kGreen+2]
+	    styles=[1,2,3]
+	    for iMC in range(0,len(config['mcName1'])):
+		mc1name=FixNames(config['mcName1'][iMC],cut)
+		mc2name=FixNames(config['mcName2'][iMC],cut)
 		print "Going to Get",mc1name,"from ",config['file1'],"and",mc2name,"from",config['file2']
 		mc1Raw=file1.Get(mc1name)
 		mc2Raw=file2.Get(mc2name)
@@ -204,19 +208,26 @@ for cut in config['Cut']:
 		if 'Merge2' in config:
 			mc2Raw=MergeBins(config['Merge2'],mc2Raw)
 
-		mc1=ROOT.TH1D("mc1_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
-		mc2=ROOT.TH1D("mc2_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mc1=ROOT.TH1D("mc1_"+config['mcLeg'][iMC]+"_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mc2=ROOT.TH1D("mc2_"+config['mcLeg'][iMC]+"_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
 		mc1=ConvertToTargetTH1(mc1,mc1Raw)
 		mc2=ConvertToTargetTH1(mc2,mc2Raw)
 
 		mc1.Scale(1./config['lumi1'])
 		mc2.Scale(1./config['lumi2'])
 
-		mc1.SetName("MC_Ht_%s_nJets_%s_ptJet_%s"%cut )
-		mcR=Ratio(mc2,mc1,False)
-		mcR.SetLineColor(ROOT.kBlue)
+		mc1.SetName("MC_"+str(iMC)+"_Ht_%s_nJets_%s_ptJet_%s"%cut )
+		
+		mcR.append(Ratio(mc2,mc1,False))
+		mcR[-1].SetLineColor( colors[iMC] )
+		mcR[-1].SetLineStyle( styles[iMC])
 
 	if options.table:
+		OutROOT=ROOT.TFile.Open( config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root" , "RECREATE")
+		OutROOT.cd()
+		R.Write()
+		h1.Write()
+		h2.Write()
 		Table.append(["Bin"])          #  0 
 		Table.append(["Bound"])        #  1
 		Table.append(["$Z$"])            #  2
@@ -337,6 +348,9 @@ for cut in config['Cut']:
 		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
 		print
 		if options.table:
+			OutROOT.cd()
+			s.Write()
+
 			curRow=len(Table)
 			Table.append(["%s ($\%%$)"%(syst)])
 			for i in range(1,R.GetNbinsX()+1):
@@ -377,6 +391,8 @@ for cut in config['Cut']:
 		#ENDDEBUG
 	## ADD TOT SYST
 	if options.table:
+		OutROOT.cd()
+		S.Write()
 		curRow=len(Table)
 		Table.append(["Tot Syst ($\\%$)"])
 		for i in range(1,R.GetNbinsX()+1):
@@ -428,18 +444,22 @@ for cut in config['Cut']:
 	L.AddEntry(R,"Data","P");
 	L.AddEntry(S,"Stat+Syst","F");
 	if options.mc:
-		mcR.Draw("HIST SAME")
-		mcN=mcR.Clone("MG_Norm")
-		mcN.SetLineStyle(ROOT.kDashed)
+	   for iMC in range(0,len(config['mcName1'])):
+		mcR[iMC].Draw("HIST SAME")
+		#mcN=mcR.Clone("MG_Norm")
+		#mcN.SetLineStyle(ROOT.kDashed)
 		print "Z Scale: %.3f"%(h1.Integral()/ mc1.Integral())
 		print "G Scale: %.3f"%(h2.Integral()/ mc2.Integral())
 		#mcN.Scale(h1.Integral() * mc2.Integral() / (h2.Integral() * mc1.Integral() ))
 		#           LO   NNLO      
 		#mcN.Scale((2590./3503.71)/(1./1.))
-		mcN.Scale(config['mcLO1']/(config['mcLO2']))
-		mcN.Draw("HIST SAME")
-		L.AddEntry(mcR,"MG","F");
-		L.AddEntry(mcN,"MG (LO/LO)","F");
+		mcR[iMC].Scale(config['mcLO1'][iMC]/(config['mcLO2'][iMC]))
+		mcR[iMC].Draw("HIST SAME")
+		L.AddEntry(mcR[iMC],config['mcLeg'][iMC],"F");
+		#L.AddEntry(mcN,"MG (LO/LO)","F");
+		if options.table:
+			OutROOT.cd()
+			mcR[iMC].Write()
 	L.Draw();
 	lat=ROOT.TLatex()
 	lat.SetNDC()
@@ -479,7 +499,7 @@ for cut in config['Cut']:
 		a=raw_input("Press Enter");
 	extensions=["pdf","root","png"]
 	for ext in extensions:
-		name= config["Out"]+("/C_Ht_%s_nJets_%s_ptJet_%s."%cut + ext)
+		name= config["Out"]+("/C_"+FixNames(config['OutName'],cut) + "."+ext)
 		print "Going to save '"+ name+"'"
 		C.SaveAs( name )	
 	if options.table:

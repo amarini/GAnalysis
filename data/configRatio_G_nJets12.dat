@@ -67,6 +67,7 @@ ylog 0
 
 xtitle P_{T}^{@gamma}
 ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{@gamma}}/@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{@gamma}}
+text |Y^{@gamma}|<1.4
 
 mc 1
 table 1

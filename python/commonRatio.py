@@ -54,8 +54,20 @@ def ReadRatioDat( inputDat ):
 					R['eventList2HistoName']=parts[i].split('=')[1]
 		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
 		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
-		elif parts[0] == 'mcName1': R["mcName1"]=parts[1]
-		elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
+		elif parts[0] == 'mcName1' or parts[0]=='mcName2' or parts[0]=='mcLeg': 
+			if parts[0] not in R: R[parts[0]]=[]
+			R[parts[0]].append(parts[1])
+		elif parts[0] == 'mcLO1' or parts[0] == 'mcLO2':
+			if parts[0] not in R: R[parts[0]]=[]
+			R[ parts[0] ].append( float(parts[1]) )
+		elif parts[0] == 'NoMC':
+			R['mcName1']=[]
+			R['mcName2']=[]
+			R['mcLeg']=[]
+			R['mcLO1']=[]
+			R['mcLO2']=[]
+		#elif parts[0] == 'mcName1': R["mcName1"]=parts[1]
+		#elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
 		elif parts[0] == 'cov1': R["cov1"]=parts[1]
 		elif parts[0] == 'cov2': R["cov2"]=parts[1]
 		elif parts[0] == 'NoCut':
@@ -86,6 +98,8 @@ def ReadRatioDat( inputDat ):
 			R['Down'].append(parts[2])
 		elif parts[0] == 'Out':
 			R['Out']=parts[1]
+		elif parts[0] == 'OutName':
+			R['OutName']=parts[1]
 		elif parts[0] == 'PrePendSyst':
 			K =  parts[1:]
 			R['PrePendSyst']=[]
@@ -109,8 +123,6 @@ def ReadRatioDat( inputDat ):
 				R[ key ] = tmp[ key ]
 		elif parts[0] == 'mc' or parts[0] == 'table' or parts[0] == 'StatCorr': ## set mc in the config file
 			R[ parts[0] ] = int(parts[1])
-		elif parts[0] == 'mcLO1' or parts[0] == 'mcLO2':
-			R[ parts[0] ] = float(parts[1])
 		else:
 			if len(parts)>0 and parts[0].replace(' ','').replace('\t','') != '' :print "Malformed line (probably ignored):"+l
 	   except: 
@@ -124,8 +136,18 @@ def ReadRatioDat( inputDat ):
 		R['xlog']=0
 	if 'ylog' not in R:
 		R['ylog']=0
-	if 'mcLO1' not in R: R['mcLO1']=1.
-	if 'mcLO2' not in R: R['mcLO2']=1.
+	if 'OutName' not in R:
+		R['OutName']="Ht_${.0fHT}_nJets_${.0fNJETS}_ptJet_${.0fPTJ}"
+	if 'mcLO1' not in R: R['mcLO1']=[1.]
+	if 'mcLO2' not in R: R['mcLO2']=[1.]
+	if 'mcLeg' not in R: R['mcLeg']=["MG"]
+	if len(R['mcName1'] ) != len(R['mcName2']): print "Config error in Len mc Name"
+	for i in range(len(R['mcLO1']),len(R['mcName1'])):
+		R['mcLO1'].append(1.)
+	for i in range(len(R['mcLO2']),len(R['mcName2'])):
+		R['mcLO2'].append(1.)
+	for i in range(len(R['mcLeg']),len(R['mcName1'])):
+		R['mcLeg'].append("XXX")
 	return R;
 
 def makeBands(h1,h2,type="Mean"):
@@ -370,6 +392,7 @@ def ConvertToLatex(T):
 
 
 def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
+		''' Type are: \n\t+ for a double band wrt to the content of UP/DN\n\t: for a single band  wrt to the content\n\t. for ignore\n\t% for a fixed %\n\t& for an absolute syst error wrt to the content (content is the syst itself and not mean+-syst)\n\ts error is the syst'''
 		if hns1=='None' and n==0: typ='.'+typ[1]
 		if hns1=='None' and n==1: typ=typ[0]+'.'
 
@@ -397,7 +420,7 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 			h1first.Scale(1./config["lumi%d"%(n+1)])
 			s1=makeBands(h1,h1first,"First")
 		elif typ[n]=='.':
-			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
 			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,0);
 		elif typ[n]=='&': #content of the histo is the error itsef
 			h1nerr=FixNames(hns1,cut,config["PrePendSyst"][n]+syst)
@@ -405,7 +428,7 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 			h1err=file1.Get(h1nerr)
 			h1err=ConvertToTargetTH1(h1,h1err)
 			h1err.Scale(1./config["lumi%d"%(n+1)])
-			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
 			if 'Merge%d'%(n+1) in config:
 				s1=MergeBins(config['Merge%d'%(n+1)],s1)
 			for i in range(1,s1.GetNbinsX()+1): 
@@ -413,7 +436,20 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 				s1.SetBinError(i,h1err.GetBinContent(i) );
 		elif typ[n]=='%': #content of the histo is the error itsef
 			e=float(hns1)/100.
-			s1=h1.Clone("syst%d"%(n+1)+syst) #h1 is already scaled
+			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
 			for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1.GetBinContent(i) * e );
+		elif typ[n]=='s':
+			h1nerr=FixNames(hns1,cut,config["PrePendSyst"][n]+syst)
+			print "Going to get Histo "+ h1nerr 
+			h1err=file1.Get(h1nerr)
+			h1err=ConvertToTargetTH1(h1,h1err)
+			h1err.Scale(1./config["lumi%d"%(n+1)])
+			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
+			if 'Merge%d'%(n+1) in config:
+				s1=MergeBins(config['Merge%d'%(n+1)],s1)
+			for i in range(1,s1.GetNbinsX()+1): 
+				s1.SetBinError(i,h1err.GetBinError(i) );
+			return s1
 		else: print "error on type "+str(n)+" of "+typ	
+		s1.SetName("syst%d_"%(n+1)+syst)
 		return s1

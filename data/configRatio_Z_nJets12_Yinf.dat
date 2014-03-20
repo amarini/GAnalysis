@@ -1,12 +1,12 @@
 ### Z ###
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
-file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_njets3plus_jet30_V00-14_modJetLepVeto.root
+file1 ../Z/h_Zpt_hist_Zpt40_BY_Inf_njets2plus_jet30_V00-14_modJetLepVeto.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
-file2 ../Z/h_Zpt_hist_Zpt100_BY_1_40_njets2plus_jet30_V00-14_modJetLepVeto.root
+file2 ../Z/h_Zpt_hist_Zpt40_BY_Inf_jet30_V00-14_modJetLepVeto.root
 #eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi2 1
 
@@ -20,7 +20,7 @@ histoName2 hData_leptons_combined
 
 StatCorr 1
 ### Load cuts
-Cut Ht=0 nJets=2 ptJet=30
+Cut Ht=0 nJets=1 ptJet=30
 #Cut Ht=300 nJets=1 ptJet=30
 #Cut Ht=0 nJets=3 ptJet=30
 #
@@ -32,6 +32,9 @@ mcName1 h_SH_GEN_leptons_combined
 mcName2 h_SH_GEN_leptons_combined
 mcLeg Sherpa
 
+#mcName1 h_BH_GEN_leptons_combined
+#mcName2 h_BH_GEN_leptons_combined
+#mcLeg BlackHat
 ### syst
 Up UP UP
 Down DN DN
@@ -45,6 +48,7 @@ PrePendSyst "_" "_"
 
 #Out /afs/cern.ch/user/a/amarini/work/V00-13/
 Out ../V00-14/Z/
+OutName Ht_${.1fHT}_nJets_1.0_JPt_${.0fPTJ}_Y_Inf
 
 # + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
 Syst JES && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
@@ -70,8 +74,8 @@ yaxis 0.0 1.0
 xlog 1
 ylog 0
 xtitle P_{T}^{Z}
-ytitle @frac{d@sigma(N_{jets}@geq3)}{dp_{T}^{Z}}/@frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}
-text |Y^{Z}|<1.4
+ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}/@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{Z}}
+text ~
 
 mc 1
 table 1
