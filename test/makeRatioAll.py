@@ -8,10 +8,12 @@ dats=["data/configRatio.dat",
 	"data/configRatio_NJets2.dat",
 	"data/configRatio_HT300.dat",
 	"data/configRatio_G_nJets12.dat",
+	"data/configRatio_G_nJets23.dat",
 	"data/configRatio_Z_nJets12.dat",
 	"data/configRatio_Z_nJets23.dat",
 	"data/configRatio_Z_nJets12_Yinf.dat",
-	"data/configRatio_Rebinned.dat"
+	"data/configRatio_doubleRatio.dat",
+	"data/configRatio_Rebinned.dat",
 		]
 
 for dat in dats:

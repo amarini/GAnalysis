@@ -199,12 +199,11 @@ for cut in config['Cut']:
 			db=math.sqrt(e2**2-e1**2)
 		if a+b >0:
 			r=a/(a+b)
+			dr = math.sqrt( ( (b * da)**2 + (a * db )**2 ) / (a+b)**4)
+			#dr=r*math.sqrt( db**2/(a+b)**2 + b**2/(a**2 * (a+b)**2)) 
 		else :
 			r=0
-		if a==0 or a+b==0:
 			dr=1
-		else:
-			dr=r*math.sqrt( db**2/(a+b)**2 + b**2/(a**2 * (a+b)**2)) 
 		if r> 0 and math.fabs(R.GetBinContent(i) - r)/r >0.02 : 
 			print "Error in ratio from different computations"
 		R.SetBinError(i,dr)

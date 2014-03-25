@@ -29,6 +29,7 @@ sys.path.insert(0,os.getcwd()+'/python')
 from common import *
 from commonRatio import MergeBins,ReadRatioDat
 from commonRatio import sqrtSum,makeBands,Ratio
+from commonRatio import NiceRange 
 
 if(DEBUG>0): print "--> load dat file: "+options.inputDat
 
@@ -349,8 +350,15 @@ for jpt in [30.0,300.0]:
 
 
 		BinsToMerge=[(750,1000)]
+		Range=(99.99,1093.)
+		if HtCuts[h] >250: Range= (99.99,1093)
+		elif jpt > 250: Range= (197.0,1093)
+
 		H=MergeBins(BinsToMerge,H)
 		H_TOT=MergeBins(BinsToMerge,H_TOT)
+
+		H     = NiceRange(H,Range,0.5,0.15)
+		H_TOT = NiceRange(H_TOT,Range,0.5,0.15)
 
 		H.SetMarkerStyle(20)
 		H.SetMarkerColor(ROOT.kBlack)
@@ -365,24 +373,32 @@ for jpt in [30.0,300.0]:
 
 
 		H.Draw("P")
-		H.GetXaxis().SetRangeUser(100,1000)
-		H_TOT.GetXaxis().SetRangeUser(100,1000)
+		H.GetXaxis().SetRangeUser(Range[0],Range[1])
+		H_TOT.GetXaxis().SetRangeUser(Range[0],Range[1])
 		H.GetXaxis().SetNoExponent()
 		H.GetXaxis().SetMoreLogLabels()
 		#H.GetYaxis().SetNoExponent()
 		#H.GetYaxis().SetMoreLogLabels()
-		H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
-		H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
+		#H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
+		#H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
+
+		H.GetYaxis().SetTitle("L d#sigma/dp_{T} [GeV^{-1}]")
+		H.GetXaxis().SetTitle("dp_{T}^{#gamma} [GeV]")
+		H.GetYaxis().SetTitleOffset(1.2)
+		H.GetXaxis().SetTitleOffset(1.2)
+
 		H_TOT.Draw("E2 SAME");
 		H.Draw("AXIS X+ Y+ SAME")
 
 		if doMC:
 			H_MC=MergeBins(BinsToMerge,H_MC)
-			H_MC.GetXaxis().SetRangeUser(100,1000)
+			H_MC = NiceRange(H_MC,Range,0.5,0.15)
+
+			H_MC.GetXaxis().SetRangeUser(Range[0],Range[1])
 			H_MC.SetLineColor(ROOT.kBlue+2)
 			H_MC.SetLineWidth(2)
 			H_MC.SetLineStyle(ROOT.kDashed)
-			H_MC.Draw("HIST SAME");
+			H_MC.Draw("HIST SAME ][");
 
 
 		H.Draw("P SAME") # redraw on top
@@ -429,7 +445,7 @@ for jpt in [30.0,300.0]:
 
 		if doMC:
 			R_MC=Ratio(H,H_MC);
-			R_MC.Draw("HIST SAME");
+			R_MC.Draw("HIST SAME ][");
 
 		R_H.Draw("P SAME") # redraw on top
 		C4.RedrawAxis()

@@ -496,3 +496,39 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 		else: print "error on type "+str(n)+" of "+typ	
 		s1.SetName("syst%d_"%(n+1)+syst)
 		return s1
+
+def NiceRange(h,Range,factor=0.2,factor2=0.2):
+	''' Change Bins of histograms in order to add an empty (smaller by factor) bin at the begin and end, within the given range\n
+	'''
+	listOfBins=ROOT.Bins()
+	listOfBins.nBins=0;
+	l=[]
+	#use List
+	for iBin in range(1,h.GetNbinsX()+2): ## bin boundaries
+		if Range[0] <= h.GetBinLowEdge(iBin) and h.GetBinLowEdge(iBin) <= Range[1]:
+			l.append( h.GetBinLowEdge(iBin) )
+	l = [ l[0] - (l[1]-l[0])*factor ]+ l
+	l += [ l[-1] + (l[-1]-l[-2]) *factor2 ] 
+	# prepare ROOT structure
+	for binBound in l:
+			listOfBins.PtBins[ listOfBins.nBins ] = binBound
+			listOfBins.nBins += 1
+	listOfBins.nBins -= 1
+
+	h2 = ROOT.TH1D(h.GetName()+"_nicerange",h.GetTitle(),listOfBins.nBins,listOfBins.PtBins)
+	for iBin in range(1,h.GetNbinsX()+1):
+		if Range[0]<h.GetBinCenter(iBin) and h.GetBinCenter(iBin) < Range[1]:
+			h2.SetBinContent(h2.FindBin(h.GetBinCenter(iBin)), h.GetBinContent( iBin  ) )
+			h2.SetBinError(h2.FindBin(h.GetBinCenter(iBin)), h.GetBinError( iBin  ) )
+	h2.SetLineColor( h.GetLineColor())
+	h2.SetLineStyle( h.GetLineStyle())
+	h2.SetLineWidth( h.GetLineWidth())
+	h2.SetFillColor( h.GetFillColor())
+	h2.SetFillStyle( h.GetFillStyle())
+	h2.SetMarkerColor( h.GetMarkerColor())
+	h2.SetMarkerStyle( h.GetMarkerStyle())
+	h2.GetXaxis().SetTitle(h.GetXaxis().GetTitle())
+	h2.GetYaxis().SetTitle(h.GetYaxis().GetTitle())
+	return h2
+
+
