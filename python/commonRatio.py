@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch()
 DEBUG=1
 ### READ DAT#########
 def ReadRatioDat( inputDat ):
+	'''Read a Ratio Dat File. '''
 	f=open( inputDat,"r" )
 	R={}
 	R['Cut']=[]
@@ -179,6 +180,7 @@ def sqrtSum(h1,h2,epsilon=0.0001):
 		h1.SetBinError(i, e)
 
 def Ratio(H,H1,NoErrorH=False,FullCorr=False):
+	''' Make Ratio between two histograms: H1/H\n\tNoErroron H -> Ratio wrt data,\n\t FullCorr=consider error as fully correlated'''
 	R=H1.Clone(H1.GetName()+"_ratio")
 	hTmp=H.Clone("tmp")
 	#in order to account error properly in ratios
@@ -317,7 +319,7 @@ ROOT.gROOT.ProcessLine("struct Bins{ \
 
 from ROOT import Bins
 
-def MergeBins(l,h):
+def MergeBins(l,h,cov=None):
 	#l=[ (Bin0,Bin1),(Bin0,Bin1)]
 	if len(l)==0: return h
 
@@ -326,15 +328,27 @@ def MergeBins(l,h):
 	for iBin in range(1,h.GetNbinsX()+2):
 		isVeto=False
 		for bound in l:
-			if not( bound[0]<=h.GetBinLowEdge(iBin) and h.GetBinLowEdge(iBin)<bound[1]):
+			if iBin==1 and DEBUG >1: print "Veto Bound:",bound[0],bound[1] ### DEBUG
+			if ( bound[0]<=h.GetBinLowEdge(iBin) and h.GetBinLowEdge(iBin)<bound[1]):
 				isVeto=True
-		if isVeto:
+		if DEBUG>1:print "Merge: iBin=",iBin,"Bound=",h.GetBinLowEdge(iBin),"is  a valid bin=",not isVeto
+		if not isVeto:
 			listOfBins.PtBins[listOfBins.nBins] = h.GetBinLowEdge(iBin)
 			listOfBins.nBins += 1
 	listOfBins.nBins -= 1
 	h2 = ROOT.TH1D(h.GetName()+"_rebin",h.GetTitle(),listOfBins.nBins,listOfBins.PtBins)
-	print "Merging"
-	for iBin in range(1,h.GetNbinsX()+1):
+
+	#doCov= (cov==None)
+	if isinstance(cov,ROOT.TH2D) or isinstance(cov,ROOT.TH2F): doCov=True
+	else: doCov=False
+
+	if cov==None: doCov=False
+	##########################
+	#doCov=False
+	##########################
+	if not doCov:
+	   print "Merging No Cov"
+	   for iBin in range(1,h.GetNbinsX()+1):
 		Bin2=h2.FindBin( h.GetBinCenter(iBin) )
 		w1=h.GetBinWidth( iBin )
 		w2=h2.GetBinWidth( Bin2 )
@@ -359,6 +373,35 @@ def MergeBins(l,h):
 
 		h2.SetBinContent(Bin2, h2.GetBinContent(Bin2)/w2)
 		h2.SetBinError(Bin2, h2.GetBinError(Bin2)/w2)
+	else: #cov!=NULL
+		print "Merging Using Cov"
+		cov2 = ROOT.TH2D(cov.GetName()+"_rebin",h.GetTitle(),listOfBins.nBins,listOfBins.PtBins, listOfBins.nBins,listOfBins.PtBins)
+		for iBin in range(1,h.GetNbinsX()+1):
+		     iBin2=h2.FindBin( h.GetBinCenter(iBin) )
+		     w1=h.GetBinWidth( iBin )
+		     w2=h2.GetBinWidth( iBin2 )
+
+		     #e1=h.GetBinError( iBin ) * w1
+		     #e2=h2.GetBinError( Bin2 ) * w2
+		     c1=h.GetBinContent( iBin ) * w1
+		     c2=h2.GetBinContent( iBin2 ) * w2
+
+		     h2.SetBinContent(iBin2, c1 + c2  ) 
+
+		     for jBin in range(1,h.GetNbinsX()+1):
+			     jBin2 = h2.FindBin( h.GetBinCenter(jBin) ) 
+		             v1=h.GetBinWidth( jBin )
+		             v2=h2.GetBinWidth( jBin2 )
+			     cov2.SetBinContent(iBin2,jBin2, cov2.GetBinContent(iBin2,jBin2)*w2*v2 + cov.GetBinContent(iBin,jBin) * w1 * v1 )
+			     cov2.SetBinContent(iBin2,jBin2, cov2.GetBinContent(iBin2,jBin2) / (w2*v2))
+
+
+		     h2.SetBinContent(iBin2, h2.GetBinContent(iBin2)/w2)
+
+		for iBin2 in range(1,h2.GetNbinsX()+1):
+		     h2.SetBinError(iBin2, math.sqrt(cov2.GetBinContent(iBin2,iBin2) ))
+		### END COV
+
 
 	if DEBUG>1:
 	   for iBin2 in range(1,h2.GetNbinsX()+1):

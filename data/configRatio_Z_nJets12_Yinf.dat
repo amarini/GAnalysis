@@ -32,9 +32,10 @@ mcName1 h_SH_GEN_leptons_combined
 mcName2 h_SH_GEN_leptons_combined
 mcLeg Sherpa
 
-#mcName1 h_BH_GEN_leptons_combined
-#mcName2 h_BH_GEN_leptons_combined
-#mcLeg BlackHat
+mcName1 h_BH_rebinned_mumu
+mcName2 h_BH_rebinned_mumu
+mcLeg BlackHat
+
 ### syst
 Up UP UP
 Down DN DN

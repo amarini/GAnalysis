@@ -78,16 +78,32 @@ for cut in config['Cut']:
 	h2Raw=file2.Get(hn2)
 	print "Taken Histo "+ h1Raw.GetName()
 	print "Taken Histo "+ h2Raw.GetName()
-	h1Raw.Scale(1./config['lumi1'])
-	h2Raw.Scale(1./config['lumi2'])
 
 	# MERGE BINS IF NECESSARY
 	if 'Merge1' in config:
 		#print "Bins not merged"
-		h1Raw=MergeBins(config['Merge1'],h1Raw)
+		if 'cov1' in config:
+			cov1Name=FixNames(config['cov1'],cut,'')
+			print "Getting cov1 "+ cov1Name
+			cov1=file1.Get(cov1Name)
+		else:
+			print "no cov1"
+			cov1=None
+		h1Raw=MergeBins(config['Merge1'],h1Raw,cov1)
+
 	if 'Merge2' in config:
 		#print "Bins not merged"
-		h2Raw=MergeBins(config['Merge2'],h2Raw)
+		if 'cov2' in config:
+			cov2Name=FixNames(config['cov2'],cut,'')
+			print "Getting cov2 "+ cov2Name
+			cov2=file2.Get(cov2Name)
+		else:
+			cov2=None
+
+		h2Raw=MergeBins(config['Merge2'],h2Raw,cov2)
+
+	h1Raw.Scale(1./config['lumi1'])
+	h2Raw.Scale(1./config['lumi2'])
 
 	#k=ROOT.TCanvas("k","k")
 	#h2Raw.Draw("HIST");
@@ -223,6 +239,7 @@ for cut in config['Cut']:
 		mcR[-1].SetLineStyle( styles[iMC])
 
 	if options.table:
+		print "Going to open ROOT File:",  config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root"
 		OutROOT=ROOT.TFile.Open( config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root" , "RECREATE")
 		OutROOT.cd()
 		R.Write()
@@ -503,6 +520,7 @@ for cut in config['Cut']:
 		print "Going to save '"+ name+"'"
 		C.SaveAs( name )	
 	if options.table:
+		name= config["Out"]+("/C_"+FixNames(config['OutName'],cut) + ".tex")
 		txt = open(name,"w")
 		txt.write( ConvertToLatex(Table) )
 		txt.write("\n")

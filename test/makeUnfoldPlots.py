@@ -27,6 +27,8 @@ sys.path.insert(0,os.getcwd())
 print "inserting in path cwd/python"
 sys.path.insert(0,os.getcwd()+'/python')
 from common import *
+from commonRatio import MergeBins,ReadRatioDat
+from commonRatio import sqrtSum,makeBands,Ratio
 
 if(DEBUG>0): print "--> load dat file: "+options.inputDat
 
@@ -71,44 +73,44 @@ file= ROOT.TFile.Open(inputFileNameUnfold)
 #if doMC:
 #	fileMC=ROOT.TFile.Open(inputFileMC)
 
-def makeBands(h1,h2,type="Mean"):
-	H=h1.Clone(h1.GetName()+"_band")
-	for i in range(1,h1.GetNbinsX()+1):
-		if type=="First":
-			H.SetBinContent(i, h1.GetBinContent(i))
-			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) ))
-		else: #type = "Mean"
-			H.SetBinContent(i, (h1.GetBinContent(i)+h2.GetBinContent(i) )/2.0)
-			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) )/2.0)
-	return H
+#def makeBands(h1,h2,type="Mean"):
+#	H=h1.Clone(h1.GetName()+"_band")
+#	for i in range(1,h1.GetNbinsX()+1):
+#		if type=="First":
+#			H.SetBinContent(i, h1.GetBinContent(i))
+#			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) ))
+#		else: #type = "Mean"
+#			H.SetBinContent(i, (h1.GetBinContent(i)+h2.GetBinContent(i) )/2.0)
+#			H.SetBinError  (i, math.fabs(h1.GetBinContent(i)-h2.GetBinContent(i) )/2.0)
+#	return H
 
-epsilon=0.0001
-def sqrtSum(h1,h2):
-	for i in range (1,h2.GetNbinsX()+1):
-		if h1.GetBinError(i)  > epsilon and h2.GetBinError(i)  > epsilon:
-			e=math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 )
-		elif h1.GetBinError(i) <= epsilon and h2.GetBinError(i) <= epsilon:
-			e=epsilon
-		elif h1.GetBinError(i) > epsilon:
-			e=h1.GetBinError(i)
-		elif h2.GetBinError(i) > epsilon:
-			e=h2.GetBinError(i)
-		elif ROOT.TMath.IsNaN( h1.GetBinError(i) ) or ROOT.TMath.IsNaN( h2.GetBinError(i) ):
-			e=epsilon
-		else:
-			print "-- assertion error -- %f -- %f -- %f"%(h1.GetBinError(i),h2.GetBinError(i),epsilon)
-			e=epsilon
-		h1.SetBinError(i, e)
+#epsilon=0.0001
+#def sqrtSum(h1,h2):
+#	for i in range (1,h2.GetNbinsX()+1):
+#		if h1.GetBinError(i)  > epsilon and h2.GetBinError(i)  > epsilon:
+#			e=math.sqrt( h1.GetBinError(i)**2 + h2.GetBinError(i)**2 )
+#		elif h1.GetBinError(i) <= epsilon and h2.GetBinError(i) <= epsilon:
+#			e=epsilon
+#		elif h1.GetBinError(i) > epsilon:
+#			e=h1.GetBinError(i)
+#		elif h2.GetBinError(i) > epsilon:
+#			e=h2.GetBinError(i)
+#		elif ROOT.TMath.IsNaN( h1.GetBinError(i) ) or ROOT.TMath.IsNaN( h2.GetBinError(i) ):
+#			e=epsilon
+#		else:
+#			print "-- assertion error -- %f -- %f -- %f"%(h1.GetBinError(i),h2.GetBinError(i),epsilon)
+#			e=epsilon
+#		h1.SetBinError(i, e)
 
-def Ratio(H,H1,NoErrorH=False):
-	R=H1.Clone(H1.GetName()+"_ratio")
-	hTmp=H.Clone("tmp")
-	#in order to account error properly in ratios
-	if NoErrorH:
-		for i in range(1,hTmp.GetNbinsX()+1):
-			hTmp.SetBinError(i,0)
-	R.Divide(hTmp)
-	return R
+#def Ratio(H,H1,NoErrorH=False):
+#	R=H1.Clone(H1.GetName()+"_ratio")
+#	hTmp=H.Clone("tmp")
+#	#in order to account error properly in ratios
+#	if NoErrorH:
+#		for i in range(1,hTmp.GetNbinsX()+1):
+#			hTmp.SetBinError(i,0)
+#	R.Divide(hTmp)
+#	return R
 
 #LOOP OVER THE BINs
 for jpt in [30.0,300.0]:
@@ -339,3 +341,97 @@ for jpt in [30.0,300.0]:
 
 		R_H.Draw("P SAME") # redraw on top
 		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
+
+		#------------ NICE CANVAS ----------------------
+		C3=ROOT.TCanvas("C3","C3")
+		C3.SetLogx()
+		C3.SetLogy()
+
+
+		BinsToMerge=[(750,1000)]
+		H=MergeBins(BinsToMerge,H)
+		H_TOT=MergeBins(BinsToMerge,H_TOT)
+
+		H.SetMarkerStyle(20)
+		H.SetMarkerColor(ROOT.kBlack)
+		H.SetLineColor(ROOT.kBlack)
+
+		H_TOT.SetLineColor(ROOT.kOrange)
+		H_TOT.SetLineStyle(1)
+		H_TOT.SetLineWidth(2)
+		#H_TOT.SetFillStyle(0);
+		H_TOT.SetFillColor(ROOT.kOrange-4);
+		H_TOT.SetFillStyle(3001);
+
+
+		H.Draw("P")
+		H.GetXaxis().SetRangeUser(100,1000)
+		H_TOT.GetXaxis().SetRangeUser(100,1000)
+		H.GetXaxis().SetNoExponent()
+		H.GetXaxis().SetMoreLogLabels()
+		#H.GetYaxis().SetNoExponent()
+		#H.GetYaxis().SetMoreLogLabels()
+		H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
+		H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
+		H_TOT.Draw("E2 SAME");
+		H.Draw("AXIS X+ Y+ SAME")
+
+		if doMC:
+			H_MC=MergeBins(BinsToMerge,H_MC)
+			H_MC.GetXaxis().SetRangeUser(100,1000)
+			H_MC.SetLineColor(ROOT.kBlue+2)
+			H_MC.SetLineWidth(2)
+			H_MC.SetLineStyle(ROOT.kDashed)
+			H_MC.Draw("HIST SAME");
+
+
+		H.Draw("P SAME") # redraw on top
+		## TEXT
+		l.SetNDC()
+		l.SetTextFont(63)
+		l.SetTextSize(30)
+		l.SetTextAlign(22);
+		l.DrawLatex(0.28,.20,"CMS Preliminary")
+		l.SetTextFont(43)
+		l.SetTextSize(24)
+		l.DrawLatex(.28,.15,"#sqrt{s} = 8TeV, #it{L} = 19.7fb^{-1}")
+		## LEGEND
+	
+		if HtCuts[h] == 0:
+			Header="N_{jets} #geq %.0f"%(nJetsCuts[nj])
+		else:
+			Header="H_{T} > %.0f GeV, N_{jets} #geq %.0f"%(HtCuts[h],nJetsCuts[nj])
+			
+		
+		L=ROOT.TLegend(0.70,0.70,.89,.89,Header)
+		L.SetFillStyle(0)
+		L.SetBorderSize(0)
+		L.AddEntry(H,"Data","PL")
+		L.AddEntry(H_TOT,"Stat+Syst","F")
+		if doMC:
+			L.AddEntry(H_MC,"MC")
+
+		L.Draw()
+		C3.RedrawAxis()
+		C3.SaveAs(WorkDir+"plots/C3_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
+		C4=ROOT.TCanvas("C4","C4")
+		C4.SetLogx()
+
+		R_H=Ratio(H,H,NoErrorH=True); R_H.SetMarkerStyle(0)
+		R_TOT=Ratio(H,H_TOT,True);
+
+		R_H.Draw("P")
+		R_H.GetYaxis().SetRangeUser(.5,1.5)
+		R_TOT.Draw("E2 SAME")
+		R_H.Draw("AXIS X+ Y+ SAME")
+		
+		L.Draw("SAME")
+
+		if doMC:
+			R_MC=Ratio(H,H_MC);
+			R_MC.Draw("HIST SAME");
+
+		R_H.Draw("P SAME") # redraw on top
+		C4.RedrawAxis()
+		C4.SaveAs(WorkDir+"plots/C4_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))
+

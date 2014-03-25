@@ -11,6 +11,7 @@ dats=["data/configRatio.dat",
 	"data/configRatio_Z_nJets12.dat",
 	"data/configRatio_Z_nJets23.dat",
 	"data/configRatio_Z_nJets12_Yinf.dat",
+	"data/configRatio_Rebinned.dat"
 		]
 
 for dat in dats:
@@ -31,7 +32,7 @@ for dat in dats:
 
 TMP="/tmp"
 #for Bin in ["Ht_0_nJets_1_ptJet_30","Ht_0_nJets_1_ptJet_300","Ht_0_nJets_3_ptJet_30","Ht_300_nJets_1_ptJet_30"]:
-for Bin in ["Ht_0_nJets_1_ptJet_30","Ht_0_nJets_3_ptJet_30","Ht_300_nJets_1_ptJet_30"]:
+for Bin in ["Ht_0_nJets_1_ptJet_30","Ht_0_nJets_3_ptJet_30","Ht_300_nJets_1_ptJet_30","Rebin_Ht_0_nJets_1_ptJet_30"]:
 
 	tex=open("%s/table_%s.tex"%(TMP,Bin),"w")
 	tex.write("\\documentclass[8pt,landscape]{article}\n\\usepackage[usenames]{color} %used for font color\n \\usepackage{amssymb} %maths\n\\usepackage{amsmath} %maths \n\\usepackage{amsfonts} %mats\n\\usepackage[utf8]{inputenc} %useful to type directly diacritic characters\n\\usepackage{mathrsfs}\n\\usepackage{graphicx} % rotatebox reflectbox\n")
