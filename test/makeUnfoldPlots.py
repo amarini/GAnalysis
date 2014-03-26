@@ -63,6 +63,8 @@ SigPhId=ReadFromDat(config,"SigPhId",[0,0.011],"--> Default SigPhId")
 
 BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
+Lumi = ReadFromDat(config,"Lumi",19.7,"-->Default Lumi")
+
 inputFileNameUnfold=WorkDir + "/UnfoldedDistributions.root"  
 
 #if doMC:
@@ -358,6 +360,8 @@ for jpt in [30.0,300.0]:
 
 		H=MergeBins(BinsToMerge,H)
 		H_TOT=MergeBins(BinsToMerge,H_TOT)
+		H.Scale(1./Lumi)
+		H_TOT.Scale(1./Lumi)
 
 		H     = NiceRange(H,Range,0.5,0.15)
 		H_TOT = NiceRange(H_TOT,Range,0.5,0.15)
@@ -384,7 +388,7 @@ for jpt in [30.0,300.0]:
 		#H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
 		#H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
 
-		H.GetYaxis().SetTitle("L d#sigma/dp_{T} [GeV^{-1}]")
+		H.GetYaxis().SetTitle("d#sigma/dp_{T} [fb^{-1} GeV^{-1}]")
 		H.GetXaxis().SetTitle("dp_{T}^{#gamma} [GeV]")
 		H.GetYaxis().SetTitleOffset(1.2)
 		H.GetXaxis().SetTitleOffset(1.2)
@@ -395,6 +399,7 @@ for jpt in [30.0,300.0]:
 		if doMC:
 			H_MC=MergeBins(BinsToMerge,H_MC)
 			H_MC = NiceRange(H_MC,Range,0.5,0.15)
+			H_MC.Scale(1./Lumi)
 
 			H_MC.GetXaxis().SetRangeUser(Range[0],Range[1])
 			H_MC.SetLineColor(ROOT.kBlue+2)
@@ -409,10 +414,10 @@ for jpt in [30.0,300.0]:
 		l.SetTextFont(63)
 		l.SetTextSize(30)
 		l.SetTextAlign(22);
-		l.DrawLatex(0.28,.20,"CMS Preliminary")
+		l.DrawLatex(0.32,.20,"CMS Preliminary")
 		l.SetTextFont(43)
 		l.SetTextSize(24)
-		l.DrawLatex(.28,.15,"#sqrt{s} = 8TeV, #it{L} = 19.7fb^{-1}")
+		l.DrawLatex(.32,.15,"#sqrt{s} = 8TeV, #it{L} = 19.7fb^{-1}")
 		## LEGEND
 	
 		if HtCuts[h] == 0:
@@ -433,7 +438,7 @@ for jpt in [30.0,300.0]:
 		C3.RedrawAxis()
 		C3.SaveAs(WorkDir+"plots/C3_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
 		C4=ROOT.TCanvas("C4","C4",600,300)
-		C4.SetLeftMargin(0.2)
+		#C4.SetLeftMargin(0.2)
 		C4.SetRightMargin(0.03)
 		C4.SetTopMargin(0.02)
 		C4.SetBottomMargin(0.2)
