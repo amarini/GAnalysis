@@ -134,6 +134,10 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 		cutSig.JetPtThreshold=jetPt;
 		cutBkg=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],Ht,8000,BkgPhId[0],BkgPhId[1],nJets);
 		cutBkg.JetPtThreshold=jetPt;
+
+		cutSigTemplates=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],0,8000,SigPhId[0],SigPhId[1],1);
+		cutBkgTemplates=ROOT.Analyzer.CUTS(PtCuts[p],PtCuts[p+1],0,8000,BkgPhId[0],BkgPhId[1],1);
+
 		if( PtCuts[p] <0 ): 
 			Bin+=1		
 			continue
@@ -144,11 +148,11 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			if(len(PtToFit)==0): PtToFit.append(PtCuts[p]);
 			PtToFit.append(PtCuts[p+1])
 		if( Bin == BkgBin ):
-			BkgTemplate.append(file.Get("photoniso_"+cutBkg.name()  ) )
+			BkgTemplate.append(file.Get("photoniso_"+cutBkgTemplates.name()  ) )
 			if(len(PtBkg)==0): PtBkg.append(PtCuts[p]);
 			PtBkg.append(PtCuts[p+1])
 		if( Bin == SigBin ):
-			SigTemplate.append(file.Get("photonisoRC_"+cutSig.name() ) )
+			SigTemplate.append(file.Get("photonisoRC_"+cutSigTemplates.name() ) )
 			if(len(PtSig)==0): PtSig.append(PtCuts[p]);
 			PtSig.append(PtCuts[p+1])
 		if doShapeCorrFit:
@@ -219,19 +223,6 @@ def FIT(file,nJets=1,Ht=0,jetPt=30.,doShapeCorrFit=0,fileMC=ROOT.TFile.Open("/de
 			o_txt=open(WorkDir+"/fit.txt","a")
 			o_pars=open(WorkDir+"/fitPars.txt","a")
 
-#	elif nJets == 1 and Ht ==0 and jetPt==30: ## not Job -- can be unified with jobs
-#		o_txt=open(WorkDir+"/fit.txt","w")
-#		o_pars=open(WorkDir+"/fitPars.txt","w")
-#		try:
-#			if options.nJobs<0:
-#				os.remove(WorkDir+"/fitresults.root")
-#			else:
-#				os.remove(WorkDir+"/fitresults_%d_%d.root"%(options.jobId,options.nJobs))
-#		except OSError: print "file doesn't exist: not removed"
-#	else: 
-#		o_txt=open(WorkDir+"/fit.txt","a")
-#		o_pars=open(WorkDir+"/fitPars.txt","a")
-	
 	for p in range(0,len(PtToFit)-1):
 	   try:
 		if jpt > 250 and PtToFit[p]<200:continue; ##avoid trying to fit: no bkg
