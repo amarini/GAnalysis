@@ -344,7 +344,9 @@ for jpt in [30.0,300.0]:
 		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
 
 		#------------ NICE CANVAS ----------------------
-		C3=ROOT.TCanvas("C3","C3")
+		C3=ROOT.TCanvas("C3","C3",600,500)
+		C3.SetTopMargin(0.06)
+		C3.SetRightMargin(0.03)
 		C3.SetLogx()
 		C3.SetLogy()
 
@@ -430,7 +432,11 @@ for jpt in [30.0,300.0]:
 		L.Draw()
 		C3.RedrawAxis()
 		C3.SaveAs(WorkDir+"plots/C3_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
-		C4=ROOT.TCanvas("C4","C4")
+		C4=ROOT.TCanvas("C4","C4",600,300)
+		C4.SetLeftMargin(0.2)
+		C4.SetRightMargin(0.03)
+		C4.SetTopMargin(0.02)
+		C4.SetBottomMargin(0.2)
 		C4.SetLogx()
 
 		R_H=Ratio(H,H,NoErrorH=True); R_H.SetMarkerStyle(0)
