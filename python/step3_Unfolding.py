@@ -242,23 +242,38 @@ def Loop(systName=""):
 		cutsSig.JetPtThreshold=JetPtThr[jpt]
 
 		## TAKE MATRIX & HISTO FOR REPSONSE MATRIX
+		systNameForMatrix=systName
+		if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or  \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.FIT) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIUP) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.LUMIDN) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.JESUP) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.JESDN) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEUP) or \
+			systName == ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEDN):
+			systNameForMatrix=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
+
+
 		if systName != ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD):
-			#M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			print "Going to Get: MC" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto
-			M=fRootMC.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto)
-			#G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			print "Going to Get: MC" + "gammaPtGEN_"+cutsSig.name()+systNameForHisto
-			G=fRootMC.Get("gammaPtGEN_"+cutsSig.name()+systNameForHisto)
-			#R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForHisto)
-			print "Going to Get: MC" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto
-			R=fRootMC.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto)
+			#M=fRootMC.Get("gammaPt_MATRIX_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForMatrix)
+			print "Going to Get: MC" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForMatrix
+			M=fRootMC.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForMatrix)
+			#G=fRootMC.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForMatrix)
+			print "Going to Get: MC" + "gammaPtGEN_"+cutsSig.name()+systNameForMatrix
+			G=fRootMC.Get("gammaPtGEN_"+cutsSig.name()+systNameForMatrix)
+			#R=fRootMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%.0f"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]) + systNameForMatrix)
+			print "Going to Get: MC" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForMatrix
+			R=fRootMC.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForMatrix)
 		else:
-			print "Going to Get: MC2" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto
-			M=fRootMC2.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForHisto)
-			print "Going to Get: MC2" + "gammaPtGEN_"+cutsSig.name()+systNameForHisto
-			G=fRootMC2.Get("gammaPtGEN_"+cutsSig.name()+systNameForHisto)
-			print "Going to Get: MC2" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto
-			R=fRootMC2.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForHisto)
+			print "Going to Get: MC2" + "gammaPt_MATRIX_"+cutsSig.name()+systNameForMatrix
+			M=fRootMC2.Get("gammaPt_MATRIX_"+cutsSig.name()+systNameForMatrix)
+			print "Going to Get: MC2" + "gammaPtGEN_"+cutsSig.name()+systNameForMatrix
+			G=fRootMC2.Get("gammaPtGEN_"+cutsSig.name()+systNameForMatrix)
+			print "Going to Get: MC2" + "gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForMatrix
+			R=fRootMC2.Get("gammaPt_RECO_UNFOLD_"+cutsSig.name()+systNameForMatrix)
 
 		try:
 			if M==None: print "ERROR Matrix=NONE"
