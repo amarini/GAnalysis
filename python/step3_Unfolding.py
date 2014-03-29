@@ -212,7 +212,15 @@ def Loop(systName=""):
 			else : er=0
 			## TAKE HISTO WITH YIELDS
 			systNameForHisto=systName
-			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) or systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD): 
+			if systName == ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE)  or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE) or  \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.PUUP) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.PUDN) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN) or \
+					systName == ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD): 
 				systNameForHisto=ROOT.Analyzer.SystName(ROOT.Analyzer.NONE)
 
 			cutsSig=ROOT.Analyzer.CUTS(PtCuts2_tmp[p],PtCuts2_tmp[p+1],HtCuts[h],8000.,SigPhId[0],SigPhId[1],int(nJetsCuts[nj]) )
@@ -364,6 +372,9 @@ Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.SIGSHAPE))
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BKGSHAPE))
 #
 Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.BIAS))
+#ESCALE
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEUP))
+Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEDN))
 
 if options.inputDatMC2 != "":
 	Loop(ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD) )
