@@ -814,9 +814,21 @@ void Analyzer::Smear()
 	case PUUP: 
 		PUWeight=PUWeightSysUp;
 		//TODO -- PUHLT
+			PUWeightHLT_Photon150=PUWeightHLT_Photon150SysUp;
+			PUWeightHLT_Photon135=PUWeightHLT_Photon135SysUp;
+			PUWeightHLT_Photon90 =PUWeightHLT_Photon90SysUp; 
+			PUWeightHLT_Photon75 =PUWeightHLT_Photon75SysUp; 
+			PUWeightHLT_Photon50 =PUWeightHLT_Photon50SysUp; 
+			PUWeightHLT_Photon30 =PUWeightHLT_Photon30SysUp; 
 		break;
 	case PUDN: 
 		PUWeight=PUWeightSysDown;
+			PUWeightHLT_Photon150=PUWeightHLT_Photon150SysDown;
+			PUWeightHLT_Photon135=PUWeightHLT_Photon135SysDown;
+			PUWeightHLT_Photon90 =PUWeightHLT_Photon90SysDown; 
+			PUWeightHLT_Photon75 =PUWeightHLT_Photon75SysDown; 
+			PUWeightHLT_Photon50 =PUWeightHLT_Photon50SysDown; 
+			PUWeightHLT_Photon30 =PUWeightHLT_Photon30SysDown; 
 		break;
 	case JERUP: 
 		for(int i=0;i<int(jetPt->size());i++){
