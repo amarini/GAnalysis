@@ -210,6 +210,10 @@ public:
    TBranch 	 *b_PUWeightHLT_Photon50,*b_PUWeightHLT_Photon50SysUp,*b_PUWeightHLT_Photon50SysDown;
    TBranch 	 *b_PUWeightHLT_Photon30,*b_PUWeightHLT_Photon30SysUp,*b_PUWeightHLT_Photon30SysDown;
    
+   TBranch        *b_RDWeight;   //!
+   TBranch        *b_RDWeightSysUp;   //!
+   TBranch        *b_RDWeightSysDown;   //!
+
    TBranch        *b_isRealData;   //!
    TBranch        *b_eventNum;   //!
    TBranch        *b_runNum;   //!

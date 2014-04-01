@@ -113,6 +113,8 @@ void Analyzer::SetBranchStatus(){
 	fChain->SetBranchStatus("photon*GEN",1);
 	fChain->SetBranchStatus("jet*GEN",1);
     	fChain->SetBranchStatus("lep*",1);  // activate branchname
+
+	if(useRDWeight) fChain->SetBranchStatus("RDWeight*",1);
 	}
 }
 
@@ -335,7 +337,12 @@ void Analyzer::Loop()
 		}//DATA
 		else
 		ScaleTrigger=1; //MC --> Check What we can do -- & for GEN?
-
+		if(useRDWeight && !isRealData)
+			{
+			PUWeight=RDWeight;
+			PUWeightSysUp=RDWeightSysUp;
+			PUWeightSysDown=RDWeightSysDown;
+			}
 		if(usePUWeightHLT && !isRealData)
 			{
 			if(triggerMenu == "HLT_Photon150_v*") {PUWeight=PUWeightHLT_Photon150; PUWeightSysUp=PUWeightHLT_Photon150SysUp;PUWeightSysDown=PUWeightHLT_Photon150SysDown;}
@@ -583,16 +590,16 @@ for(unsigned int i=0;i < photonPt->size();i++)
 		photonE->at(i)*=sf;
 		break;
 		}
-	if (currentSyst==ESCALEUP)
-		{
-		if (photonPt->at(i)< pt+.3)
-			{
-			//change in photonPt in pt+.3 
-			double sf=(pt+.3 )/  photonPt->at(i) ;
-			photonPt->at(i) *= sf;
-			photonE->at(i) *= sf;
-			}
-		}
+//	if (currentSyst==ESCALEUP) // GAIN SWITCH ? 
+//		{
+//		if (photonPt->at(i)< pt+.3)
+//			{
+//			//change in photonPt in pt+.3 
+//			double sf=(pt+.3 )/  photonPt->at(i) ;
+//			photonPt->at(i) *= sf;
+//			photonE->at(i) *= sf;
+//			}
+//		}
 	}//loop over photons
 }
 

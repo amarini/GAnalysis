@@ -57,6 +57,10 @@ public :
    double 	 PUWeightHLT_Photon75,PUWeightHLT_Photon75SysUp,PUWeightHLT_Photon75SysDown;
    double 	 PUWeightHLT_Photon50,PUWeightHLT_Photon50SysUp,PUWeightHLT_Photon50SysDown;
    double 	 PUWeightHLT_Photon30,PUWeightHLT_Photon30SysUp,PUWeightHLT_Photon30SysDown;
+   double RDWeight;
+   double RDWeightSysUp;
+   double RDWeightSysDown;
+   //TODO HLT+RD
 
 
    TMVA::Reader * tmvaReaderID_Single_Barrel;
@@ -203,6 +207,7 @@ public :
 	Selection *Sel,*Sel2;	
    //
    int usePUWeightHLT;
+   int useRDWeight;
 
    // Weights
    int useReWeights; //configuration
@@ -297,6 +302,7 @@ Analyzer::Analyzer() : fChain(0)
    useEffArea=0;
    effAreaFile="";
    usePUWeightHLT=0;
+   useRDWeight=0;
    Sel=new Selection("selection");
    Sel2=new Selection("selectionAllGamma");
    JetPtThreshold = 30;
@@ -667,7 +673,15 @@ if(debug>1) printf("-> SetBranchAddress A\n");
    fChain->SetBranchAddress("PUWeight_HLT_Photon30",&PUWeightHLT_Photon30       ,&b_PUWeightHLT_Photon30);
    fChain->SetBranchAddress("PUWeight_HLT_Photon30SysUp",&PUWeightHLT_Photon30SysUp  ,&b_PUWeightHLT_Photon30SysUp);
    fChain->SetBranchAddress("PUWeight_HLT_Photon30SysDown",&PUWeightHLT_Photon30SysDown,&b_PUWeightHLT_Photon30SysDown);
+
+   if (useRDWeight){
+   	fChain->SetBranchAddress("RDWeight",&RDWeight,&b_RDWeight);
+   	fChain->SetBranchAddress("RDWeightSysUp",&RDWeightSysUp,&b_RDWeightSysUp);
+   	fChain->SetBranchAddress("RDWeightSysDown",&RDWeightSysDown,&b_RDWeightSysDown);
+   	}//end RD
    }
+
+  if( useRDWeight && usePUWeightHLT) fprintf(stderr,"\n\n=nERROR: Both RD & HLT: not implemented\n\n\n");
 	 
 if(debug>1) printf("-> SetBranchAddress A1\n");
    fChain->SetBranchAddress("eventNum", &eventNum, &b_eventNum);
