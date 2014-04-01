@@ -46,8 +46,8 @@ if options.inputDatMC2 != "":
 	if DEBUG>0:
 		print "--------- MC 2 CONFIG -----------"
 		PrintDat(config2MC)
-	WorkDirMC2=ReadFromDat(configMC,"WorkDir","./","-->Set Default WDIR")
-	inputFileNameRootMC2= WorkDirMC2 + ReadFromDat(configMC,"outputFileName","output","--> Default outputFileName")
+	WorkDirMC2=ReadFromDat(config2MC,"WorkDir","./","-->Set Default WDIR")
+	inputFileNameRootMC2= WorkDirMC2 + ReadFromDat(config2MC,"outputFileName","output","--> Default outputFileName")
 	fRootMC2= ROOT.TFile.Open(inputFileNameRootMC2+".root");
 
 WorkDir=ReadFromDat(config,"WorkDir","./","-->Set Default WDIR")
