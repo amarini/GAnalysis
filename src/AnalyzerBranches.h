@@ -211,6 +211,7 @@ public:
    TBranch 	 *b_PUWeightHLT_Photon30,*b_PUWeightHLT_Photon30SysUp,*b_PUWeightHLT_Photon30SysDown;
    
    TBranch        *b_RDWeight;   //!
+   TBranch        *b_RDWeightBare;   //!
    TBranch        *b_RDWeightSysUp;   //!
    TBranch        *b_RDWeightSysDown;   //!
 

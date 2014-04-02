@@ -114,7 +114,10 @@ void Analyzer::SetBranchStatus(){
 	fChain->SetBranchStatus("jet*GEN",1);
     	fChain->SetBranchStatus("lep*",1);  // activate branchname
 
-	if(useRDWeight) fChain->SetBranchStatus("RDWeight*",1);
+	if(useRDWeight){
+		if(debug>0)printf("--> Also RD\n");
+		fChain->SetBranchStatus("RDW*",1);
+		}
 	}
 }
 
@@ -202,6 +205,16 @@ void Analyzer::Loop()
 	if (useEnergyRegression) ApplyEnergyRegression();
 	if (useEnergyScale) ApplyEnergyScale();
 	if (useEnergySmear) ApplyEnergySmear();
+
+	if(useRDWeight && !isRealData)
+		{
+			printf("RDWeight=%lf\n",RDWeight);
+			eventWeight=RDWeightBare;
+			PUWeight=RDWeight;
+			PUWeightSysUp=RDWeightSysUp;
+			PUWeightSysDown=RDWeightSysDown;
+		}
+
 	//SYST SMEARINGS - JER JES
 	Smear();
 
@@ -337,12 +350,6 @@ void Analyzer::Loop()
 		}//DATA
 		else
 		ScaleTrigger=1; //MC --> Check What we can do -- & for GEN?
-		if(useRDWeight && !isRealData)
-			{
-			PUWeight=RDWeight;
-			PUWeightSysUp=RDWeightSysUp;
-			PUWeightSysDown=RDWeightSysDown;
-			}
 		if(usePUWeightHLT && !isRealData)
 			{
 			if(triggerMenu == "HLT_Photon150_v*") {PUWeight=PUWeightHLT_Photon150; PUWeightSysUp=PUWeightHLT_Photon150SysUp;PUWeightSysDown=PUWeightHLT_Photon150SysDown;}

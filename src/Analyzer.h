@@ -58,6 +58,7 @@ public :
    double 	 PUWeightHLT_Photon50,PUWeightHLT_Photon50SysUp,PUWeightHLT_Photon50SysDown;
    double 	 PUWeightHLT_Photon30,PUWeightHLT_Photon30SysUp,PUWeightHLT_Photon30SysDown;
    double RDWeight;
+   double RDWeightBare;
    double RDWeightSysUp;
    double RDWeightSysDown;
    //TODO HLT+RD
@@ -674,11 +675,13 @@ if(debug>1) printf("-> SetBranchAddress A\n");
    fChain->SetBranchAddress("PUWeight_HLT_Photon30SysUp",&PUWeightHLT_Photon30SysUp  ,&b_PUWeightHLT_Photon30SysUp);
    fChain->SetBranchAddress("PUWeight_HLT_Photon30SysDown",&PUWeightHLT_Photon30SysDown,&b_PUWeightHLT_Photon30SysDown);
 
-   if (useRDWeight){
+   //if (useRDWeight){
+	printf("USING RD BRANCHES\n");
    	fChain->SetBranchAddress("RDWeight",&RDWeight,&b_RDWeight);
+   	fChain->SetBranchAddress("RDWeightBare",&RDWeightBare,&b_RDWeightBare);
    	fChain->SetBranchAddress("RDWeightSysUp",&RDWeightSysUp,&b_RDWeightSysUp);
    	fChain->SetBranchAddress("RDWeightSysDown",&RDWeightSysDown,&b_RDWeightSysDown);
-   	}//end RD
+   //	}//end RD
    }
 
   if( useRDWeight && usePUWeightHLT) fprintf(stderr,"\n\n=nERROR: Both RD & HLT: not implemented\n\n\n");
