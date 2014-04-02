@@ -50,8 +50,8 @@ Syst PU ++ - -
 Syst BIAS :: - - 
 Syst LUM %% 2.6 2.6 #equivalently . means ignore
 #trick two different systematic are not correlated. These two shold not simplify
-#Syst UNFOLD .: - - 
-Syst UNFOLD %% 1 1
+#Syst UNFOLD :: - - 
+Syst UNFOLD %% 2 2 
 Syst PhScale %% 3 3
 
 #veto Bin Boundaries. Can be casted multiple times
