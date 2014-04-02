@@ -100,7 +100,7 @@ for line in fFit:
 	except NameError: continue;
 	try:
 		FracErr[ (ptmin,ptmax,ht,nj,jpt) ] = er
-	except NameError: continue;
+	except NameError: pass;
 	try:
 		FracBias[ (ptmin,ptmax,ht,nj,jpt) ] = bias
 	except NameError: continue;
@@ -115,6 +115,7 @@ PtBins=ROOT.Bins()
 
 #LOOP OVER THE BINs
 AllH={}
+AllHBias={}
 AllHMC={}
 C=ROOT.TCanvas("C","C")
 L=ROOT.TLegend(0.65,0.15,.89,.45)
@@ -231,19 +232,73 @@ for h in range(0,len(HtCuts)):
 			H.GetXaxis().SetMoreLogLabels()
 			H.GetXaxis().SetNoExponent()
 			H.GetYaxis().SetRangeUser(0,1);
+			H.GetXaxis().SetRangeUser(100,1000);
 			H.Draw("P E4")
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
 			H.Draw("P E4 SAME")
-		HBias.Draw("HIST SAME")
+		#HBias.Draw("HIST SAME")
 
 		if doMC:
 			HMC.Draw("HIST SAME")
 			AllHMC[ (h,nj) ] = HMC
 
 		L.AddEntry(H,"H_{T}>"+str(HtCuts[h])+" N_{jets}#geq"+str(nJetsCuts[nj]))
-
+		
+		AllHBias[ (h,nj) ] = HBias
 		AllH[ (h,nj) ] = H
 L.Draw()
 C.SaveAs(WorkDir+"plots/fraction.pdf")		
 C.SaveAs(WorkDir+"plots/fraction.root")		
+
+#### NICE  ###
+
+C2=ROOT.TCanvas("C2","C2",800,800)
+C2.SetRightMargin(0.02)
+C2.SetTopMargin(0.02)
+C2.SetLeftMargin(0.13)
+C2.SetBottomMargin(0.13)
+#bin, not value
+b=(0,0)
+AllH[ b ].GetXaxis().SetRangeUser(100,1000)
+AllH[ b ].GetYaxis().SetRangeUser(0.6,1)
+AllH[ b ].GetYaxis().SetTitleOffset(1.8)
+AllH[ b ].GetXaxis().SetTitleOffset(1.5)
+AllH[ b ].GetYaxis().SetLabelOffset(0.015)
+AllH[ b ].GetXaxis().SetLabelOffset(0.015)
+AllH[ b ].GetYaxis().SetDecimals()
+AllH[ b ].SetMarkerSize(1.5)
+AllH[ b ].SetLineColor(ROOT.kBlack)
+AllH[ b ].Draw("P")
+#AllHBias[ b ].SetLineWidth(2)
+#AllHBias[ b ].SetLineColor(ROOT.kBlack)
+#AllHBias[ b ].SetLineStyle(ROOT.kDashed)
+#AllHBias[ b ].GetXaxis().SetRangeUser(100,1000)
+#AllHBias[ b ].GetYaxis().SetRangeUser(0.6,1.0)
+#for i in range(1,AllHBias[ b ].GetNbinsX()+1):
+#	print AllHBias[ b ].GetBinCenter(i)," -> ",AllHBias[ b ].GetBinContent(i)
+
+#f2=ROOT.TF1("func","[0] * TMath::TanH(  TMath::Sqrt( (x-[1])/[2]) ) ",0,1000)
+#f2.SetParameter(0,1)
+#f2.SetParameter(1,100)
+#f2.SetParameter(2,100)
+#f2.SetParLimits(1,30,200)
+#f2.SetParLimits(2,30,200)
+#AllH[ b ].Fit("func");
+#f2.Draw("SAME")
+#AllHBias[ b ].Draw("HIST ][ SAME")
+
+l=ROOT.TLatex()
+l.SetNDC()
+l.SetTextAlign(22)
+l.SetTextFont(63)
+l.SetTextSize(24)
+l.DrawLatex(0.30,0.95,"CMS Preliminary")
+l.SetTextFont(43)
+l.SetTextSize(20)
+l.DrawLatex(0.30,0.91,"#sqrt{s} = 8 TeV, L = 19.7 fb^{-1}")
+
+C2.SaveAs(WorkDir+"plots/fraction2.pdf")
+C2.SaveAs(WorkDir+"plots/fraction2.root")
+C2.SaveAs(WorkDir+"plots/fraction2.png")
+

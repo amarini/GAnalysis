@@ -139,16 +139,30 @@ for jpt in [30.0,300.0]:
 		H_LUMIDN.Scale(1.-.026)
 		H_JERUP   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JERUP)))
 		H_JERDN   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.JERDN)))
-		H_UNFOLD   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD)))
+		#H_UNFOLD   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD)))
+		H_UNFOLDUP   =H.Clone("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD)))
+		H_UNFOLDDN   =H.Clone("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s_DOWN"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.UNFOLD)))
+		H_UNFOLDUP.Scale(1.+0.02)
+		H_UNFOLDDN.Scale(1.-0.02)
+		H_ESCALEUP   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEUP)))
+		H_ESCALEDN   =file.Get("b_Ht_%.1f_nJets_%.1f_JPt_%.1f%s"%(HtCuts[h],nJetsCuts[nj],jpt,ROOT.Analyzer.SystName(ROOT.Analyzer.ESCALEDN)))
 	
 		H_PU=makeBands(H_PUUP,H_PUDN)
 		H_JES=makeBands(H_JESUP,H_JESDN)
 		H_JER=makeBands(H_JERUP,H_JERDN)
+		try:
+			H_ESCALE=makeBands(H_ESCALEUP,H_ESCALEDN)
+		except: 
+			 H_ESCALE=makeBands(H,H)		#empty
 		H_SIG=makeBands(H,H_SIGSHAPE,"First")
 		H_BKG=makeBands(H,H_BKGSHAPE,"First")
 		H_BIAS=makeBands(H,H_BIAS,"First")
 		H_LUM=makeBands(H_LUMIUP,H_LUMIDN)
-		H_UNFOLD=makeBands(H,H_UNFOLD,"First")
+		try:
+			#H_UNFOLD=makeBands(H,H_UNFOLD,"First")
+			H_UNFOLD=makeBands(H_UNFOLDUP,H_UNFOLDDN)
+		except: 
+			 H_UNFOLD=makeBands(H,H)		#empty
 		
 		if doMC:
 			#print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
@@ -169,20 +183,22 @@ for jpt in [30.0,300.0]:
 		sqrtSum(H_TOT,H_JER)
 		#sqrtSum(H_TOT,H_SIG)
 		#sqrtSum(H_TOT,H_BKG)
+		#sqrtSum(H_TOT,H_ESCALE) ###
 		sqrtSum(H_TOT,H_BIAS)
 		sqrtSum(H_TOT,H_LUM)
 		sqrtSum(H_TOT,H_UNFOLD)
-		for i in range(0,H_TOT.GetNbinsX()+1):
-			print "H_TOT: Bin=%d Content=%f Error=%f "%(i,H_TOT.GetBinContent(i),H_TOT.GetBinError(i))
-			print "H_PU: Bin=%d Content=%f Error=%f "%(i,H_PU.GetBinContent(i),H_PU.GetBinError(i))
-			print "H_JES: Bin=%d Content=%f Error=%f "%(i,H_JES.GetBinContent(i),H_JES.GetBinError(i))
-			print "H_JER: Bin=%d Content=%f Error=%f "%(i,H_JER.GetBinContent(i),H_JER.GetBinError(i))
-			print "H_SIG: Bin=%d Content=%f Error=%f "%(i,H_SIG.GetBinContent(i),H_SIG.GetBinError(i))
-			print "H_BIAS: Bin=%d Content=%f Error=%f "%(i,H_BIAS.GetBinContent(i),H_BIAS.GetBinError(i))
-			print "H_BKG: Bin=%d Content=%f Error=%f "%(i,H_BKG.GetBinContent(i),H_BKG.GetBinError(i))
-			print "H_LUM: Bin=%d Content=%f Error=%f "%(i,H_LUM.GetBinContent(i),H_LUM.GetBinError(i))
-			print "H_UNFOLD: Bin=%d Content=%f Error=%f "%(i,H_UNFOLD.GetBinContent(i),H_UNFOLD.GetBinError(i))
-			print "H: Bin=%d Content=%f Error=%f "%(i,H.GetBinContent(i),H.GetBinError(i))
+
+		#for i in range(0,H_TOT.GetNbinsX()+1):
+		#	print "H_TOT: Bin=%d Content=%f Error=%f "%(i,H_TOT.GetBinContent(i),H_TOT.GetBinError(i))
+		#	print "H_PU: Bin=%d Content=%f Error=%f "%(i,H_PU.GetBinContent(i),H_PU.GetBinError(i))
+		#	print "H_JES: Bin=%d Content=%f Error=%f "%(i,H_JES.GetBinContent(i),H_JES.GetBinError(i))
+		#	print "H_JER: Bin=%d Content=%f Error=%f "%(i,H_JER.GetBinContent(i),H_JER.GetBinError(i))
+		#	print "H_SIG: Bin=%d Content=%f Error=%f "%(i,H_SIG.GetBinContent(i),H_SIG.GetBinError(i))
+		#	print "H_BIAS: Bin=%d Content=%f Error=%f "%(i,H_BIAS.GetBinContent(i),H_BIAS.GetBinError(i))
+		#	print "H_BKG: Bin=%d Content=%f Error=%f "%(i,H_BKG.GetBinContent(i),H_BKG.GetBinError(i))
+		#	print "H_LUM: Bin=%d Content=%f Error=%f "%(i,H_LUM.GetBinContent(i),H_LUM.GetBinError(i))
+		#	print "H_UNFOLD: Bin=%d Content=%f Error=%f "%(i,H_UNFOLD.GetBinContent(i),H_UNFOLD.GetBinError(i))
+		#	print "H: Bin=%d Content=%f Error=%f "%(i,H.GetBinContent(i),H.GetBinError(i))
 		
 		## CANVAS
 		C=ROOT.TCanvas("C","C")
@@ -206,17 +222,23 @@ for jpt in [30.0,300.0]:
 		H_JES.SetLineColor  (ROOT.kGreen-4)
 		H_JES.SetFillStyle(3003)
 		
-		H_SIG.SetMarkerStyle(0)
-		H_SIG.SetFillColor  (ROOT.kMagenta+2)
-		H_SIG.SetMarkerColor(ROOT.kMagenta+2)
-		H_SIG.SetLineColor  (ROOT.kMagenta+2)
-		H_SIG.SetFillStyle(3004)
-		
-		H_BKG.SetMarkerStyle(0)
-		H_BKG.SetFillColor  (ROOT.kRed-4)
-		H_BKG.SetMarkerColor(ROOT.kRed-4)
-		H_BKG.SetLineColor  (ROOT.kRed-4)
-		H_BKG.SetFillStyle(3005)
+		#H_SIG.SetMarkerStyle(0)
+		#H_SIG.SetFillColor  (ROOT.kMagenta+2)
+		#H_SIG.SetMarkerColor(ROOT.kMagenta+2)
+		#H_SIG.SetLineColor  (ROOT.kMagenta+2)
+		#H_SIG.SetFillStyle(3004)
+		#
+		#H_BKG.SetMarkerStyle(0)
+		#H_BKG.SetFillColor  (ROOT.kRed-4)
+		#H_BKG.SetMarkerColor(ROOT.kRed-4)
+		#H_BKG.SetLineColor  (ROOT.kRed-4)
+		#H_BKG.SetFillStyle(3005)
+
+		H_ESCALE.SetMarkerStyle(0)
+		H_ESCALE.SetFillColor  (ROOT.kRed-4)
+		H_ESCALE.SetMarkerColor(ROOT.kRed-4)
+		H_ESCALE.SetLineColor  (ROOT.kRed-4)
+		H_ESCALE.SetFillStyle(3005)
 
 		H_BIAS.SetMarkerStyle(0)
 		H_BIAS.SetFillColor  (ROOT.kGray+2)
@@ -253,20 +275,31 @@ for jpt in [30.0,300.0]:
 		H.GetYaxis().SetTitle("L #frac{d#sigma}{dp_{T}}[fb^{-1}/GeV]");
 		H.GetXaxis().SetMoreLogLabels()
 		H.GetXaxis().SetNoExponent()
+		xRange=[100,1000]
+		H.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_UNFOLD.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_PU.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_JES.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_JER.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_BIAS.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_LUM.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_TOT.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 
 		#DRAW
 		H.Draw("P")
 		H.Draw("AXIS X+ Y+ SAME")
 		H_UNFOLD.Draw("P E2 SAME")
-		H_BKG.Draw("P E2 SAME")
+		#H_BKG.Draw("P E2 SAME")
+		#H_SIG.Draw("P E2 SAME")
+		#H_ESCALE.Draw("P E2 SAME") ###
 		H_PU.Draw("P E2 SAME")
 		H_JES.Draw("P E2 SAME")
 		H_JER.Draw("P E2 SAME")
-		H_SIG.Draw("P E2 SAME")
 		H_BIAS.Draw("P E2 SAME")
 		H_LUM.Draw("P E2 SAME")
 
 		if doMC:
+			H_MC.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 			H_MC.Draw("HIST SAME");
 
 		H_TOT.Draw("E3 SAME");
@@ -298,8 +331,9 @@ for jpt in [30.0,300.0]:
 		L.AddEntry(H_PU,"PU Syst")
 		L.AddEntry(H_JES,"JES Syst")
 		L.AddEntry(H_JER,"JER Syst")
-		L.AddEntry(H_SIG,"SIG shape Syst")
-		L.AddEntry(H_BKG,"BKG shape Syst")
+		#L.AddEntry(H_SIG,"SIG shape Syst")
+		#L.AddEntry(H_BKG,"BKG shape Syst")
+		#L.AddEntry(H_ESCALE,"ESCALE shape Syst") ###
 		L.AddEntry(H_BIAS,"BIAS shape Syst")
 		L.AddEntry(H_LUM,"LUM shape Syst")
 		L.AddEntry(H_UNFOLD,"UNFOLD shape Syst")
@@ -316,24 +350,29 @@ for jpt in [30.0,300.0]:
 
 		R_H=Ratio(H,H,NoErrorH=True); R_H.SetMarkerStyle(0)
 		R_H.GetYaxis().SetRangeUser(0.5,1.5)
+		R_H.GetXaxis().SetRangeUser(100,1000)
 		R_SIG=Ratio(H,H_SIG,NoErrorH=True);
 		R_BKG=Ratio(H,H_BKG,True);
+		R_ESCALE=Ratio(H,H_ESCALE,True);
 		R_BIAS=Ratio(H,H_BIAS,NoErrorH=True);
 		R_LUM=Ratio(H,H_LUM,True);
 		R_PU=Ratio(H,H_PU,True);
 		R_JES=Ratio(H,H_JES,True);
 		R_JER=Ratio(H,H_JER,True);
+		R_UNFOLD=Ratio(H,H_UNFOLD,True);
 		R_TOT=Ratio(H,H_TOT,True);
 
 		R_H.Draw("P")
 		R_H.Draw("AXIS X+ Y+ SAME")
 		R_BIAS.Draw("P E2 SAME")
 		R_LUM.Draw("P E2 SAME")
-		R_BKG.Draw("P E2 SAME")
+		#R_BKG.Draw("P E2 SAME")
+		#R_ESCALE.Draw("P E2 SAME")###
 		R_PU.Draw("P E2 SAME")
 		R_JES.Draw("P E2 SAME")
 		R_JER.Draw("P E2 SAME")
-		R_SIG.Draw("P E2 SAME")
+		R_UNFOLD.Draw("P E2 SAME")
+		#R_SIG.Draw("P E2 SAME")
 		R_TOT.Draw("E3 SAME")
 		
 		L.Draw("SAME")
@@ -349,7 +388,7 @@ for jpt in [30.0,300.0]:
 		C3=ROOT.TCanvas("C3","C3",600,500)
 		C3.SetTopMargin(0.06)
 		C3.SetRightMargin(0.03)
-		C3.SetLogx()
+		#C3.SetLogx()
 		C3.SetLogy()
 
 
@@ -363,19 +402,20 @@ for jpt in [30.0,300.0]:
 		H.Scale(1./Lumi)
 		H_TOT.Scale(1./Lumi)
 
-		H     = NiceRange(H,Range,0.5,0.15)
-		H_TOT = NiceRange(H_TOT,Range,0.5,0.15)
+		NiceRangeFactors=[1.,0.10]
+		H     = NiceRange(H,Range,NiceRangeFactors[0],NiceRangeFactors[1])
+		H_TOT = NiceRange(H_TOT,Range,NiceRangeFactors[0],NiceRangeFactors[1])
 
 		H.SetMarkerStyle(20)
 		H.SetMarkerColor(ROOT.kBlack)
 		H.SetLineColor(ROOT.kBlack)
 
-		H_TOT.SetLineColor(ROOT.kOrange)
+		H_TOT.SetLineColor(ROOT.kOrange + 2)
 		H_TOT.SetLineStyle(1)
 		H_TOT.SetLineWidth(2)
 		#H_TOT.SetFillStyle(0);
 		H_TOT.SetFillColor(ROOT.kOrange-4);
-		H_TOT.SetFillStyle(3001);
+		#H_TOT.SetFillStyle(3001);
 
 
 		H.Draw("P")
@@ -388,17 +428,25 @@ for jpt in [30.0,300.0]:
 		#H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
 		#H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
 
-		H.GetYaxis().SetTitle("d#sigma/dp_{T} [fb^{-1} GeV^{-1}]")
-		H.GetXaxis().SetTitle("dp_{T}^{#gamma} [GeV]")
-		H.GetYaxis().SetTitleOffset(1.2)
-		H.GetXaxis().SetTitleOffset(1.2)
+		H.GetYaxis().SetTitle("d#sigma/dp_{T} [fb GeV^{-1}]")
+		H.GetXaxis().SetTitle("p_{T}^{#gamma} [GeV]")
+		H.GetYaxis().SetTitleOffset(0.8)
+		H.GetXaxis().SetTitleOffset(0.8)
+		H.GetXaxis().SetTitleFont(43)
+		H.GetYaxis().SetTitleFont(43)
+		H.GetXaxis().SetTitleSize(24)
+		H.GetYaxis().SetTitleSize(24)
+		H.GetXaxis().SetLabelFont(43)
+		H.GetYaxis().SetLabelFont(43)
+		H.GetXaxis().SetLabelSize(18)
+		H.GetYaxis().SetLabelSize(18)
 
 		H_TOT.Draw("E2 SAME");
 		H.Draw("AXIS X+ Y+ SAME")
 
 		if doMC:
 			H_MC=MergeBins(BinsToMerge,H_MC)
-			H_MC = NiceRange(H_MC,Range,0.5,0.15)
+			H_MC = NiceRange(H_MC,Range,NiceRangeFactors[0],NiceRangeFactors[1])
 			H_MC.Scale(1./Lumi)
 
 			H_MC.GetXaxis().SetRangeUser(Range[0],Range[1])
@@ -412,11 +460,11 @@ for jpt in [30.0,300.0]:
 		## TEXT
 		l.SetNDC()
 		l.SetTextFont(63)
-		l.SetTextSize(30)
+		l.SetTextSize(26)
 		l.SetTextAlign(22);
-		l.DrawLatex(0.32,.20,"CMS Preliminary")
+		l.DrawLatex(0.32,.20,"CMS Preliminary,")
 		l.SetTextFont(43)
-		l.SetTextSize(24)
+		l.SetTextSize(20)
 		l.DrawLatex(.32,.15,"#sqrt{s} = 8TeV, #it{L} = 19.7fb^{-1}")
 		## LEGEND
 	
@@ -442,9 +490,12 @@ for jpt in [30.0,300.0]:
 		C4.SetRightMargin(0.03)
 		C4.SetTopMargin(0.02)
 		C4.SetBottomMargin(0.2)
-		C4.SetLogx()
+		#C4.SetLogx()
 
 		R_H=Ratio(H,H,NoErrorH=True); R_H.SetMarkerStyle(0)
+		R_H.GetYaxis().SetTitleOffset(0.5)
+		R_H.GetYaxis().SetTitle("MC/Data")
+		R_H.GetYaxis().SetNdivisions(510);
 		R_TOT=Ratio(H,H_TOT,True);
 
 		R_H.Draw("P")
@@ -452,7 +503,7 @@ for jpt in [30.0,300.0]:
 		R_TOT.Draw("E2 SAME")
 		R_H.Draw("AXIS X+ Y+ SAME")
 		
-		L.Draw("SAME")
+		#L.Draw("SAME")
 
 		if doMC:
 			R_MC=Ratio(H,H_MC);

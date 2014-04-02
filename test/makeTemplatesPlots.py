@@ -107,9 +107,13 @@ for p in range(0,len(PtCuts)-1):
 
 	Sig["data"].Draw("P")
 	Sig["mc"].Draw("HIST SAME")
-	Sig["mc"].Scale(Sig["data"].Integral()/Sig["mc"].Integral())
+	try:
+		Sig["mc"].Scale(Sig["data"].Integral()/Sig["mc"].Integral())
+	except: pass
 	Sig["truth"].Draw("HIST SAME")
-	Sig["truth"].Scale(Sig["data"].Integral()/Sig["truth"].Integral())
+	try:
+		Sig["truth"].Scale(Sig["data"].Integral()/Sig["truth"].Integral())
+	except: pass
 	l.AddEntry(Sig["data"],"data","PF")
 	l.AddEntry(Sig["mc"],"mc","L")
 	l.AddEntry(Sig["truth"],"mc-truth","L")
@@ -126,9 +130,13 @@ for p in range(0,len(PtCuts)-1):
 
 	Bkg["data"].Draw("P")
 	Bkg["mc"].Draw("HIST SAME")
-	Bkg["mc"].Scale(Bkg["data"].Integral()/Bkg["mc"].Integral())
+	try:
+		Bkg["mc"].Scale(Bkg["data"].Integral()/Bkg["mc"].Integral())
+	except: pass
 	Bkg["truth"].Draw("HIST SAME")
-	Bkg["truth"].Scale(Bkg["data"].Integral()/Bkg["truth"].Integral())
+	try:
+		Bkg["truth"].Scale(Bkg["data"].Integral()/Bkg["truth"].Integral())
+	except: pass
 	l.AddEntry(Bkg["data"],"data","PF")
 	l.AddEntry(Bkg["mc"],"mc","L")
 	l.AddEntry(Bkg["truth"],"mc-truth","L")
