@@ -208,7 +208,7 @@ void Analyzer::Loop()
 
 	if(useRDWeight && !isRealData)
 		{
-			printf("RDWeight=%lf\n",RDWeight);
+			//printf("RDWeight=%lf\n",RDWeight);
 			eventWeight=RDWeightBare;
 			PUWeight=RDWeight;
 			PUWeightSysUp=RDWeightSysUp;
