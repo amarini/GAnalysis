@@ -89,6 +89,12 @@ def ReadRatioDat( inputDat ):
 			hn1=parts[3]
 			hn2=parts[4]
 			R['Syst'].append( (name,typ,hn1,hn2) )
+		elif parts[0] == 'RhoSyst':
+			name=parts[1]
+			rho=float(parts[2])
+			if 'RhoSyst' not in R:
+				R['RhoSyst']={}
+			R[ 'RhoSyst' ][name]=rho
 		elif parts[0] == 'Up':
 			R['Up']=[]
 			R['Up'].append(parts[1])
@@ -179,7 +185,7 @@ def sqrtSum(h1,h2,epsilon=0.0001):
 			e=epsilon
 		h1.SetBinError(i, e)
 
-def Ratio(H,H1,NoErrorH=False,FullCorr=False):
+def Ratio(H,H1,NoErrorH=False,FullCorr=False,rho=-2):
 	''' Make Ratio between two histograms: H1/H\n\tNoErroron H -> Ratio wrt data,\n\t FullCorr=consider error as fully correlated'''
 	R=H1.Clone(H1.GetName()+"_ratio")
 	hTmp=H.Clone("tmp")
@@ -198,6 +204,19 @@ def Ratio(H,H1,NoErrorH=False,FullCorr=False):
 				dn=0
 			err = math.fabs((up-dn)/2.0)
 			R.SetBinError(i,err)
+	elif (rho >= -1 and rho <=1):
+		for i in range(1,R.GetNbinsX()+1):
+			e1=H1.GetBinError(i)
+			c1=H1.GetBinContent(i)
+			e2=H.GetBinError(i)
+			c2=H.GetBinContent(i)
+			if c1 > 0 and c2>0 :
+				erOr = math.sqrt( (e1/c1)**2+(e2/c2)**2 - 2*rho*(e1/c1)*(e2/c2) )
+			else:
+				erOr = 0
+			R.SetBinError(i,R.GetBinContent(i)*erOr)
+		
+
 	return R
 
 import gzip

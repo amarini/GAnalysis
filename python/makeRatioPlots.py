@@ -270,96 +270,13 @@ for cut in config['Cut']:
 		hns2=hns2.replace('-',config["histoName2"])
 		typ=s[1]
 		syst=s[0]
-		#if hns1=='None': typ='.'+typ[1]
-		#if hns2=='None': typ=typ[0]+'.'
-		#if typ[0]=='+': #h1 double band
-		#	h1nup=FixNames(hns1,cut,config["PrePendSyst"][0]+syst+config['Up'][0])
-		#	h1ndn=FixNames(hns1,cut,config["PrePendSyst"][0]+syst+config['Down'][0])
-		#	print "Going to get Histo " +h1nup + " - " + h1ndn
-		#	h1up=file1.Get(h1nup)
-		#	h1dn=file1.Get(h1ndn)
-		#	if 'Merge1' in config:
-		#		h1up=MergeBins(config['Merge1'],h1up)
-		#		h1dn=MergeBins(config['Merge1'],h1dn)
-		#	h1up=ConvertToTargetTH1(h1,h1up)
-		#	h1dn=ConvertToTargetTH1(h1,h1dn)
-		#	h1up.Scale(1./config["lumi1"])
-		#	h1dn.Scale(1./config["lumi1"])
-		#	s1=makeBands(h1up,h1dn,"Mean")
-		#elif typ[0]==':':
-		#	h1nfirst=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
-		#	print "Going to get Histo " + h1nfirst
-		#	h1first=file1.Get(h1nfirst)
-		#	if 'Merge1' in config:
-		#		h1first=MergeBins(config['Merge1'],h1first)
-		#	h1first=ConvertToTargetTH1(h1,h1first)
-		#	h1first.Scale(1./config["lumi1"])
-		#	s1=makeBands(h1,h1first,"First")
-		#elif typ[0]=='.':
-		#	s1=h1.Clone("syst1"+syst) #h1 is already scaled
-		#	for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,0);
-		#elif typ[0]=='&': #content of the histo is the error itsef
-		#	h1nerr=FixNames(hns1,cut,config["PrePendSyst"][0]+syst)
-		#	print "Going to get Histo "+ h1nerr 
-		#	h1err=file1.Get(h1nerr)
-		#	h1err=ConvertToTargetTH1(h1,h1err)
-		#	s1=h1.Clone("syst1"+syst) #h1 is already scaled
-		#	if 'Merge1' in config:
-		#		s1=MergeBins(config['Merge1'],s1)
-		#	for i in range(1,s1.GetNbinsX()+1): 
-		#		#print "DEBUG Z ",syst,"Bin%d"%i,"%.0f %%"%( h1err.GetBinContent(i)/h1.GetBinContent(i) ), " %.0f-%.0f"%( h1err.GetBinCenter(i),h1.GetBinCenter(i) ),"%f/%f"%(h1err.GetBinContent(i),h1.GetBinContent(i))
-		#		s1.SetBinError(i,h1err.GetBinContent(i) );
-		#elif typ[0]=='%': #content of the histo is the error itsef
-		#	e=float(hns1)/100.
-		#	s1=h1.Clone("syst1"+syst) #h1 is already scaled
-		#	for i in range(1,s1.GetNbinsX()+1): s1.SetBinError(i,h1.GetBinContent(i) * e );
-		#else: print "error on type 0 of "+typ	
-		#	
-		#if typ[1]=='+': #h1 double band
-		#	print config["PrePendSyst"]
-		#	print config['Up']
-		#	h2nup=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Up'][1])
-		#	h2ndn=FixNames(hns2,cut,config["PrePendSyst"][1]+syst+config['Down'][1])
-		#	print "Going to get Histo " +h2nup + " - " + h2ndn 
-		#	h2up=file2.Get(h2nup)
-		#	h2dn=file2.Get(h2ndn)
-		#	if 'Merge2' in config:
-		#		h2up=MergeBins(config['Merge2'],h2up)
-		#		h2dn=MergeBins(config['Merge2'],h2dn)
-		#	h2up=ConvertToTargetTH1(h2,h2up)
-		#	h2dn=ConvertToTargetTH1(h2,h2up)
-		#	h2up.Scale(1./config["lumi2"])
-		#	h2dn.Scale(1./config["lumi2"])
-		#	s2=makeBands(h2up,h2dn,"Mean")
-		#elif typ[1]==':':
-		#	h2nfirst=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
-		#	print "Going to get Histo " +h2nfirst
-		#	h2first=file2.Get(h2nfirst)
-		#	if 'Merge2' in config:
-		#		h2first=MergeBins(config['Merge2'],h2first)
-		#	h2first=ConvertToTargetTH1(h2,h2first)
-		#	h2first.Scale(1./config["lumi2"])
-		#	s2=makeBands(h2,h2first,"First")
-		#elif typ[1]=='.':
-		#	s2=h2.Clone("syst2"+syst) #h2 is already scale for lumi
-		#	for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,0);
-		#elif typ[1]=='&': #content of the histo is the error itsef
-		#	h2nerr=FixNames(hns2,cut,config["PrePendSyst"][1]+syst)
-		#	print "Going to get Histo "+ h2nerr 
-		#	h2err=file2.Get(h2nerr)
-		#	h2err=ConvertToTargetTH1(h2,h2err)
-		#	s2=h2.Clone("syst2"+syst) #h1 is already scaled
-		#	if 'Merge2' in config:
-		#		s2=MergeBins(config['Merge2'],s2)
-		#	for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2err.GetBinContent(i) );
-		#elif typ[1]=='%': #content of the histo is the error itsef
-		#	e=float(hns2)/100.
-		#	s2=h2.Clone("syst2"+syst) #h1 is already scaled
-		#	for i in range(1,s2.GetNbinsX()+1): s2.SetBinError(i,h2.GetBinContent(i) *e );
-		#else: print "error on type 1 of "+typ	
 		s1=ReadSyst(config,typ,0,cut,syst,hns1,file1,h1)
 		s2=ReadSyst(config,typ,1,cut,syst,hns2,file2,h2)
-		s=Ratio(s2,s1,NoErrorH=False,FullCorr=True)
+		if ('RhoSyst'  in config ) and (syst in config['RhoSyst'] ):
+			print "Using rho=",config['RhoSyst'][syst],'for syst',syst
+			s=Ratio(s2,s1,NoErrorH=False,FullCorr=False,rho=config['RhoSyst'][syst])
+		else:
+			s=Ratio(s2,s1,NoErrorH=False,FullCorr=True)
 		print "Syst %s:"%syst
 		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
 		print

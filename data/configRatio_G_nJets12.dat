@@ -48,6 +48,7 @@ Syst JES ++ - -
 Syst JER ++ - -
 Syst PU ++ - -
 Syst BIAS :: - - 
+#RhoSyst BIAS 0.95
 Syst LUM %% 2.6 2.6 #equivalently . means ignore
 #trick two different systematic are not correlated. These two shold not simplify
 #Syst UNFOLD :: - - 
