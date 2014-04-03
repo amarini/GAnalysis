@@ -152,6 +152,21 @@ def Unfold(Response,H,par,type="SVD"):
 	u=U.Hreco(ROOT.RooUnfold.kCovToy)
 	c=U.Ereco(ROOT.RooUnfold.kCovToy)
 	return (u,c)
+def Unfold2(R,G,M,Bin,H,par,typ):
+	recoPj=M.ProjectionX("_px",1,M.GetNbinsX(),"o")
+	genPj=M.ProjectionY("_py",1,M.GetNbinsY(),"o")
+	#scale and subtract
+	recoInt=R.Integral() # this is before the binwidth division: no binwidth here
+	dataYield=H.Integral()
+
+	recoPj.Scale(dataYield/recoInt)
+	for i in range(1,recoPj.GetNbinsX()+1):
+		recoPj.SetBinError(i,0)
+
+	H_sub=H.Clone()
+	H_sub.Add(recoPj,-1) # relative subtract w/o rescaling errors
+	Response= ROOT.RooUnfoldResponse(R,G,M,"Response"+Bin,"Response"+Bin)
+	return Unfold(Response,H,par,typ)
 
 
 if DEBUG>0:print "--> Loop"
@@ -297,22 +312,24 @@ def Loop(systName=""):
 			fUnfStudiesOut.mkdir(Bin)
 			fUnfStudiesOut.cd(Bin)
 			for UnfPar in range(5,H.GetNbinsX(),3):
-				H_us=Unfold(Response,H,UnfPar,"SVD")[0]
+				#H_us=Unfold(Response,H,UnfPar,"SVD")[0]
+				H_us=Unfold2(R,G,M,Bin,H,UnfPar,"SVD")[0]
 				H_us.SetName("u_svd_par"+str(UnfPar)+Bin)
 				H_us.Write()
 			for UnfPar in range(1,8,2):
-				H_us=Unfold(Response,H,UnfPar,"Bayes")[0]
+				H_us=Unfold2(R,G,M,Bin,H,UnfPar,"Bayes")[0]
 				H_us.SetName("u_bayes_par"+str(UnfPar)+Bin)
 				H_us.Write()
 			if True:
-				H_us=Unfold(Response,H,UnfPar,"Invert")[0]
+				H_us=Unfold2(R,G,M,Bin,H,UnfPar,"Invert")[0]
 				H_us.SetName("u_invert_par"+str(UnfPar)+Bin)
 				H_us.Write()
 			H.Clone("r_"+Bin).Write()	
 			G.Clone("g_"+Bin).Write()
 			fUnfOut.cd()
 		## UNFOLD -- ONE USED IN THE ANALYSIS
-		(u,c)=Unfold(Response,H,3,"Bayes");
+		#(u,c)=Unfold(Response,H,3,"Bayes");
+		(u,c)=Unfold2(R,G,M,Bin,H,3,"Bayes");
 
 		u.SetName("u_"+Bin)
 		u.SetTitle("Unfolded "+Bin.replace("_"," ")  )
