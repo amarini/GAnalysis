@@ -44,7 +44,7 @@ if 'mc' in config and config['mc']: options.mc=True;
 if 'table' in config and config['table']: options.table=True;
 ##########################
 
-
+ROOT.gSystem.Load("libGAnalysis.so")
 #open files
 file1 = ROOT.TFile.Open(config['file1'])
 file2 = ROOT.TFile.Open(config['file2'])
@@ -335,50 +335,64 @@ for cut in config['Cut']:
 				r=0
 			Table[curRow].append("$%.0f$" % (r))
 
-	C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
-	ROOT.gPad.SetBottomMargin(0.15)
-	ROOT.gPad.SetTopMargin(0.05)
-	ROOT.gPad.SetLeftMargin(0.15)
-	ROOT.gPad.SetRightMargin(0.05)
-	xshift= ( ROOT.gPad.GetLeftMargin() - ROOT.gPad.GetRightMargin() )/2.0
-	yshift= ( ROOT.gPad.GetBottomMargin() - ROOT.gPad.GetTopMargin() )/2.0
+	plotter=ROOT.NicePlots.SingleRatioPlot();
+	#C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
+	#ROOT.gPad.SetBottomMargin(0.15)
+	#ROOT.gPad.SetTopMargin(0.05)
+	#ROOT.gPad.SetLeftMargin(0.15)
+	#ROOT.gPad.SetRightMargin(0.05)
+	#xshift= ( ROOT.gPad.GetLeftMargin() - ROOT.gPad.GetRightMargin() )/2.0
+	#yshift= ( ROOT.gPad.GetBottomMargin() - ROOT.gPad.GetTopMargin() )/2.0
 
-	R.SetMarkerStyle(20)
-	R.SetMarkerColor(ROOT.kBlack)
-	R.SetLineColor(ROOT.kBlack)
-	S.SetLineColor(ROOT.kOrange)
+	#R.SetMarkerStyle(20)
+	#R.SetMarkerColor(ROOT.kBlack)
+	#R.SetLineColor(ROOT.kBlack)
+	#S.SetLineColor(ROOT.kOrange)
 	#S.SetFillColor(ROOT.kRed)
 	#S.SetFillColor(50)##blue=38
-	S.SetFillColor(ROOT.kOrange-4);
-	S.SetFillStyle(3001);
+	#S.SetFillColor(ROOT.kOrange-4);
+	#S.SetFillStyle(3001);
 	#S.SetFillStyle(0)
-
-	L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
-	L.SetFillStyle(0);
-	L.SetBorderSize(0);
-	
-	R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
+	plotter.data=R
+	plotter.syst=S
+	plotter.xtitle="P_{T}^{Z/#gamma}[GeV]"
 	if 'xtitle' in config:
-		R.GetXaxis().SetTitle(config['xtitle'])
-	R.GetYaxis().SetTitle("d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}")
-	if 'ytitle' in config:
-		R.GetYaxis().SetTitle(config['ytitle'])
-	R.GetYaxis().SetTitleOffset(1.5)
-	R.GetXaxis().SetTitleOffset(1.5)
-	R.GetYaxis().SetDecimals()
-	#R.GetYaxis().SetRangeUser(0,2)
-	R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
+		plotter.xtitle=config['xtitle']
 
-	R.Draw("AXIS P")
-	S.Draw("P E2 SAME")
-	R.Draw("P SAME")
-	R.Draw("AXIS X+ Y+ SAME")
-	R.Draw("AXIS SAME")
-	L.AddEntry(R,"Data","P");
-	L.AddEntry(S,"Stat+Syst","F");
+	plotter.ytitle="d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}"
+	if'ytitle' in config:
+		plotter.ytitle=config['ytitle']
+
+	#L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
+	#L.SetFillStyle(0);
+	#L.SetBorderSize(0);
+	
+	#R.GetXaxis().SetTitle("P_{T}^{Z/#gamma}[GeV]")
+	#if 'xtitle' in config:
+	#	R.GetXaxis().SetTitle(config['xtitle'])
+	#R.GetYaxis().SetTitle()
+	#if 'ytitle' in config:
+	#	R.GetYaxis().SetTitle(config['ytitle'])
+	#R.GetYaxis().SetTitleOffset(1.5)
+	#R.GetXaxis().SetTitleOffset(1.5)
+	#R.GetYaxis().SetDecimals()
+	#R.GetYaxis().SetRangeUser(0,2)
+	plotter.Range.first=0
+	plotter.Range.second=R.GetMaximum()*1.2
+	plotter.RangeFactors.first=1
+	plotter.RangeFactors.second=0.05
+	#R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
+
+	#R.Draw("AXIS P")
+	#S.Draw("P E2 SAME")
+	#R.Draw("P SAME")
+	#R.Draw("AXIS X+ Y+ SAME")
+	#R.Draw("AXIS SAME")
+	#L.AddEntry(R,"Data","P");
+	#L.AddEntry(S,"Stat+Syst","F");
 	if options.mc:
 	   for iMC in range(0,len(config['mcName1'])):
-		mcR[iMC].Draw("HIST SAME")
+		#mcR[iMC].Draw("HIST SAME")
 		#mcN=mcR.Clone("MG_Norm")
 		#mcN.SetLineStyle(ROOT.kDashed)
 		print "Z Scale: %.3f"%(h1.Integral()/ mc1.Integral())
@@ -387,26 +401,43 @@ for cut in config['Cut']:
 		#           LO   NNLO      
 		#mcN.Scale((2590./3503.71)/(1./1.))
 		mcR[iMC].Scale(config['mcLO1'][iMC]/(config['mcLO2'][iMC]))
-		mcR[iMC].Draw("HIST SAME")
-		L.AddEntry(mcR[iMC],config['mcLeg'][iMC],"F");
+		#mcR[iMC].Draw("HIST SAME")
+		#L.AddEntry(mcR[iMC],config['mcLeg'][iMC],"F");
 		#L.AddEntry(mcN,"MG (LO/LO)","F");
+		plotter.mc.push_back(mcR[iMC])
+		plotter.mcLabels.push_back(config['mcLeg'][iMC])
 		if options.table:
 			OutROOT.cd()
 			mcR[iMC].Write()
-	L.Draw();
-	lat=ROOT.TLatex()
-	lat.SetNDC()
+	#L.Draw();
+	#lat=ROOT.TLatex()
+	#lat.SetNDC()
 	#lat.SetTextFont(62)
-	lat.SetTextSize(0.04)
-	lat.SetTextAlign(11)
-	text="Ht > %.0f N_{jets} #geq %.0f "%(float(cut[0]),float(cut[1]))
+	#lat.SetTextSize(0.04)
+	#lat.SetTextAlign(11)
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		plotter.Range.first=config['xaxis'][0]
+		plotter.Range.second=config['xaxis'][1]
+		print "x range set to ",config['xaxis'][0],config['xaxis'][1]
+	else:
+		plotter.Range.first=99.99
+		plotter.Range.second=1093
+	if not (config['yaxis'][0]==0 and config['yaxis'][1]==0):
+		plotter.RangeY.first=config['yaxis'][0]
+		plotter.RangeY.second=config['yaxis'][1]
+	text=""
+	if int(cut[0]) > 10 :
+		text +="Ht > %.0f"%(float(cut[0])) 
+	text+="N_{jets} #geq %.0f "%(float(cut[1]))
 	if ( float(cut[2])> 30 ) : text += " p_{T}^{jet} #geq %.0f"%(float(cut[2]))
 	if 'text' in config:
 		text=FixNames(config['text'],cut)
-	lat.DrawLatex(.15+xshift,.85+yshift,"CMS Preliminary,")
-	lat.SetTextFont(42)
-	lat.DrawLatex(.15+xshift,.80+yshift,"#sqrt{s} = 8TeV, L=19.7fb^{-1}")
-	lat.DrawLatex(.15+xshift,.75+yshift,text)
+	#lat.DrawLatex(.15+xshift,.85+yshift,"CMS Preliminary,")
+	#lat.SetTextFont(42)
+	#lat.DrawLatex(.15+xshift,.80+yshift,"#sqrt{s} = 8TeV, L=19.7fb^{-1}")
+	#lat.DrawLatex(.15+xshift,.75+yshift,text)
+	plotter.extraText=text;
+	C=plotter.Draw()
 	C.Update()
 	ROOT.gPad.Update()
 

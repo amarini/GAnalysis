@@ -28,6 +28,7 @@ mcName1 mc_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
 mcName2 mc_Ht_${.1fHT}_nJets_1.0_JPt_${.1fPTJ}
 mcLO1 1
 mcLO2 1
+mcLeg MadGraph
 
 ### syst
 Up UP UP

@@ -62,7 +62,8 @@ yaxis 0.7 1.2
 xlog 0
 ylog 0
 #ytitle @frac{@frac{d@sigma^{Z}(N_{jets}@geq2)}{dp_{T}^{Z}}~/~@frac{d@sigma^{Z}(N_{jets}@geq1)}{dp_{T}^{Z}}}{@frac{d@sigma^{@gamma}(N_{jets}@geq2)}{dp_{T}^{@gamma}}~/~@frac{d@sigma^{@gamma}(N_{jets}@geq1)}{dp_{T}^{@gamma}}}
-ytitle @frac{d@sigma^{Z}(N_{jets}@geq2)}{dp_{T}^{Z}}~/~@frac{d@sigma^{Z}(N_{jets}@geq1)}{dp_{T}^{Z}}~~@scale[3]{/}~~@frac{d@sigma^{@gamma}(N_{jets}@geq2)}{dp_{T}^{@gamma}}~/~@frac{d@sigma^{@gamma}(N_{jets}@geq1)}{dp_{T}^{@gamma}}
+#ytitle @frac{d@sigma^{Z}(N_{jets}@geq2)}{dp_{T}^{Z}}~/~@frac{d@sigma^{Z}(N_{jets}@geq1)}{dp_{T}^{Z}}~~@scale[3]{/}~~@frac{d@sigma^{@gamma}(N_{jets}@geq2)}{dp_{T}^{@gamma}}~/~@frac{d@sigma^{@gamma}(N_{jets}@geq1)}{dp_{T}^{@gamma}}
+ytitle @scale[0.5]{@frac{d@sigma^{Z}(N_{jets}@geq2)}{dp_{T}^{Z}}~/~@frac{d@sigma^{Z}(N_{jets}@geq1)}{dp_{T}^{Z}}~~@scale[3]{/}~~@frac{d@sigma^{@gamma}(N_{jets}@geq2)}{dp_{T}^{@gamma}}~/~@frac{d@sigma^{@gamma}(N_{jets}@geq1)}{dp_{T}^{@gamma}}}
 
 mc 1
 table 1

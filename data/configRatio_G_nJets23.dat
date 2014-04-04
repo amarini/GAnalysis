@@ -26,6 +26,7 @@ Cut Ht=0 nJets=2 ptJet=30
 #
 mcName1 mc_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}
 mcName2 mc_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
+mcLeg MadGraph
 
 ### syst
 Up UP UP

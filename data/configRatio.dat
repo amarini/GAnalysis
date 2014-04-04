@@ -26,6 +26,7 @@ Cut Ht=0 nJets=1 ptJet=30
 #
 mcName1 h_MG_GEN_leptons_combined
 mcName2 mc_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
+mcLeg MadGraph
 
 ### syst
 Up UP UP
