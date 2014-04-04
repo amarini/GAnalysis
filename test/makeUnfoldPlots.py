@@ -344,11 +344,6 @@ for jpt in [30.0,300.0]:
 		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
 
 		#------------ NICE CANVAS ----------------------
-		#C3=ROOT.TCanvas("C3","C3",600,500)
-		#C3.SetTopMargin(0.06)
-		#C3.SetRightMargin(0.03)
-		##C3.SetLogx()
-		#C3.SetLogy()
 
 		BinsToMerge=[(750,1000)]
 		Range=(99.99,1093.)
@@ -382,96 +377,11 @@ for jpt in [30.0,300.0]:
 		plotter.Range.first=Range[0]
 		plotter.Range.second=Range[1]
 		C3=plotter.Draw()
-		#H     = NiceRange(H,Range,NiceRangeFactors[0],NiceRangeFactors[1])
-		#H_TOT = NiceRange(H_TOT,Range,NiceRangeFactors[0],NiceRangeFactors[1])
-
-		#H.SetMarkerStyle(20)
-		#H.SetMarkerColor(ROOT.kBlack)
-		#H.SetLineColor(ROOT.kBlack)
-
-		#H_TOT.SetLineColor(ROOT.kOrange + 2)
-		#H_TOT.SetLineStyle(1)
-		#H_TOT.SetLineWidth(2)
-		##H_TOT.SetFillStyle(0);
-		#H_TOT.SetFillColor(ROOT.kOrange-4);
-		##H_TOT.SetFillStyle(3001);
-
-
-		#H.Draw("P")
-		#H.GetXaxis().SetRangeUser(Range[0],Range[1])
-		#H_TOT.GetXaxis().SetRangeUser(Range[0],Range[1])
-		#H.GetXaxis().SetNoExponent()
-		#H.GetXaxis().SetMoreLogLabels()
-		#H.GetYaxis().SetNoExponent()
-		#H.GetYaxis().SetMoreLogLabels()
-		#H.GetYaxis().SetTitle("L d#sigma/dp_{T}")
-		#H.GetXaxis().SetTitle("dp_{T}^{#gamma}")
-
-		#H.GetYaxis().SetTitle("d#sigma/dp_{T} [fb GeV^{-1}]")
-		#H.GetXaxis().SetTitle("p_{T}^{#gamma} [GeV]")
-		#H.GetYaxis().SetTitleOffset(0.8)
-		#H.GetXaxis().SetTitleOffset(0.8)
-		#H.GetXaxis().SetTitleFont(43)
-		#H.GetYaxis().SetTitleFont(43)
-		#H.GetXaxis().SetTitleSize(24)
-		#H.GetYaxis().SetTitleSize(24)
-		#H.GetXaxis().SetLabelFont(43)
-		#H.GetYaxis().SetLabelFont(43)
-		#H.GetXaxis().SetLabelSize(18)
-		#H.GetYaxis().SetLabelSize(18)
-
-		#H_TOT.Draw("E2 SAME");
-		#H.Draw("AXIS X+ Y+ SAME")
-
-		#if doMC:
-		#	H_MC=MergeBins(BinsToMerge,H_MC)
-		#	H_MC = NiceRange(H_MC,Range,NiceRangeFactors[0],NiceRangeFactors[1])
-		#	H_MC.Scale(1./Lumi)
-
-		#	H_MC.GetXaxis().SetRangeUser(Range[0],Range[1])
-		#	H_MC.SetLineColor(ROOT.kBlue+2)
-		#	H_MC.SetLineWidth(2)
-		#	H_MC.SetLineStyle(ROOT.kDashed)
-		#	H_MC.Draw("HIST SAME ][");
-
-
-		#H.Draw("P SAME") # redraw on top
-		## TEXT
-		#l.SetNDC()
-		#l.SetTextFont(63)
-		#l.SetTextSize(26)
-		#l.SetTextAlign(22);
-		#l.DrawLatex(0.32,.20,"CMS Preliminary,")
-		#l.SetTextFont(43)
-		#l.SetTextSize(20)
-		#l.DrawLatex(.32,.15,"#sqrt{s} = 8TeV, #it{L} = 19.7fb^{-1}")
-		## LEGEND
-	
-		#if HtCuts[h] == 0:
-		#	Header="N_{jets} #geq %.0f"%(nJetsCuts[nj])
-		#else:
-		#	Header="H_{T} > %.0f GeV, N_{jets} #geq %.0f"%(HtCuts[h],nJetsCuts[nj])
-			
-		
-		#L=ROOT.TLegend(0.70,0.70,.89,.89,Header)
-		#L.SetFillStyle(0)
-		#L.SetBorderSize(0)
-		#L.AddEntry(H,"Data","PL")
-		#L.AddEntry(H_TOT,"Stat+Syst","F")
-		#if doMC:
-		#	L.AddEntry(H_MC,"MC")
-
-		#L.Draw()
-		#C3.RedrawAxis()
 		C3.SaveAs(WorkDir+"plots/C3_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
+
+		# RATIO NICE
 		R_H=Ratio(H,H,NoErrorH=True); 
 		R_TOT=Ratio(H,H_TOT,True);
-		#C4=ROOT.TCanvas("C4","C4",600,300)
-		#C4.SetLeftMargin(0.2)
-		#C4.SetRightMargin(0.03)
-		#C4.SetTopMargin(0.02)
-		#C4.SetBottomMargin(0.2)
-		#C4.SetLogx()
 		plotter=ROOT.NicePlots.SingleLowerPlot();
 		plotter.data=R_H
 		plotter.syst=R_TOT
@@ -482,26 +392,11 @@ for jpt in [30.0,300.0]:
 			plotter.mc.push_back(R_MC);
 			plotter.mcLabels.push_back("MadGraph");
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))
-		#NiceRangeFactors=[1.,0.10]
 		plotter.RangeFactors.first=1.0
 		plotter.RangeFactors.second=0.05
 		plotter.Range.first=Range[0]
 		plotter.Range.second=Range[1]
 		C4=plotter.Draw()
 
-
-		#R_H.Draw("P")
-		#R_H.GetYaxis().SetRangeUser(.5,1.5)
-		#R_TOT.Draw("E2 SAME")
-		#R_H.Draw("AXIS X+ Y+ SAME")
-		
-		#L.Draw("SAME")
-
-		#if doMC:
-		#	R_MC=Ratio(H,H_MC);
-		#	R_MC.Draw("HIST SAME ][");
-
-		#R_H.Draw("P SAME") # redraw on top
-		#C4.RedrawAxis()
 		C4.SaveAs(WorkDir+"plots/C4_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))
 
