@@ -1,6 +1,7 @@
 #define NICEPLOTS_CXX
 
 #include "NicePlots.h"
+//#include "TMathText.h"
 
 using NicePlots::NicePlotsBase;
 using NicePlots::SingleLowerPlot;
@@ -64,11 +65,16 @@ void NicePlotsBase::DrawCMS()
 	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS Preliminary");
 	l->SetTextFont(43);
 	l->SetTextSize(20);
-	//l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"\\sqrt{s} = 8TeV, \\mathcal{L=19.7fb^{-1}}");
 	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
 	l->SetTextSize(18);
 	if( extraText != "")
 		l->DrawLatex(cmsPosition.first,cmsPosition.second-0.09,extraText.c_str());
+	//TMathText*m=new TMathText();
+	//m->SetTextFont(43);
+	//m->SetTextSize(20);
+	//m->SetTextAlign(22);
+	//m->DrawMathText(cmsPosition.first,cmsPosition.second-0.04,"\\sqrt{s} = 8TeV, \\mathcal{L=19.7fb^{-1}}");
+
 	return;
 }
 
@@ -177,7 +183,7 @@ void SingleLowerPlot::DrawLegend(){
 
 void SingleLowerPlot::SetDataStyle(){
 	NicePlotsBase::SetDataStyle();
-		data->GetYaxis()->SetTitleOffset(1.2);
+		data->GetYaxis()->SetTitleOffset(0.5);
 		data->GetYaxis()->SetTitle("MC/Data");
 		data->GetYaxis()->SetNdivisions(510);
 		data->GetYaxis()->SetDecimals();
