@@ -26,11 +26,11 @@ CXXFLAGS+= -O -fPIC
 ROOTLIBS=`root-config --libs`
 
 .PHONY: all
-all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so DumpAscii.so
+all: Analyzer.so fit.so stat.so Selection.so libGAnalysis.so DumpAscii.so NicePlots.so
 #all: Analyzer.so
 
-libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o
-	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o fit.o fitDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o -o libGAnalysis.so
+libGAnalysis.so: Analyzer.o fit.o Selection.o AnalyzerDict.o fitDict.o SelectionDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o NicePlots.o NicePlotsDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  Analyzer.o AnalyzerDict.o Selection.o SelectionDict.o fit.o fitDict.o stat.o statDict.o DumpAscii.o DumpAsciiDict.o NicePlots.o NicePlotsDict.o -o libGAnalysis.so
 
 Analyzer.d: Analyzer.cc Analyzer.h AnalyzerBranches.h
 	$(CXX) -o Analyzer.$(DepSuf) -M Analyzer.$(SrcSuf) $(CXXFLAGS) $(LDFLAGS)
@@ -108,12 +108,27 @@ SelectionDict.o: SelectionDict.cc
 
 SelectionDict.cc: Selection.cc SelectionLinkDef.h
 	@rootcint -v4 -f SelectionDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src Selection.h SelectionLinkDef.h
-##EOF
+##----- Nice Plots
+
+NicePlots.d: NicePlots.cc NicePlots.h 
+	$(CXX) -o NicePlots.$(DepSuf) -M NicePlots.$(SrcSuf) $(CXXFLAGS) $(LDFLAGS)
+
+NicePlots.o: NicePlots.cc NicePlots.h NicePlots.d
+	$(CXX) -c -o NicePlots.$(ObjSuf) NicePlots.$(SrcSuf) $(LDFLAGS) $(CXXFLAGS)
+
+NicePlots.so: NicePlots.o NicePlotsDict.o
+	$(LD) $(SOFLAGS) $(LDFLAGS) $(ROOTLIBS)  NicePlots.o NicePlotsDict.o -o NicePlots.so
+
+NicePlotsDict.o: NicePlotsDict.cc
+	$(CXX) -c -o NicePlotsDict.o NicePlotsDict.cc $(LDFLAGS) $(CXXFLAGS)
+
+NicePlotsDict.cc: NicePlots.cc NicePlotsLinkDef.h
+	@rootcint -v4 -f NicePlotsDict.cc -c -I$(ROOFIT_BASE)/include -I$(CMSSW_BASE)/src  -I$(CMSSW_RELEASE_BASE)/src NicePlots.h NicePlotsLinkDef.h
 
 .PHONY: clean	
 clean: clean_Selection clean_Analyzer clean_Fit clean_Stat clean_DumpAscii
 
-.PHONY: clean_Selection clean_Analyzer clean_Fit clean_Stat clean_DumpAscii
+.PHONY: clean_Selection clean_Analyzer clean_Fit clean_Stat clean_DumpAscii cleani_NicePlots
 clean_Analyzer:
 	[ -f Analyzer.d      ] && rm Analyzer.d || true
 	[ -f Analyzer.o      ] && rm Analyzer.o || true
@@ -144,3 +159,9 @@ clean_DumpAscii:
 	[ -f DumpAscii.d           ] && rm DumpAscii.d || true
 	[ -f DumpAsciiDict.cc      ] && rm DumpAsciiDict.cc || true
 	[ -f DumpAsciiDict.o       ] && rm DumpAsciiDict.o || true
+clean_NicePlots:
+	-rm NicePlots.d 
+	-rm NicePlots.o 
+	-rm NicePlots.so 
+	-rm NicePlotsDict.cc 
+	-rm NicePlotsDict.o 
