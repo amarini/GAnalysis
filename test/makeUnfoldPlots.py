@@ -142,7 +142,7 @@ for jpt in [30.0,300.0]:
 		sqrtSum(H_TOT,H_JER)
 		#sqrtSum(H_TOT,H_SIG)
 		#sqrtSum(H_TOT,H_BKG)
-		#sqrtSum(H_TOT,H_ESCALE) ###
+		sqrtSum(H_TOT,H_ESCALE) ###
 		sqrtSum(H_TOT,H_BIAS)
 		sqrtSum(H_TOT,H_LUM)
 		sqrtSum(H_TOT,H_UNFOLD)
@@ -242,6 +242,7 @@ for jpt in [30.0,300.0]:
 		H_JER.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 		H_BIAS.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 		H_LUM.GetXaxis().SetRangeUser(xRange[0],xRange[1])
+		H_ESCALE.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 		H_TOT.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 
 		#DRAW
@@ -250,7 +251,7 @@ for jpt in [30.0,300.0]:
 		H_UNFOLD.Draw("P E2 SAME")
 		#H_BKG.Draw("P E2 SAME")
 		#H_SIG.Draw("P E2 SAME")
-		#H_ESCALE.Draw("P E2 SAME") ###
+		H_ESCALE.Draw("P E2 SAME") ###
 		H_PU.Draw("P E2 SAME")
 		H_JES.Draw("P E2 SAME")
 		H_JER.Draw("P E2 SAME")
@@ -292,7 +293,7 @@ for jpt in [30.0,300.0]:
 		L.AddEntry(H_JER,"JER Syst")
 		#L.AddEntry(H_SIG,"SIG shape Syst")
 		#L.AddEntry(H_BKG,"BKG shape Syst")
-		#L.AddEntry(H_ESCALE,"ESCALE shape Syst") ###
+		L.AddEntry(H_ESCALE,"ESCALE shape Syst") ###
 		L.AddEntry(H_BIAS,"BIAS shape Syst")
 		L.AddEntry(H_LUM,"LUM shape Syst")
 		L.AddEntry(H_UNFOLD,"UNFOLD shape Syst")
@@ -326,7 +327,7 @@ for jpt in [30.0,300.0]:
 		R_BIAS.Draw("P E2 SAME")
 		R_LUM.Draw("P E2 SAME")
 		#R_BKG.Draw("P E2 SAME")
-		#R_ESCALE.Draw("P E2 SAME")###
+		R_ESCALE.Draw("P E2 SAME")###
 		R_PU.Draw("P E2 SAME")
 		R_JES.Draw("P E2 SAME")
 		R_JER.Draw("P E2 SAME")

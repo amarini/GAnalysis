@@ -48,6 +48,7 @@ Syst JER &+ h${SYST}_unc_band_comb -
 Syst PhBG &. h${SYST}_unc_band_comb -
 Syst PU &+ h${SYST}_unc_band_comb -
 Syst BIAS .: - - 
+Syst ESCALE .+ - -
 Syst LUM %% 2.6 2.6 #equivalently . means ignore
 Syst UNF &. h_Unf_unc_band_comb -
 #trick two different systematic are not correlated. These two shold not simplify

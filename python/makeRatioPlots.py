@@ -4,6 +4,7 @@ import array
 import time
 import math
 from optparse import OptionParser
+from subprocess import call
 
 DEBUG=1
 
@@ -140,6 +141,10 @@ for cut in config['Cut']:
 	h1.SetName("Histo_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	#R=Ratio(h1,h2,True)
 	R=Ratio(h2,h1,NoErrorH=False)
+	#for dumping tot syst files 1,2
+	#SinglePlots
+	h1_TOT=h1.Clone("H1_TOT")
+	h2_TOT=h2.Clone("H2_TOT")
 	print "Ratio"
 	for iBin in range(1,h2.GetNbinsX()+1):
 		print str(R.GetBinContent(iBin)),
@@ -210,6 +215,9 @@ for cut in config['Cut']:
 
 	if options.mc:
 	    mcR=[]
+	    #SinglePlots
+	    SingleMC1=[]
+	    SingleMC2=[]
 	    colors=[ROOT.kBlue,ROOT.kRed,ROOT.kGreen+2]
 	    styles=[1,2,3]
 	    for iMC in range(0,len(config['mcName1'])):
@@ -232,10 +240,18 @@ for cut in config['Cut']:
 		mc2.Scale(1./config['lumi2'])
 
 		mc1.SetName("MC_"+str(iMC)+"_Ht_%s_nJets_%s_ptJet_%s"%cut )
-		
+	
 		mcR.append(Ratio(mc2,mc1,False))
 		mcR[-1].SetLineColor( colors[iMC] )
 		mcR[-1].SetLineStyle( styles[iMC])
+		
+		#SinglePlots
+		mc1.SetLineColor( colors[iMC] )
+		mc1.SetLineStyle( styles[iMC] )
+		mc2.SetLineColor( colors[iMC] )
+		mc2.SetLineStyle( styles[iMC] )
+		SingleMC1.append(mc1)
+		SingleMC2.append(mc2)
 
 	if options.table:
 		print "Going to open ROOT File:",  config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root"
@@ -309,6 +325,10 @@ for cut in config['Cut']:
 				else:
 					r=0
 				Table[curRow].append("$%.1f$" % (r))
+		#SinglePlots
+		sqrtSum(h1_TOT,s1)
+		sqrtSum(h2_TOT,s2)
+		#
 		sqrtSum(S,s)
 		#DEBUG
 		try:
@@ -473,5 +493,97 @@ for cut in config['Cut']:
 		txt.write("\n")
 		txt.close()
 	AllCanvas.append(C)
+
+	#SinglePlots:
+	plotter1=ROOT.NicePlots.SingleUpperPlot();
+	plotter2=ROOT.NicePlots.SingleUpperPlot();
+	plotter1.data=h1
+	plotter2.data=h2
+	plotter1.syst=h1_TOT
+	plotter2.syst=h2_TOT
+	plotter1.xtitle="p_{T}^{Z} [GeV]"
+	plotter1.ytitle="d#sigma/dp_{T} [fb GeV^{-1}]"
+	plotter2.xtitle="p_{T}^{#gamma} [GeV]"
+	plotter2.ytitle="d#sigma/dp_{T} [fb GeV^{-1}]"
+	for iMC in range(0,len(config['mcName1'])):
+		plotter1.mc.push_back(SingleMC1[iMC]);
+		plotter1.mcLabels.push_back(config['mcLeg'][iMC])
+		plotter2.mc.push_back(SingleMC2[iMC]);
+		plotter2.mcLabels.push_back(config['mcLeg'][iMC])
+	plotter1.RangeFactors.first=1.0
+	plotter1.RangeFactors.second=0.05
+	plotter2.RangeFactors.first=1.0
+	plotter2.RangeFactors.second=0.05
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		plotter1.Range.first=config['xaxis'][0]
+		plotter1.Range.second=config['xaxis'][1]
+		plotter2.Range.first=config['xaxis'][0]
+		plotter2.Range.second=config['xaxis'][1]
+	else:
+		plotter1.Range.first=99.99
+		plotter1.Range.second=1093
+		plotter2.Range.first=99.99
+		plotter2.Range.second=1093
+
+	C1up=plotter1.Draw()
+	C1up.SetName("c1up")
+	C2up=plotter2.Draw()
+	C2up.SetName("c2up")
+	AllCanvas.append(C1up)
+	AllCanvas.append(C2up)
+
+	call(["mkdir",config["Out"]+"/single/" ])
+	for ext in extensions:
+		name= config["Out"]+("/single/file1_up_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		C1up.SaveAs( name )	
+		name= config["Out"]+("/single/file2_up_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		C2up.SaveAs( name )	
+
+	plotter1=ROOT.NicePlots.SingleLowerPlot();
+	plotter2=ROOT.NicePlots.SingleLowerPlot();
+	plotter1.data=Ratio(h1,h1,NoErrorH=True)
+	plotter2.data=Ratio(h2,h2,NoErrorH=True)
+	plotter1.syst=Ratio(h1,h1_TOT,NoErrorH=True)
+	plotter2.syst=Ratio(h2,h2_TOT,NoErrorH=True);
+	plotter1.xtitle="p_{T}^{Z} [GeV]"
+	plotter1.ytitle="MC/Data"
+	plotter2.xtitle="p_{T}^{#gamma} [GeV]"
+	plotter2.ytitle="MC/Data"
+	for iMC in range(0,len(config['mcName1'])):
+		plotter1.mc.push_back(Ratio( h1,SingleMC1[iMC],NoErrorH=True ));
+		plotter1.mcLabels.push_back(config['mcLeg'][iMC])
+		plotter2.mc.push_back(Ratio( h2,SingleMC2[iMC],NoErrorH=True));
+		plotter2.mcLabels.push_back(config['mcLeg'][iMC])
+	plotter1.RangeFactors.first=1.0
+	plotter1.RangeFactors.second=0.05
+	plotter2.RangeFactors.first=1.0
+	plotter2.RangeFactors.second=0.05
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		plotter1.Range.first=config['xaxis'][0]
+		plotter1.Range.second=config['xaxis'][1]
+		plotter2.Range.first=config['xaxis'][0]
+		plotter2.Range.second=config['xaxis'][1]
+	else:
+		plotter1.Range.first=99.99
+		plotter1.Range.second=1093
+		plotter2.Range.first=99.99
+		plotter2.Range.second=1093
+	C1dn=plotter1.Draw();
+	C1dn.SetName("c1dn")
+	C2dn=plotter2.Draw();
+	C2dn.SetName("c2dn")
+
+	AllCanvas.append(C2dn)
+	AllCanvas.append(C1dn)
+	
+	for ext in extensions:
+		name= config["Out"]+("/single/file1_dn_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		C1dn.SaveAs( name )	
+		name= config["Out"]+("/single/file2_dn_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		C2dn.SaveAs( name )	
 
 

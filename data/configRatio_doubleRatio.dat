@@ -21,6 +21,7 @@ Cut Ht=0 nJets=1 ptJet=30
 #
 mcName1 MC_0_Ht_${.0fHT}_nJets_${.0fNJETS}_ptJet_${.0fPTJ}_ratio
 mcName2 MC_0_Ht_${.0fHT}_nJets_${.0fNJETS}_ptJet_${.0fPTJ}_ratio
+mcLeg MadGraph
 
 ### syst
 Up UP UP
