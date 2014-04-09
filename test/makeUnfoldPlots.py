@@ -389,7 +389,7 @@ for jpt in [30.0,300.0]:
 		plotter.xtitle="p_{T}^{#gamma} [GeV]"
 		plotter.ytitle="MC/Data"
 		if doMC:
-		 	R_MC=Ratio(H,H_MC);
+		 	R_MC=Ratio(H,H_MC,noErrorH=True);
 			plotter.mc.push_back(R_MC);
 			plotter.mcLabels.push_back("MadGraph");
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))

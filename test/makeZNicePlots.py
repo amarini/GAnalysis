@@ -51,10 +51,8 @@ H_SH_f=fRoot.Get("h_SH_GEN_leptons_combined")
 H_BH_f=fRoot.Get("h_BH_rebinned_mumu")
 H_MG=ROOT.TH1D()
 H_SH=ROOT.TH1D()
-H_BH=ROOT.TH1D()
 H_MG_f.Copy(H_MG)
 H_SH_f.Copy(H_SH)
-H_BH_f.Copy(H_BH)
 
 plotter=ROOT.NicePlots.SingleUpperPlot();
 plotter.data=H
@@ -65,8 +63,11 @@ plotter.mc.push_back(H_MG);
 plotter.mcLabels.push_back("MadGraph");
 plotter.mc.push_back(H_SH);
 plotter.mcLabels.push_back("Sherpa");
-plotter.mc.push_back(H_BH);
-plotter.mcLabels.push_back("BlackHat");
+if H_BH_f != None :
+	H_BH=ROOT.TH1D()
+	H_BH_f.Copy(H_BH)
+	plotter.mc.push_back(H_BH);
+	plotter.mcLabels.push_back("BlackHat");
 
 nJets=1
 Ht=0
@@ -106,13 +107,14 @@ plotter.xtitle="p_{T}^{Z} [GeV]"
 plotter.ytitle="MC/Data"
 R_MG=Ratio(H,H_MG,True);
 R_SH=Ratio(H,H_SH,True);
-R_BH=Ratio(H,H_BH,True);
 plotter.mc.push_back(R_MG);
 plotter.mcLabels.push_back("MadGraph");
 plotter.mc.push_back(R_SH);
 plotter.mcLabels.push_back("Sherpa");
-plotter.mc.push_back(R_BH);
-plotter.mcLabels.push_back("BlackHat");
+if H_BH_f != None:
+	R_BH=Ratio(H,H_BH,True);
+	plotter.mc.push_back(R_BH);
+	plotter.mcLabels.push_back("BlackHat");
 plotter.SetHeader('Z',nJets,Ht)
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y
