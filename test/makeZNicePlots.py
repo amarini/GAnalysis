@@ -38,7 +38,7 @@ outputFile=options.outputFile
 ROOT.gSystem.Load("libGAnalysis.so") ##for syst names
 fRoot= ROOT.TFile.Open(inputFile)
 
-Range=(39.99,801.)
+Range=[39.99,801.]
 H_f=fRoot.Get("hData_leptons_combined")
 H=ROOT.TH1D()
 H_f.Copy(H)
@@ -73,6 +73,9 @@ nJets=1
 Ht=0
 Y=100
 pt1=30
+is_Zpt_o_Ht=False
+is_Zpt_o_pt1=False
+isLog=False
 if 'njets2plus' in inputFile:
 	nJets=2
 if 'njets3plus' in inputFile:
@@ -87,8 +90,38 @@ if 'BY_1_40' in inputFile:
 	Y=1.4
 if  'pt1_300' in inputFile:
 	pt1=300
+if 'Zpt_over_HT' in inputFile:
+	is_Zpt_o_Ht=True
+if 'Zpt_over_pt1' in inputFile:
+	is_Zpt_o_pt1=True
+if 'log10' in inputFile:
+	isLog=True
+
+if is_Zpt_o_pt1 and not isLog:
+	Range[0]=0
+	Range[1]=3
+if is_Zpt_o_Ht and not isLog:
+	Range[0]=0
+	Range[1]=1.8
+if is_Zpt_o_pt1 and isLog:
+	Range[0]=-1.4
+	Range[1]=0.8
+if is_Zpt_o_Ht and isLog:
+	Range[0]=-1.4
+	Range[1]=0.8
+if isLog:
+	plotter.cmsPosition.second=0.89
+	xshift=0.1
+	plotter.legendPos1.first=-0.2 + 0.5+ xshift
+	plotter.legendPos1.second=0.15
+	plotter.legendPos2.first=0.2 + 0.5 + xshift
+	plotter.legendPos2.second=0.45
+	plotter.RangeFactors.first=0.1
+	plotter.RangeFactors.second=0.1
 
 plotter.SetHeader('Z',nJets,Ht)
+if is_Zpt_o_pt1 or is_Zpt_o_Ht:
+	plotter.legendHeader += ", p_{T}^{ll}>40 "
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y
 plotter.RangeFactors.first=1.0

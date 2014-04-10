@@ -397,8 +397,8 @@ for cut in config['Cut']:
 	#R.GetXaxis().SetTitleOffset(1.5)
 	#R.GetYaxis().SetDecimals()
 	#R.GetYaxis().SetRangeUser(0,2)
-	plotter.Range.first=0
-	plotter.Range.second=R.GetMaximum()*1.2
+	plotter.RangeY.first=0
+	plotter.RangeY.second=R.GetMaximum()*1.2
 	plotter.RangeFactors.first=1
 	plotter.RangeFactors.second=0.05
 	#R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)

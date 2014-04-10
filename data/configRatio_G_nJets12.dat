@@ -43,6 +43,7 @@ PrePendSyst "_" "_"
 
 #Out /afs/cern.ch/user/a/amarini/work/V00-13/
 Out ../V00-14/G/
+OutName G_Ht_${.0fHT}_nJets_${.0fNJETS}_ptJet_${.0fPTJ}
 
 # + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
 Syst JES ++ - -
@@ -66,7 +67,7 @@ Syst PhScale %% 3 3
 xaxis 101 1000
 #xaxis 100 500
 yaxis 0.0 1.0
-xlog 1
+#xlog 1
 ylog 0
 
 xtitle P_{T}^{@gamma}
