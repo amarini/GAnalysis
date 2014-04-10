@@ -102,7 +102,7 @@ if is_Zpt_o_pt1 and not isLog:
 	Range[1]=3
 if is_Zpt_o_Ht and not isLog:
 	Range[0]=0
-	Range[1]=1.8
+	Range[1]=3
 if is_Zpt_o_pt1 and isLog:
 	Range[0]=-1.4
 	Range[1]=0.8

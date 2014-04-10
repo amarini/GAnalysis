@@ -1,0 +1,8 @@
+include data/configRatio_G_nJets23.dat
+
+file1 ../V00-14/V00-14_MC/UnfoldedDistributions.root
+file2 ../V00-14/V00-14_MC/UnfoldedDistributions.root
+
+StatCorr 1
+
+OutName MC_Closure_Ht_${.0fHT}_nJets_${.0fNJETS}_ptJet_${.0fPTJ} 

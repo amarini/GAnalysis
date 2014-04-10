@@ -49,7 +49,7 @@ PrePendSyst "_" "_"
 
 #Out /afs/cern.ch/user/a/amarini/work/V00-13/
 Out ../V00-14/Z/
-OutName Ht_${.1fHT}_nJets_1.0_JPt_${.0fPTJ}_Y_Inf
+OutName Ht_${.0fHT}_nJets_1_JPt_${.0fPTJ}_Y_Inf
 
 # + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
 Syst JES && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
