@@ -69,14 +69,20 @@ Syst LepRES && h_lepRES_unc_band_comb h_lepRES_unc_band_comb
 #Merge1 600 790
 
 # Style
-xaxis 40 800
+xaxis 39 810
 #xaxis 100 500
-yaxis 0.0 1.0
+yaxis 0.1 0.9
 #xlog 1
 ylog 0
 xtitle P_{T}^{Z}
-ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}/@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{Z}}
+ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{Z}}
 text ~
+
+#default
+#xleg 0.70 .97
+#yleg 0.75 .94
+xleg 0.70 .97
+yleg 0.11 .31
 
 mc 1
 table 1

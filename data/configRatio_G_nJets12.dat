@@ -64,15 +64,21 @@ Syst PhScale %% 3 3
 
 # Style
 #xaxis 0 0
-xaxis 101 1000
+xaxis 99 1000
 #xaxis 100 500
-yaxis 0.0 1.0
+yaxis 0.3 1.0
 #xlog 1
 ylog 0
 
 xtitle P_{T}^{@gamma}
-ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{@gamma}}/@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{@gamma}}
-text |Y^{@gamma}|<1.4
+ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{@gamma}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{@gamma}}
+text |y^{@gamma}|<1.4
+
+#default
+#xleg 0.70 .97
+#yleg 0.75 .94
+xleg 0.70 .97
+yleg 0.11 .31
 
 mc 1
 table 1

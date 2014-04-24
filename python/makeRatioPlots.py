@@ -353,7 +353,7 @@ for cut in config['Cut']:
 				r=S.GetBinError(i)/R.GetBinContent(i) * 100.
 			else:
 				r=0
-			Table[curRow].append("$%.0f$" % (r))
+			Table[curRow].append("$%.1f$" % (r))
 
 	plotter=ROOT.NicePlots.SingleRatioPlot();
 	#C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
@@ -401,6 +401,11 @@ for cut in config['Cut']:
 	plotter.RangeY.second=R.GetMaximum()*1.2
 	plotter.RangeFactors.first=1
 	plotter.RangeFactors.second=0.05
+	if 'xleg' in config and 'yleg' in config:
+		plotter.legendPos1.first=config['xleg'][0]
+		plotter.legendPos2.first=config['xleg'][1]
+		plotter.legendPos1.second=config['yleg'][0]
+		plotter.legendPos2.second=config['yleg'][1]
 	#R.GetYaxis().SetRangeUser(0,R.GetMaximum()*1.2)
 
 	#R.Draw("AXIS P")
@@ -429,6 +434,33 @@ for cut in config['Cut']:
 		if options.table:
 			OutROOT.cd()
 			mcR[iMC].Write()
+			###
+			curRow=len(Table)
+			Table.append(["MC Z (%s)"%config['mcLeg'][iMC] ])
+			for i in range(1,mcR[iMC].GetNbinsX()+1):
+				Table[curRow].append("$%f$" % ( SingleMC1[iMC].GetBinContent(i) * config['mcLO1'][iMC]) )
+			###
+			curRow=len(Table)
+			Table.append(["MC G (%s)"%config['mcLeg'][iMC] ])
+			for i in range(1,mcR[iMC].GetNbinsX()+1):
+				Table[curRow].append("$%f$" % ( SingleMC2[iMC].GetBinContent(i) * config['mcLO2'][iMC]  ) )
+			###
+			curRow=len(Table)
+			Table.append(["MC R (%s)"%config['mcLeg'][iMC] ])
+			for i in range(1,mcR[iMC].GetNbinsX()+1):
+				Table[curRow].append("$%.5f$" % (mcR[iMC].GetBinContent(i) ) )
+			##
+			curRow=len(Table)
+			Table.append(["MC Stat (%s \\%%)"%config['mcLeg'][iMC] ])
+			for i in range(1,mcR[iMC].GetNbinsX()+1):
+				try:
+					e1=SingleMC1[iMC].GetBinError(i)/ SingleMC1[iMC].GetBinContent(i)
+					e2=SingleMC2[iMC].GetBinError(i)/ SingleMC2[iMC].GetBinContent(i)
+					Table[curRow].append("$%.2f$" % ( math.sqrt(e1*e1+e2*e2) *100 ) )
+				except:
+					Table[curRow].append("$%f$" % ( -1 ) )
+		# end mc				
+
 	#L.Draw();
 	#lat=ROOT.TLatex()
 	#lat.SetNDC()
@@ -585,5 +617,34 @@ for cut in config['Cut']:
 		name= config["Out"]+("/single/file2_dn_"+FixNames(config['OutName'],cut) + "."+ext)
 		print "Going to save '"+ name+"'"
 		C2dn.SaveAs( name )	
+	#------------- Ratio Lower --------------------
+	plot_L = ROOT.NicePlots.SingleRatioLowerPlot();
+	if 'ytitle' in config:
+		plot_L.extraText=config['ytitle']+", "+text;
+	else:
+		plot_L.extraText="d#sigma/dP_{T}^{Z}/d#sigma/dP_{T}^{#gamma}, "+text;
 
+	if not (config['xaxis'][0]==0 and config['xaxis'][1]==0):
+		plot_L.Range.first=config['xaxis'][0]
+		plot_L.Range.second=config['xaxis'][1]
+	else:
+		plot_L.Range.first=99.99
+		plot_L.Range.second=1093
 
+	data_L = Ratio(R,R,NoErrorH=True)
+	syst_L = Ratio(R,S,NoErrorH=True)
+	plot_L.data= data_L
+	plot_L.syst= syst_L
+	for iMC in range(0,len(config['mcName1'])):
+		mc_L=Ratio(R,mcR[iMC],NoErrorH=True)
+                plot_L.mc.push_back(mc_L)
+		plot_L.mcLabels.push_back(config['mcLeg'][iMC])
+	Cdn=plot_L.Draw();
+
+	AllCanvas.append(Cdn)
+
+	for ext in extensions:
+		name= config["Out"]+("/Lower_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		C1dn.SaveAs( name )	
+	#for cut in Cuts

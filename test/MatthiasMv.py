@@ -48,6 +48,8 @@ for f in l:
 	if 'njets2plus_' in f:
 		outName += 'njets2plus_'
 	#
+	if 'HT_300' in f:
+		outName += 'HT_300_'
 	outName += "data_MG_SH_BH.pdf"
 
 	cmd=["mv", f, outName]

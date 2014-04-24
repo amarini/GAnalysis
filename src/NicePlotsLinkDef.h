@@ -9,6 +9,7 @@
 #pragma link C++ class NicePlots::SingleUpperPlot+ ; 
 #pragma link C++ class NicePlots::SingleLowerPlot+ ; 
 #pragma link C++ class NicePlots::SingleRatioPlot+ ; 
+#pragma link C++ class NicePlots::SingleRatioLowerPlot+ ; 
 #pragma link C++ namespace NicePlots ;
 
 

@@ -116,6 +116,8 @@ def ReadRatioDat( inputDat ):
 				R['PrePendSyst'].append(s)
 		elif parts[0] == 'xaxis' or parts[0]=='yaxis':
 			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
+		elif parts[0] == 'xleg' or parts[0]=='yleg':
+			R[parts[0]]=[ float(parts[1]), float(parts[2] )]
 		elif parts[0] == 'xtitle' or parts[0]=='ytitle' or parts[0]=='text':
 			R[parts[0]]= parts[1].replace('~',' ')
 		elif parts[0] == 'ylog' or parts[0]=='xlog':

@@ -21,6 +21,7 @@ class NicePlotsBase;
 class SingleUpperPlot;
 class SingleLowerPlot ;
 class SingleRatioPlot ;
+class SingleRatioLowerPlot ;
 
 TH1D* NiceRange(TH1*H,pair<double,double> Range, double f1,double f2);
 };
@@ -43,6 +44,7 @@ public:
 	TH1D* data;
 	TH1D* syst;
 	TLegend* legend;
+	int autoLegend; // change X,Y according to number of entries
 	vector<TH1D*> mc;
 	vector<string> mcLabels;
 	pair<double,double>RangeFactors;
@@ -79,4 +81,13 @@ class NicePlots::SingleRatioPlot : public NicePlots::NicePlotsBase{
 	virtual void SetDataStyle();
 	SingleRatioPlot();
 	//virtual TCanvas * Draw();
+};
+
+class NicePlots::SingleRatioLowerPlot : public NicePlots::SingleRatioPlot {
+	public:
+	virtual TCanvas * DrawCanvas();
+	SingleRatioLowerPlot();
+	virtual void DrawLegend();
+	virtual void DrawCMS();
+	virtual void SetDataStyle();
 };

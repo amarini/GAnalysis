@@ -368,6 +368,7 @@ for jpt in [30.0,300.0]:
 		#plotter.ytitle="d\\sigma/dp_{\\textup{T}} [fb \\textup{G}e\\textup{V}^{-1}]"
 		plotter.xtitle="p_{T}^{#gamma} [GeV]"
 		plotter.ytitle="d#sigma/dp_{T} [fb GeV^{-1}]"
+		plotter.extraText="|y^{#gamma}|<1.4"
 		if doMC:
 			plotter.mc.push_back(H_MC);
 			plotter.mcLabels.push_back("MadGraph");
@@ -389,7 +390,7 @@ for jpt in [30.0,300.0]:
 		plotter.xtitle="p_{T}^{#gamma} [GeV]"
 		plotter.ytitle="MC/Data"
 		if doMC:
-		 	R_MC=Ratio(H,H_MC,noErrorH=True);
+		 	R_MC=Ratio(H,H_MC,NoErrorH=True);
 			plotter.mc.push_back(R_MC);
 			plotter.mcLabels.push_back("MadGraph");
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))

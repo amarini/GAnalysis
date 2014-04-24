@@ -7,25 +7,52 @@ using NicePlots::NicePlotsBase;
 using NicePlots::SingleLowerPlot;
 using NicePlots::SingleUpperPlot;
 using NicePlots::SingleRatioPlot;
+using NicePlots::SingleRatioLowerPlot;
 using NicePlots::NiceRange;
 
 TCanvas* NicePlotsBase::DrawCanvas(){
 
 TCanvas *c=new TCanvas("c","c",600,500);
-                c->SetTopMargin(0.06);
+                c->SetTopMargin(0.10);
                 c->SetRightMargin(0.03);
                 c->SetLogy();
 return c;
 }
 
 TCanvas * NicePlotsBase::Draw(){
+	//cout<< "NiceRangeFactors"<<RangeFactors.first<<" "<<RangeFactors.second<<endl;
 	TCanvas *c=DrawCanvas();
 	SetSystStyle();
 	SetMCStyle();
 	SetDataStyle();
 	TH1D *data2=NiceRange(data,Range,RangeFactors.first,RangeFactors.second);
 	TH1D *syst2=NiceRange(syst,Range,RangeFactors.first,RangeFactors.second);
-	legend=new TLegend(legendPos1.first,legendPos1.second,legendPos2.first,legendPos2.second,legendHeader.c_str());
+
+	int nRowLeg=mc.size()+1+1;//data/syst/header
+	if(legendHeader != "") nRowLeg += 1;
+	float unitLeg=(legendPos2.second-legendPos1.second)/3.;
+	if (autoLegend == 1)
+	{
+		if (legendPos1.second > 0.5) autoLegend=2;
+		if (legendPos1.second <= 0.5) autoLegend=3;
+	}
+
+	if (autoLegend == 2){
+		float y1=legendPos2.second - unitLeg*nRowLeg;
+	        float y2=legendPos2.second;
+		legend=new TLegend(legendPos1.first,y1,legendPos2.first,y2);
+	}
+	else if (autoLegend==3){ // down fixed
+		float y1=legendPos1.second ;
+	        float y2=legendPos1.second + unitLeg*nRowLeg; 
+		legend=new TLegend(legendPos1.first,y1,legendPos2.first,y2);
+		}
+	else legend=new TLegend(legendPos1.first,legendPos1.second,legendPos2.first,legendPos2.second);
+	legend->SetTextFont(43);
+	legend->SetTextSize(16);
+
+	cout<<"Setting Legend Header "<<legendHeader<<endl;
+	legend->SetHeader(legendHeader.c_str());
 
 	data2->Draw("P AXIS");
 	data2->GetXaxis()->SetRangeUser(Range.first,Range.second);
@@ -38,7 +65,8 @@ TCanvas * NicePlotsBase::Draw(){
 	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
         	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
 		mc2->Draw("HIST SAME ][");
-		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"F");
+		//legend->AddEntry(mc2,mcLabels[iMC].c_str(),"F");
+		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
 		}
 	DrawLegend();
 	DrawCMS();
@@ -59,16 +87,16 @@ void NicePlotsBase::DrawCMS()
 {
 	TLatex *l=new TLatex();
 	l->SetNDC();
-	l->SetTextFont(63);
-	l->SetTextSize(24);
-	l->SetTextAlign(22);
-	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS Preliminary");
 	l->SetTextFont(43);
-	l->SetTextSize(20);
-	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
 	l->SetTextSize(18);
+	l->SetTextAlign(22);
+	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS Preliminary, #sqrt{s}=8TeV, L=19.7fb^{-1}");
+//	l->SetTextFont(43);
+//	l->SetTextSize(18);
+//	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
+	l->SetTextSize(15);
 	if( extraText != "")
-		l->DrawLatex(cmsPosition.first,cmsPosition.second-0.09,extraText.c_str());
+		l->DrawLatex(cmsPosition.first-0.10,cmsPosition.second-0.08,extraText.c_str());
 	//TMathText*m=new TMathText();
 	//m->SetTextFont(43);
 	//m->SetTextSize(20);
@@ -92,16 +120,16 @@ void  NicePlotsBase::SetDataStyle()
 	data->GetXaxis()->SetTitle(xtitle.c_str());
 	data->GetYaxis()->SetTitle(ytitle.c_str());
 
-        data->GetYaxis()->SetTitleOffset(0.8);
-        data->GetXaxis()->SetTitleOffset(0.8);
+        data->GetYaxis()->SetTitleOffset(0.9);
+        data->GetXaxis()->SetTitleOffset(0.9);
         data->GetXaxis()->SetTitleFont(43);
         data->GetYaxis()->SetTitleFont(43);
-        data->GetXaxis()->SetTitleSize(24);
-        data->GetYaxis()->SetTitleSize(24);
+        data->GetXaxis()->SetTitleSize(22);
+        data->GetYaxis()->SetTitleSize(22);
         data->GetXaxis()->SetLabelFont(43);
         data->GetYaxis()->SetLabelFont(43);
-        data->GetXaxis()->SetLabelSize(18);
-        data->GetYaxis()->SetLabelSize(18);
+        data->GetXaxis()->SetLabelSize(16);
+        data->GetYaxis()->SetLabelSize(16);
 	return ;
 }
 void  NicePlotsBase::SetSystStyle(){
@@ -133,7 +161,7 @@ void NicePlotsBase::SetHeader(char type,int nJets,int Ht)
 	{
 	case 'G' :
 	case 'g' :
-	       legendHeader=""	;
+		legendHeader=""	;
 		break;
 	case 'Z' : 
 	case 'z' : 
@@ -157,7 +185,8 @@ RangeY=pair<double,double>(-100.,-100.);
 legendPos1=pair<double,double>(.70,.70);
 legendPos2=pair<double,double>(.89,.89);
 legendHeader="";
-cmsPosition=pair<double,double>(.28,.20);
+cmsPosition=pair<double,double>(.45,.94);
+autoLegend=1;
 }
 
 //---------------------- LOWER PLOTS-------------
@@ -197,25 +226,64 @@ void SingleLowerPlot::DrawCMS(){
 
 //---------------------- RATIO PLOTS-------------
 SingleRatioPlot::SingleRatioPlot() : NicePlotsBase(){
-cmsPosition.first=0.35;
-cmsPosition.second=0.85;
+cmsPosition.first=0.45;
+cmsPosition.second=0.94;
+legendPos1=pair<double,double>(.70,.75);
+legendPos2=pair<double,double>(.97,.94);
 }
 TCanvas* SingleRatioPlot::DrawCanvas(){
 
 TCanvas *c=new TCanvas("c","c",600,500);
                 c->SetLeftMargin(0.18);
-                c->SetTopMargin(0.05);
+                c->SetTopMargin(0.10);
                 c->SetBottomMargin(0.10);
                 c->SetRightMargin(0.02);
 return c;
 }
 void SingleRatioPlot::SetDataStyle(){
 	NicePlotsBase::SetDataStyle();
-		data->GetYaxis()->SetTitleOffset(1.2);
+		data->GetYaxis()->SetTitleOffset(1.3);
+		data->GetXaxis()->SetTitleOffset(0.8);
+		//data->GetYaxis()->SetTitleSize(22);
 		data->GetYaxis()->SetDecimals();
 }
 //---------------------- UPPER PLOTS-------------
 SingleUpperPlot::SingleUpperPlot() : NicePlotsBase(){
+}
+
+//---------------------- RATIO LOWER PLOTS-------------
+SingleRatioLowerPlot::SingleRatioLowerPlot() : SingleRatioPlot(){
+	//constructor
+}
+TCanvas* SingleRatioLowerPlot::DrawCanvas(){
+
+TCanvas *c=new TCanvas("c","c",600,300);
+                c->SetLeftMargin(0.18);
+                c->SetTopMargin(0.10);
+                c->SetBottomMargin(0.10);
+                c->SetRightMargin(0.02);
+return c;
+}
+void SingleRatioLowerPlot::DrawLegend(){
+	return; //no legend
+}
+void SingleRatioLowerPlot::DrawCMS(){
+	TLatex *l=new TLatex();
+	l->SetNDC();
+	l->SetTextFont(43);
+	l->SetTextSize(15);
+	if( extraText != "")
+		l->DrawLatex(cmsPosition.first-0.10,cmsPosition.second-0.08,extraText.c_str());
+	return; //only extraText
+}
+void SingleRatioLowerPlot::SetDataStyle(){
+	NicePlotsBase::SetDataStyle();
+		data->GetYaxis()->SetTitleOffset(0.5);
+		data->GetYaxis()->SetTitle("MC/Data");
+		data->GetYaxis()->SetNdivisions(510);
+		data->GetYaxis()->SetDecimals();
+		data->GetYaxis()->SetRangeUser(0.5,1.5);
+	return; 
 }
 
 

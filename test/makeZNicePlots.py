@@ -60,9 +60,9 @@ plotter.syst=H_TOT
 plotter.xtitle="p_{T}^{Z} [GeV]"
 plotter.ytitle="d#sigma/dp_{T} [fb GeV^{-1}]"
 plotter.mc.push_back(H_MG);
-plotter.mcLabels.push_back("MadGraph");
+plotter.mcLabels.push_back("MadGraph k_{NNLO}");
 plotter.mc.push_back(H_SH);
-plotter.mcLabels.push_back("Sherpa");
+plotter.mcLabels.push_back("Sherpa k_{NNLO}");
 if H_BH_f != None :
 	H_BH=ROOT.TH1D()
 	H_BH_f.Copy(H_BH)
@@ -99,33 +99,53 @@ if 'log10' in inputFile:
 
 if is_Zpt_o_pt1 and not isLog:
 	Range[0]=0
-	Range[1]=3
+	Range[1]=3.2
+	plotter.xtitle="p_{T}^{Z}/p_{T}^{j1}"
+	plotter.ytitle="d#sigma/d(p_{T}^{Z}/p_{T}^{j1})"
 if is_Zpt_o_Ht and not isLog:
 	Range[0]=0
 	Range[1]=3
+	plotter.xtitle="p_{T}^{Z}/H_{T}"
+	plotter.ytitle="d#sigma/d(p_{T}^{Z}/H_{T})"
 if is_Zpt_o_pt1 and isLog:
-	Range[0]=-1.4
-	Range[1]=0.8
+	Range[0]=-1.2
+	Range[1]=1.2
+	plotter.xtitle="log_{10} (p_{T}^{Z}/p_{T}^{j1})"
+	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/p_{T}^{j1})"
 if is_Zpt_o_Ht and isLog:
-	Range[0]=-1.4
-	Range[1]=0.8
-if isLog:
-	plotter.cmsPosition.second=0.89
-	xshift=0.1
-	plotter.legendPos1.first=-0.2 + 0.5+ xshift
-	plotter.legendPos1.second=0.15
-	plotter.legendPos2.first=0.2 + 0.5 + xshift
-	plotter.legendPos2.second=0.45
-	plotter.RangeFactors.first=0.1
-	plotter.RangeFactors.second=0.1
+	Range[0]=-1.28
+	Range[1]=1.2
+	plotter.xtitle="log_{10} (p_{T}^{Z}/H_{T})"
+	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/H_{T})"
 
+if  is_Zpt_o_Ht or is_Zpt_o_pt1 or isLog:
+	plotter.legendPos1.first=0.35
+	plotter.legendPos1.second=0.13
+	plotter.legendPos2.first=0.70
+	plotter.legendPos2.second=0.33
+
+if is_Zpt_o_Ht and nJets == 2 and not isLog:
+	plotter.legendPos1.first=0.20
+	plotter.legendPos2.first=0.55
+#if isLog:
+#	plotter.legendPos1.first=0.65
+#	plotter.legendPos1.second=0.13
+#	plotter.legendPos2.first=0.97
+#	plotter.legendPos2.second=0.33
+	
 plotter.SetHeader('Z',nJets,Ht)
 if is_Zpt_o_pt1 or is_Zpt_o_Ht:
 	plotter.legendHeader += ", p_{T}^{ll}>40 "
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y
-plotter.RangeFactors.first=1.0
+plotter.RangeFactors.first=0.05
 plotter.RangeFactors.second=0.05
+#if isLog:
+	#plotter.cmsPosition.second=0.89
+	#xleg 0.70 .97
+	#yleg 0.11 .31
+#	plotter.RangeFactors.first=0.05
+#	plotter.RangeFactors.second=0.05
 plotter.Range.first=Range[0]
 plotter.Range.second=Range[1]
 C1=plotter.Draw()
@@ -133,17 +153,18 @@ C1.SaveAs(outputFile)
 
 R_H=Ratio(H,H,NoErrorH=True); 
 R_TOT=Ratio(H,H_TOT,True);
+xtitle=plotter.xtitle
 plotter=ROOT.NicePlots.SingleLowerPlot();
 plotter.data=R_H
 plotter.syst=R_TOT
-plotter.xtitle="p_{T}^{Z} [GeV]"
+plotter.xtitle=xtitle
 plotter.ytitle="MC/Data"
 R_MG=Ratio(H,H_MG,True);
 R_SH=Ratio(H,H_SH,True);
 plotter.mc.push_back(R_MG);
-plotter.mcLabels.push_back("MadGraph");
+plotter.mcLabels.push_back("MadGraph k_{NNLO}");
 plotter.mc.push_back(R_SH);
-plotter.mcLabels.push_back("Sherpa");
+plotter.mcLabels.push_back("Sherpa k_{NNLO}");
 if H_BH_f != None:
 	R_BH=Ratio(H,H_BH,True);
 	plotter.mc.push_back(R_BH);
@@ -151,7 +172,7 @@ if H_BH_f != None:
 plotter.SetHeader('Z',nJets,Ht)
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y
-plotter.RangeFactors.first=1.0
+plotter.RangeFactors.first=0.05
 plotter.RangeFactors.second=0.05
 plotter.Range.first=Range[0]
 plotter.Range.second=Range[1]
