@@ -83,7 +83,8 @@ class NicePlots::SingleRatioPlot : public NicePlots::NicePlotsBase{
 	//virtual TCanvas * Draw();
 };
 
-class NicePlots::SingleRatioLowerPlot : public NicePlots::SingleRatioPlot {
+//class NicePlots::SingleRatioLowerPlot : public NicePlots::SingleRatioPlot {
+class NicePlots::SingleRatioLowerPlot : public NicePlots::NicePlotsBase {
 	public:
 	virtual TCanvas * DrawCanvas();
 	SingleRatioLowerPlot();

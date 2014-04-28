@@ -252,15 +252,18 @@ SingleUpperPlot::SingleUpperPlot() : NicePlotsBase(){
 }
 
 //---------------------- RATIO LOWER PLOTS-------------
-SingleRatioLowerPlot::SingleRatioLowerPlot() : SingleRatioPlot(){
+SingleRatioLowerPlot::SingleRatioLowerPlot() : NicePlotsBase(){
 	//constructor
+cmsPosition.first=0.25;
+cmsPosition.second=0.76;
 }
+
 TCanvas* SingleRatioLowerPlot::DrawCanvas(){
 
-TCanvas *c=new TCanvas("c","c",600,300);
+TCanvas *c=new TCanvas("cL","cL",600,300);
                 c->SetLeftMargin(0.18);
-                c->SetTopMargin(0.10);
-                c->SetBottomMargin(0.10);
+                c->SetTopMargin(0.15);
+                c->SetBottomMargin(0.15);
                 c->SetRightMargin(0.02);
 return c;
 }
@@ -272,17 +275,21 @@ void SingleRatioLowerPlot::DrawCMS(){
 	l->SetNDC();
 	l->SetTextFont(43);
 	l->SetTextSize(15);
+	l->SetTextAlign(12);
 	if( extraText != "")
-		l->DrawLatex(cmsPosition.first-0.10,cmsPosition.second-0.08,extraText.c_str());
+		l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
 	return; //only extraText
 }
 void SingleRatioLowerPlot::SetDataStyle(){
 	NicePlotsBase::SetDataStyle();
+	RangeY.first=0.5;
+	RangeY.second=1.5;
 		data->GetYaxis()->SetTitleOffset(0.5);
 		data->GetYaxis()->SetTitle("MC/Data");
 		data->GetYaxis()->SetNdivisions(510);
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
+        	data->GetYaxis()->SetTitleSize(20);
 	return; 
 }
 
