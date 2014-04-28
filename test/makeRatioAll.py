@@ -18,6 +18,7 @@ dats=["data/configRatio.dat",
 
 for dat in dats:
 	cmd = cmd0+["--inputDat="+dat]
+	print cmd
 	call(cmd)
 
 #cmd= cmd0 + ["--inputDat=data/configRatio.dat" ]

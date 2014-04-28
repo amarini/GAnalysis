@@ -113,13 +113,13 @@ for cut in config['Cut']:
 	h1Bin=[]
 	for iBin in range(1,h1Raw.GetNbinsX()+2):
 		h1Bin.append( int(round(h1Raw.GetBinLowEdge(iBin))) )
-		print str(h1Raw.GetBinLowEdge(iBin))+"->"+str(h1Bin[-1]),
+		if DEBUG>1:print str(h1Raw.GetBinLowEdge(iBin))+"->"+str(h1Bin[-1]),
 	print
 	print "Histo2 Available Bins:"
 	h2Bin=[]
 	for iBin in range(1,h2Raw.GetNbinsX()+2):
 		h2Bin.append( int(round(h2Raw.GetBinLowEdge(iBin))) )
-		print str(h2Raw.GetBinLowEdge(iBin))+"->"+str(h2Bin[-1]),
+		if DEBUG>1:print str(h2Raw.GetBinLowEdge(iBin))+"->"+str(h2Bin[-1]),
 	print
 	hBinCommon=ROOT.Bins()
 	hBinCommon.nBins=0;
@@ -147,7 +147,7 @@ for cut in config['Cut']:
 	h2_TOT=h2.Clone("H2_TOT")
 	print "Ratio"
 	for iBin in range(1,h2.GetNbinsX()+1):
-		print str(R.GetBinContent(iBin)),
+		if DEBUG>1:print str(R.GetBinContent(iBin)),
 	print
 	if options.cov:
 		print "Computing covariance matrix assuming gaussian error propagation and (``mu_i/sigma_i >>1'' ) "
@@ -294,7 +294,8 @@ for cut in config['Cut']:
 		else:
 			s=Ratio(s2,s1,NoErrorH=False,FullCorr=True)
 		print "Syst %s:"%syst
-		for i in range(1,s.GetNbinsX()):print s.GetBinError(i),
+		for i in range(1,s.GetNbinsX()): 
+			if DEBUG>1: print s.GetBinError(i),
 		print
 		if options.table:
 			OutROOT.cd()
@@ -332,9 +333,10 @@ for cut in config['Cut']:
 		sqrtSum(S,s)
 		#DEBUG
 		try:
+		   if DEBUG>1:
 			print
 			print "Relative Errors [tot s1 s2 TOT]%% %s:"%syst
-			for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %.1f]"%(s.GetBinError(i)/s.GetBinContent(i)*100, s1.GetBinError(i)/s1.GetBinContent(i)*100,s2.GetBinError(i)/s2.GetBinContent(i) *100, S.GetBinError(i)/S.GetBinContent(i) *100),
+			for i in range(1,s.GetNbinsX()) :print "[%.1f %.1f %.1f -> %.1f]"%(s.GetBinError(i)/s.GetBinContent(i)*100, s1.GetBinError(i)/s1.GetBinContent(i)*100,s2.GetBinError(i)/s2.GetBinContent(i) *100, S.GetBinError(i)/S.GetBinContent(i) *100),
 			print
 			print "Absolute Vales"
 			for i in range(1,s.GetNbinsX()):print "[%.1f %.1f %.1f -> %f]"%(s.GetBinContent(i), s1.GetBinContent(i),s2.GetBinContent(i) , S.GetBinContent(i)),
@@ -631,12 +633,19 @@ for cut in config['Cut']:
 		plot_L.Range.first=99.99
 		plot_L.Range.second=1093
 
-	data_L = Ratio(R,R,NoErrorH=True)
-	syst_L = Ratio(R,S,NoErrorH=True)
+	data2 = plotter.data.Clone("dataLower")
+	syst2 = plotter.syst.Clone("systLower")
+	data_L = Ratio(data2,data2,NoErrorH=True)
+	syst_L = Ratio(data2,syst2,NoErrorH=True)
 	plot_L.data= data_L
 	plot_L.syst= syst_L
 	for iMC in range(0,len(config['mcName1'])):
-		mc_L=Ratio(R,mcR[iMC],NoErrorH=True)
+		mcRi=mcR[iMC].Clone("mc_%d_Lower"%iMC)
+		iB=mcRi.FindBin(100.1)
+		mc_L=Ratio(data2,mcRi,NoErrorH=True)
+		print "DEBUG data/MC data/MC:",data2.GetBinContent(iB),mcRi.GetBinContent(iB),mc_L.GetBinContent(iB)
+		#mc_L.Scale(config['mcLO1'][iMC]/config['mcLO2'][iMC])
+		#mcR[iMC].Scale(config['mcLO1'][iMC]/(config['mcLO2'][iMC]))
                 plot_L.mc.push_back(mc_L)
 		plot_L.mcLabels.push_back(config['mcLeg'][iMC])
 	Cdn=plot_L.Draw();
@@ -646,5 +655,5 @@ for cut in config['Cut']:
 	for ext in extensions:
 		name= config["Out"]+("/Lower_"+FixNames(config['OutName'],cut) + "."+ext)
 		print "Going to save '"+ name+"'"
-		C1dn.SaveAs( name )	
+		Cdn.SaveAs( name )	
 	#for cut in Cuts
