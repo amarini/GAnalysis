@@ -146,6 +146,7 @@ public :
    vector<float> HtCuts;
    vector<int>   nJetsCuts;
    float JetPtThreshold;
+   float JetEta;
    int SetCutsJetPtThreshold();
 
    pair<float,float> SigPhId;
@@ -307,6 +308,7 @@ Analyzer::Analyzer() : fChain(0)
    Sel=new Selection("selection");
    Sel2=new Selection("selectionAllGamma");
    JetPtThreshold = 30;
+   JetEta=2.5;
    useEGscaleFactors=0;
    EGscaleFactorsFile="";
    useEnergyScale=0;

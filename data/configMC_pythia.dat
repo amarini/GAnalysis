@@ -3,4 +3,4 @@
 include=configMC.dat
 
 DATATREE=root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples//G_Pt*.root root://eoscms///store/user/amarini/V00-14/QCD_*.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/QCD*.root root://eoscms///store/user/webermat/zgfiles_V00-14/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/sandro/GammaJets/2014_01_27/samples/DiPhotonJets_8TeV-madgraph-tarball-v2_Summer12_DR53X-PU_S10_START53_V7A-v1.root root://eoscms///store/user/webermat/zgfiles_V00-14/WJetsToLNu_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v2.root 
-WorkDir=/afs/cern.ch/user/a/amarini/work/V00-14_MC_pythia/
+WorkDir=/afs/cern.ch/user/a/amarini/work/V00-14_MC_pythia_JEta/

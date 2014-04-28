@@ -7,7 +7,7 @@ LIST=$1
 [ "${LIST}" == "" ] && LIST="all"
 
 cd ${DIR%/*}
-./submit_main.sh data/configMC.dat 1nd logMC_ 300 $LIST
+./submit_main.sh data/configMC.dat 1nd logMC_ 200 $LIST
 cd $CWD
 exit 0
 

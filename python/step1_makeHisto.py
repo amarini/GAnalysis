@@ -75,6 +75,8 @@ BkgPhId=ReadFromDat(config,"BkgPhId",[0.011,0.014],"--> Default BkgPhId")
 
 JetPtThr=ReadFromDat(config,"JetPt",[30],"-->Default JetPT")
 
+JetEta=ReadFromDat(config,"JetEta",2.5,"--> Default JetEta=2.5")
+
 try:
 	for iT in range(0,len(config["TriggerMenus"]) ):
 		A.LoadTrigger(config["TriggerMenus"][iT],config["PtTriggers"][iT][0],config["PtTriggers"][iT][1],config["PreScale"][iT]);
@@ -94,6 +96,7 @@ A.SigPhId.first=SigPhId[0];
 A.SigPhId.second=SigPhId[1];
 A.BkgPhId.first=BkgPhId[0];
 A.BkgPhId.second=BkgPhId[1];
+A.JetEta=JetEta
 ##EffArea
 A.useEffArea=1;
 A.effAreaFile=WorkDir+"effarea.txt"

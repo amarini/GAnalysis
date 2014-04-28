@@ -68,6 +68,8 @@ def read_dat(filename):
 			Dat["JetPt"]=[]
 			for pt in parts[1].split(" "):
 				Dat["JetPt"].append(float(pt))
+		elif(parts[0] == "JetEta"):
+			Dat["JetEta"]=float(parts[1])
 		elif(parts[0] == "SigPhId"):
 			Dat["SigPhId"]=[]
 			for id in parts[1].split(" "):

@@ -234,6 +234,7 @@ void Analyzer::Loop()
 		for(int iJetGEN=0;iJetGEN< int(jetPtGEN->size());iJetGEN++)
 			{
 			if((*jetPtGEN)[iJetGEN]<JetPtThreshold) continue;
+			if( fabs((*jetEtaGEN)[iJetGEN])>=JetEta) continue; //jetEta
 			TLorentzVector jGEN;
 				jGEN.SetPtEtaPhiE((*jetPtGEN)[iJetGEN],(*jetEtaGEN)[iJetGEN],(*jetPhiGEN)[iJetGEN],(*jetEGEN)[iJetGEN]);
 			if(jGEN.DeltaR(gGEN)<0.5) continue;
@@ -261,6 +262,10 @@ void Analyzer::Loop()
 			Fill( string("gammaEtaGEN_")+cutsContainer[iCut].name()+SystName() , gGEN.Eta(),eventWeight,"");
 			Fill( string("HtGEN_")+cutsContainer[iCut].name()+SystName() , HtGEN,eventWeight,"");
 			//-----
+			//fill Madgraph GJets only
+			string fname=fChain->GetCurrentFile()->GetName();
+			if( fname.find("GJets") != string::npos)
+				Fill( string("gammaPtGEN_MG_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
 			} // iCut
 	} //isMC
 	if(doTimeUsage) checkTimeUsage(4,"GEN");
@@ -403,6 +408,7 @@ void Analyzer::Loop()
 		//construct TLV
 		TLorentzVector j;
 		if( (*jetPt)[iJet]<JetPtThreshold)continue;
+		if( fabs((*jetEta)[iJet])>=JetEta)continue;
 		j.SetPtEtaPhiE((*jetPt)[iJet],(*jetEta)[iJet],(*jetPhi)[iJet],(*jetE)[iJet]);
 		//Delta R Cut wrt the leading selected photon
 		if(j.DeltaR(gamma)<0.5) continue;	
