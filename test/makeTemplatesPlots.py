@@ -8,9 +8,14 @@ from optparse import OptionParser
 
 DEBUG=1
 
+ROOT.gROOT.SetStyle("Plain");
+
 ROOT.gROOT.SetBatch()
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetOptTitle(0)
+
+ROOT.gStyle.SetPalette(1);
+ROOT.gStyle.SetHatchesLineWidth(3);
 
 if(DEBUG>0):print "----- BEGIN -----"
 
@@ -58,6 +63,8 @@ def SetDataStyle(h):
 	h.SetLineColor(ROOT.kBlack)
 	h.GetXaxis().SetTitle("#gamma Iso")
 	h.GetYaxis().SetTitle("# Events (norm. to data)")
+	h.GetYaxis().SetTitleOffset(1.5)
+	h.GetXaxis().SetTitleOffset(0.8)
 def SetMCStyle(h):
 	h.SetLineColor(ROOT.kBlue)
 	h.SetLineWidth(2)
@@ -89,19 +96,26 @@ for p in range(0,len(PtCuts)-1):
 	if Bkg['data']==None: continue;
 	if Sig['data']==None: continue;
 
+	Bkg["rebin"]=4
+	Bkg["data"].Rebin(Bkg["rebin"])
+	Bkg["mc"].Rebin(Bkg["rebin"])
+	Bkg["truth"].Rebin(Bkg["rebin"])
+
 	C=ROOT.TCanvas("c","c")
 	C.Divide(2);
 	txt=ROOT.TLatex()
 	txt.SetNDC()
 	txt.SetTextSize(0.04)
 	txt.SetTextAlign(22)
-
-	C.cd(1)
+	
+	# -------------- DRAW RC ---------------#
+	p1=C.cd(1)
+	p1.SetLeftMargin(0.15)
 	SetDataStyle(Sig["data"])
 	SetMCStyle(Sig["mc"])
 	SetTruthStyle(Sig["truth"])
-	txt.DrawLatex(.5,.94,"Signal Templates")
-	l=ROOT.TLegend(.75,.69,.89,.89)
+	#l=ROOT.TLegend(.6,.69,.89,.89)
+	l=ROOT.TLegend(.18,.69,.48,.89)
 	l.SetFillStyle(0)
 	l.SetBorderSize(0)
 
@@ -114,17 +128,48 @@ for p in range(0,len(PtCuts)-1):
 	try:
 		Sig["truth"].Scale(Sig["data"].Integral()/Sig["truth"].Integral())
 	except: pass
-	l.AddEntry(Sig["data"],"data","PF")
-	l.AddEntry(Sig["mc"],"mc","L")
-	l.AddEntry(Sig["truth"],"mc-truth","L")
-	l.Draw()
 
-	C.cd(2)
+	l.AddEntry(Sig["data"],"data (RC)","PL")
+
+	DrawBands=True
+	if DrawBands:
+		Sig["truth-err"]=Sig["truth"].Clone("error-truth")
+		#Sig["truth-err"].SetFillStyle(3254)
+		Sig["truth-err"].SetFillStyle(3004)
+		Sig["truth-err"].SetFillColor(ROOT.kRed-4)
+		Sig["truth-err"].SetMarkerStyle(0);
+		Sig["truth-err"].SetMarkerColor(Sig["truth-err"].GetFillColor());
+		Sig["truth-err"].Draw("E2 SAME")
+
+		Sig["mc-err"]=Sig["mc"].Clone("error-mc")
+		Sig["mc-err"].SetFillStyle(3005)
+		Sig["mc-err"].SetFillColor(ROOT.kBlue-4)
+		Sig["mc-err"].SetMarkerStyle(0);
+		Sig["mc-err"].SetMarkerColor(Sig["mc-err"].GetFillColor());
+		Sig["mc-err"].Draw("E2 SAME")
+
+		Sig["mc"].Draw("HIST SAME")
+		Sig["truth"].Draw("HIST SAME")
+		Sig["data"].Draw("P SAME")
+
+		l.AddEntry(Sig["mc-err"],"mc (RC)","F")
+		l.AddEntry(Sig["truth-err"],"mc-truth","F")
+	else:
+		l.AddEntry(Sig["mc"],"mc (RC)","L")
+		l.AddEntry(Sig["truth"],"mc-truth","L")
+
+	l.Draw()
+	Sig["legend"]=l
+	txt.DrawLatex(.5,.94,"Signal Templates")
+
+	# -------------- DRAW BKG ---------------#
+	p2=C.cd(2)
+	p2.SetLeftMargin(0.15)
 	SetDataStyle(Bkg["data"])
 	SetMCStyle(Bkg["mc"])
 	SetTruthStyle(Bkg["truth"])
-	txt.DrawLatex(.5,.94,"Background Templates")
-	l=ROOT.TLegend(.75,.69,.89,.89)
+	#l=ROOT.TLegend(.60,.69,.89,.89)
+	l=ROOT.TLegend(.18,.69,.48,.89)
 	l.SetFillStyle(0)
 	l.SetBorderSize(0)
 
@@ -137,10 +182,38 @@ for p in range(0,len(PtCuts)-1):
 	try:
 		Bkg["truth"].Scale(Bkg["data"].Integral()/Bkg["truth"].Integral())
 	except: pass
-	l.AddEntry(Bkg["data"],"data","PF")
-	l.AddEntry(Bkg["mc"],"mc","L")
-	l.AddEntry(Bkg["truth"],"mc-truth","L")
+	l.AddEntry(Bkg["data"],"data (#sigma_{i#eta i#eta}#geq 0.011)","PL")
+
+	if DrawBands:
+		Bkg["truth-err"]=Bkg["truth"].Clone("error-truth")
+		#Bkg["truth-err"].SetFillStyle(3254)
+		Bkg["truth-err"].SetFillStyle(3004)
+		Bkg["truth-err"].SetFillColor(ROOT.kRed-4)
+		Bkg["truth-err"].SetMarkerStyle(0);
+		Bkg["truth-err"].SetMarkerColor(Bkg["truth-err"].GetFillColor());
+		Bkg["truth-err"].Draw("E2 SAME")
+
+		Bkg["mc-err"]=Bkg["mc"].Clone("error-mc")
+		Bkg["mc-err"].SetFillStyle(3005)
+		Bkg["mc-err"].SetFillColor(ROOT.kBlue-4)
+		Bkg["mc-err"].SetMarkerStyle(0);
+		Bkg["mc-err"].SetMarkerColor(Bkg["mc-err"].GetFillColor());
+		Bkg["mc-err"].Draw("E2 SAME")
+
+		Bkg["mc"].Draw("HIST SAME")
+		Bkg["truth"].Draw("HIST SAME")
+		Bkg["data"].Draw("P SAME")
+
+		l.AddEntry(Bkg["mc-err"],"mc (#sigma_{i#eta i#eta}#geq 0.011)","F")
+		l.AddEntry(Bkg["truth-err"],"mc-truth (#sigma_{i#eta i#eta}< 0.011)","F")
+	else:
+		l.AddEntry(Bkg["mc"],"mc (#sigma_{i#eta i#eta}#geq 0.011)","L")
+		l.AddEntry(Bkg["truth"],"mc-truth (#sigma_{i#eta i#eta}< 0.011)","L")
+	M=max(Bkg["data"].GetMaximum(),Bkg["truth"].GetMaximum(),Bkg["mc"].GetMaximum())
+	Bkg["data"].SetMaximum(M*1.2)
 	l.Draw()
+	Bkg["legend"]=l
+	txt.DrawLatex(.5,.94,"Background Templates")
 
 	C.SaveAs(WorkDir+"/plots/Templates_Pt%.0f_%.0f.pdf"%(PtCuts[p],PtCuts[p+1]))
 	
