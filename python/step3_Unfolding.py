@@ -369,6 +369,20 @@ def Loop(systName=""):
 			H_MC.SetTitle("default MC Truth"+Bin)
 			fUnfOut.cd()
 			H_MC.Write()
+			## MG only
+	                print "Going to take MC file: "+"gammaPtGEN_MG_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
+	                H_MG_MC=fRootMC.Get("gammaPtGEN_MG_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
+	                for i in range(1,H_MG_MC.GetNbinsX()+1):
+				H_MG_MC.SetBinContent(i, H_MG_MC.GetBinContent(i)/H_MG_MC.GetBinWidth(i) )
+	                	H_MG_MC.SetBinError  (i, H_MG_MC.GetBinError  (i)/H_MG_MC.GetBinWidth(i) )
+	                H_MG_MC.Scale( ReadFromDat(config,"Lumi",1,"Default Lumi=1fb"))
+	                H_MG_MC.SetLineColor(ROOT.kBlue)
+	                H_MG_MC.SetLineStyle(ROOT.kDashed)
+	                H_MG_MC.SetLineWidth(2)
+			H_MG_MC.SetName("mg_"+Bin)
+			H_MG_MC.SetTitle("MG MC Truth"+Bin)
+			fUnfOut.cd()
+			H_MG_MC.Write()
 
 ### SYST ####
 #NONE
