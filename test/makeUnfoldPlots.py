@@ -18,6 +18,7 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+parser.add_option("","--jetphox" ,dest='jetphox',type='string',help="JetPhox file",default="")
 #parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC",default="")
 
 (options,args)=parser.parse_args()
@@ -234,7 +235,7 @@ for jpt in [30.0,300.0]:
 		H.GetYaxis().SetTitle("L #frac{d#sigma}{dp_{T}}[fb^{-1}/GeV]");
 		H.GetXaxis().SetMoreLogLabels()
 		H.GetXaxis().SetNoExponent()
-		xRange=[100,1000]
+		xRange=[101,999]
 		H.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 		H_UNFOLD.GetXaxis().SetRangeUser(xRange[0],xRange[1])
 		H_PU.GetXaxis().SetRangeUser(xRange[0],xRange[1])
@@ -345,11 +346,32 @@ for jpt in [30.0,300.0]:
 		C2.SaveAs(WorkDir+"plots/unfoldedPlotsRatio_Ht%.0f_nJets%.0f_JPt%.0f.pdf"%(HtCuts[h],nJetsCuts[nj],jpt))		
 
 		#------------ NICE CANVAS ----------------------
+		if options.jetphox=="" or HtCuts[h]>0 or nJetsCuts[nj]>1: doJP=False
+		else: doJP=True
+
+		if doJP:
+			fileList=options.jetphox.split(',')	
+			f_JP=ROOT.TFile.Open(fileList[0])
+			h_JetPhox_tmp=f_JP.Get("hp40")
+			for i in range(1,len(fileList)):
+				f_JP=ROOT.TFile.Open(fileList[i])
+				h_i=f_JP.Get("hp40")
+				print "Adding JetPhox compontent ", fileList[i]
+				h_JetPhox_tmp.Add(h_i)
+
+			#scale
+			h_JetPhox_tmp.Scale(1000.) # pb->fb
+			#this is necessary in order to make Ratio work
+			h_JetPhox=H.Clone("JP")
+			for i in range(1,h_JetPhox.GetNbinsX()+1):
+				h_JetPhox.SetBinContent(i, h_JetPhox_tmp.GetBinContent(h_JetPhox_tmp.FindBin(h_JetPhox.GetBinCenter(i))) )
+				h_JetPhox.SetBinError(i, h_JetPhox_tmp.GetBinError(h_JetPhox_tmp.FindBin(h_JetPhox.GetBinCenter(i))) )
+
 
 		BinsToMerge=[(750,1000)]
-		Range=(99.99,1093.)
-		if HtCuts[h] >250: Range= (99.99,1093.)
-		elif jpt > 250: Range= (197.0,1093.)
+		Range=(101,999)
+		if HtCuts[h] >250: Range= (101,999)
+		elif jpt > 250: Range= (200,999)
 
 		H=MergeBins(BinsToMerge,H)
 		H_TOT=MergeBins(BinsToMerge,H_TOT)
@@ -360,6 +382,11 @@ for jpt in [30.0,300.0]:
 		if doMC:
 			H_MC=MergeBins(BinsToMerge,H_MC)
 			H_MC.Scale(1./Lumi)
+
+		if doJP:
+			h_JetPhox = MergeBins(BinsToMerge,h_JetPhox)
+			#No LUMI SCALE FOR JP
+
 
 		plotter=ROOT.NicePlots.SingleUpperPlot();
 		plotter.data=H
@@ -372,6 +399,13 @@ for jpt in [30.0,300.0]:
 		if doMC:
 			plotter.mc.push_back(H_MC);
 			plotter.mcLabels.push_back("MadGraph");
+		if doJP:
+			plotter.mc.push_back(h_JetPhox);
+			plotter.mcLabels.push_back("JetPhox (parton)")
+		#	h_JetPhox_scaled=h_JetPhox.Clone("JP_scaled")
+		#	h_JetPhox_scaled.Scale( H.Integral(H.FindBin(101),H.FindBin(999))/h_JetPhox.Integral(h_JetPhox.FindBin(101),h_JetPhox.FindBin(999)) )
+		#	plotter.mc.push_back(h_JetPhox_scaled);
+		#	plotter.mcLabels.push_back("JetPhox (parton scaled)")
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))
 		#NiceRangeFactors=[1.,0.10]
 		plotter.RangeFactors.first=1.0
@@ -393,6 +427,13 @@ for jpt in [30.0,300.0]:
 		 	R_MC=Ratio(H,H_MC,NoErrorH=True);
 			plotter.mc.push_back(R_MC);
 			plotter.mcLabels.push_back("MadGraph");
+		if doJP:
+			R_JP=Ratio(H,h_JetPhox,NoErrorH=True)
+			plotter.mc.push_back(R_JP);
+			plotter.mcLabels.push_back("JetPhox (parton)")
+			#R_JP_scaled=Ratio(H,h_JetPhox_scaled,NoErrorH=True)
+			#plotter.mc.push_back(R_JP_scaled);
+			#plotter.mcLabels.push_back("JetPhox (parton scaled)")
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))
 		plotter.RangeFactors.first=1.0
 		plotter.RangeFactors.second=0.05

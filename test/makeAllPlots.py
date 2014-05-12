@@ -18,6 +18,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file",default="data/configMC.dat")
+parser.add_options("","--jetphox",dest='jetphox',type='string',help='JetPhox',defalut=""
 #parser.add_option("","--doPurityPlots" ,dest='doPurityPlots',action='store_true',help="Input Configuration file",default="")
 
 (options,args)=parser.parse_args()
@@ -90,7 +91,7 @@ if doParsPlots:
 #unfolded distributions
 if doUnfoldPlots:
 	print >>sys.stderr, " --- UNFOLD PLOTS --- "
-	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat]#,"--inputDatMC="+options.inputDatMC]
+	cmd=["python","test/makeUnfoldPlots.py","--inputDat="+options.inputDat,"--jetphox"=options.jetphox]#,"--inputDatMC="+options.inputDatMC]
 	call(cmd)
 
 if doUnfoldStudies:

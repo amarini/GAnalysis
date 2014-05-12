@@ -298,7 +298,12 @@ void SingleRatioLowerPlot::SetDataStyle(){
 
 //-----------     GENERAL FUNCTIONS --
 TH1D* NicePlots::NiceRange(TH1*h,pair<double,double> Range, double f1=0.2,double f2=0.2){
+	//disable
+	TH1D *r=(TH1D*) h->Clone();
+	return r;
+	//
 	//equivalent of python one
+
         double Bins[100];
         int nBins=0;
         vector<double> l;
