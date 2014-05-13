@@ -1,7 +1,7 @@
 #include "TH1F.h"
 #include "TH1D.h"
 #include "TCanvas.h"
-#include "TMathText.h"
+//#include "TMathText.h"
 #include "TLatex.h"
 #include "TLegend.h"
 

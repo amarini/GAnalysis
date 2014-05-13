@@ -266,6 +266,12 @@ void Analyzer::Loop()
 			string fname=fChain->GetCurrentFile()->GetName();
 			if( fname.find("GJets") != string::npos)
 				Fill( string("gammaPtGEN_MG_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
+			if( fname.find("DiPho") !=string::npos) 
+				Fill( string("gammaPtGEN_DiPho_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
+			if( fname.find("EMEnr") !=string::npos) 
+				Fill( string("gammaPtGEN_EM_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
+			if( fname.find("BCtoE") !=string::npos) 
+				Fill( string("gammaPtGEN_EM_")+cutsContainer[iCut].name()+SystName()  ,  gGEN.Pt()  ,  eventWeight,"");
 			} // iCut
 	} //isMC
 	if(doTimeUsage) checkTimeUsage(4,"GEN");
