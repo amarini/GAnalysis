@@ -1,16 +1,12 @@
 #!/usr/bin/python
 import sys,os
 import array
-import ROOT
 import time
 import math
 from optparse import OptionParser
 
 DEBUG=1
 
-ROOT.gROOT.SetBatch()
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptTitle(0)
 
 if(DEBUG>0):print "----- BEGIN -----"
 
@@ -22,6 +18,11 @@ parser.add_option("","--jetphox" ,dest='jetphox',type='string',help="JetPhox fil
 #parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="Input Configuration file for MC",default="")
 
 (options,args)=parser.parse_args()
+
+import ROOT
+ROOT.gROOT.SetBatch()
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptTitle(0)
 
 print "inserting in path cwd"
 sys.path.insert(0,os.getcwd())
@@ -127,7 +128,7 @@ for jpt in [30.0,300.0]:
 		if doMC:
 			#print "Going to take MC file: "+"gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])
 			#H_MC=file.Get("gammaPtGEN_VPt_0_8000_Ht_%.0f_8000_phid_0.000_0.011_nJets_%.0f"%(HtCuts[h],nJetsCuts[nj])); ## phid doesnt count
-			H_MC=file.Get("mc_Ht_%.1f_nJets_%.1f_JPt_%.1f"%(HtCuts[h],nJetsCuts[nj],jpt)); ## phid doesnt count
+			H_MC=file.Get("mg_Ht_%.1f_nJets_%.1f_JPt_%.1f"%(HtCuts[h],nJetsCuts[nj],jpt)); ## phid doesnt count
 			#for i in range(1,H_MC.GetNbinsX()+1):
 			#	H_MC.SetBinContent(i, H_MC.GetBinContent(i)/H_MC.GetBinWidth(i) )
 			#	H_MC.SetBinError  (i, H_MC.GetBinError  (i)/H_MC.GetBinWidth(i) )

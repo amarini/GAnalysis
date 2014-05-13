@@ -3,7 +3,7 @@ from subprocess import call
 
 cmd0=["python", "python/makeRatioPlots.py","--mc" ,"-b"]
 dats=["data/configRatio.dat",
-	"data/configRatio_PTJ300.dat",
+	#"data/configRatio_PTJ300.dat",
 	"data/configRatio_NJets3.dat",
 	"data/configRatio_NJets2.dat",
 	"data/configRatio_HT300.dat",
@@ -14,8 +14,8 @@ dats=["data/configRatio.dat",
 	"data/configRatio_Z_nJets12_Yinf.dat",
 	"data/configRatio_doubleRatio.dat",
 	"data/configRatio_Rebinned.dat",
-	"data/configRatio_Z_HT300_nJets23.dat",
-	"data/configRatio_Z_HT500_nJets23.dat",
+	#"data/configRatio_Z_HT300_nJets23.dat",
+	#"data/configRatio_Z_HT500_nJets23.dat",
 		]
 
 for dat in dats:

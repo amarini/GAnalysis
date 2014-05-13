@@ -38,7 +38,8 @@ outputFile=options.outputFile
 ROOT.gSystem.Load("libGAnalysis.so") ##for syst names
 fRoot= ROOT.TFile.Open(inputFile)
 
-Range=[39.99,801.]
+#Range=[39.99,801.]
+Range=[41,799]
 H_f=fRoot.Get("hData_leptons_combined")
 H=ROOT.TH1D()
 H_f.Copy(H)
@@ -99,12 +100,14 @@ if 'log10' in inputFile:
 
 if is_Zpt_o_pt1 and not isLog:
 	Range[0]=0
-	Range[1]=3.2
+	#Range[1]=3.2
+	Range[1]=2.9
 	plotter.xtitle="p_{T}^{Z}/p_{T}^{j1}"
 	plotter.ytitle="d#sigma/d(p_{T}^{Z}/p_{T}^{j1})"
 if is_Zpt_o_Ht and not isLog:
 	Range[0]=0
-	Range[1]=3
+	#Range[1]=3
+	Range[1]=2.9
 	plotter.xtitle="p_{T}^{Z}/H_{T}"
 	plotter.ytitle="d#sigma/d(p_{T}^{Z}/H_{T})"
 if is_Zpt_o_pt1 and isLog:
@@ -113,8 +116,10 @@ if is_Zpt_o_pt1 and isLog:
 	plotter.xtitle="log_{10} (p_{T}^{Z}/p_{T}^{j1})"
 	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/p_{T}^{j1})"
 if is_Zpt_o_Ht and isLog:
-	Range[0]=-1.28
-	Range[1]=1.2
+	#Range[0]=-1.28
+	#Range[1]=1.2
+	Range[0]=-1.2
+	Range[1]=1.15
 	plotter.xtitle="log_{10} (p_{T}^{Z}/H_{T})"
 	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/H_{T})"
 
@@ -138,8 +143,8 @@ if is_Zpt_o_pt1 or is_Zpt_o_Ht:
 	plotter.legendHeader += ", p_{T}^{ll}>40 "
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y
-plotter.RangeFactors.first=0.05
-plotter.RangeFactors.second=0.05
+plotter.RangeFactors.first=0.00
+plotter.RangeFactors.second=0.00
 #if isLog:
 	#plotter.cmsPosition.second=0.89
 	#xleg 0.70 .97

@@ -57,7 +57,7 @@ Syst PhScale s. - syst1${SYST}_ratio syst1${SYST}_ratio
 #Merge2 560 790
 
 # Style
-xaxis 99 350
+xaxis 101 799
 #xaxis 100 500
 yaxis 0.80 1.1
 xlog 0

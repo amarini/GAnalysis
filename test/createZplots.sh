@@ -1,6 +1,6 @@
 #!/bin/bash
 #create the plots
-for i in ../Z/h*modJetLepVeto.root ; do python test/makeZNicePlots.py -i $i -o ${i%%.root}.pdf ; done
+for i in ../Z/h*modJetLepVeto*.root ; do python test/makeZNicePlots.py -i $i -o ${i%%.root}.pdf ; done
 
 cd ../Z
 python ../GAnalysis/test/MatthiasMv.py  | bash

@@ -1,15 +1,14 @@
-### Z ###
-#file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
-file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14_modJetLepVeto.root
+## Z ###
+#file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14_modJetLepVeto.root
+#JEta
+file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_eta_2_40_V00-14_modJetLepVeto_newMuSFUnc_MPI.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi1 1
-#mcLO1 2590./3503.71
-#mcLO1 0.739216 
 #mcLO1 2950./3503.71
 mcLO1 0.84196
 
 #### Gamma ###
-file2 ../V00-14/V00-14/UnfoldedDistributions.root
+file2 ../V00-14/V00-14_JEta/UnfoldedDistributions.root
 #eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi2 19.7
 
@@ -27,7 +26,7 @@ Cut Ht=0 nJets=1 ptJet=30
 #Cut Ht=0 nJets=3 ptJet=30
 #
 mcName1 h_MG_GEN_leptons_combined
-mcName2 mc_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
+mcName2 mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
 mcLeg MadGraph
 
 ### syst
@@ -70,7 +69,7 @@ Merge2 600 790
 Merge1 600 790
 
 # Style
-xaxis 0 0
+xaxis 101 799
 #xaxis 100 500
 yaxis 0.01 0.05
 xlog 0
