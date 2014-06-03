@@ -50,6 +50,13 @@ for f in l:
 	#
 	if 'HT_300' in f:
 		outName += 'HT_300_'
+	#
+	if 'muscle' in f:
+		outName += 'muscle_'
+	if 'rochDev' in f:
+		outName += 'rochDev_'
+	elif 'roch' in f:
+		outName += 'roch_'
 	outName += "data_MG_SH_BH.pdf"
 
 	cmd=["mv", f, outName]

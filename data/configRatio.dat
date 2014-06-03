@@ -29,6 +29,10 @@ mcName1 h_MG_GEN_leptons_combined
 mcName2 mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
 mcLeg MadGraph
 
+#mcErr1 0 s h_MG_GEN_leptons_combined
+#mcErr2 0 s mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
+#mcErrLeg MC~Stat~Err
+
 ### syst
 Up UP UP
 Down DN DN
@@ -43,7 +47,7 @@ PrePendSyst "_" "_"
 #Out /afs/cern.ch/user/a/amarini/work/V00-13/
 Out ../V00-14
 
-# + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
+# + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%, s error is the Errorband already
 Syst JES &+ h${SYST}_unc_band_comb -
 Syst JER &+ h${SYST}_unc_band_comb -
 Syst PhBG &. h${SYST}_unc_band_comb -

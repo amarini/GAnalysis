@@ -187,38 +187,20 @@ for cut in config['Cut']:
 		dr= N1/N2 * math.sqrt( ((a+b)/(a+c)) * ( (a/(a+b))**2 * db2 + (a/(a+c))**2 * dc2 + ( a*(b-c)/((a+c)*(a+b)) )**2 * da2  ))
 		R.SetBinError(i,dr)
 	if 'StatCorr' in config and config['StatCorr']:
-	   print "Stat Errors: A/(A+B)"
-	   for i in range(1,h1.GetNbinsX()+1):
-		e1=h1.GetBinError(i)
-		c1=h1.GetBinContent(i)
-		e2=h2.GetBinError(i)
-		c2=h2.GetBinContent(i)
-		a=c1
-		da=e1
-		b=c2-c1
-		if e2<e1:
-			print "Stat Error:", e2,">",e1 ," -- c2,c1 ", c2,">",c1
-			print "Setting db/b= dc2/c2"
-			db= e2/c2*b
-		else:
-			db=math.sqrt(e2**2-e1**2)
-		if a+b >0:
-			r=a/(a+b)
-			dr = math.sqrt( ( (b * da)**2 + (a * db )**2 ) / (a+b)**4)
-			#dr=r*math.sqrt( db**2/(a+b)**2 + b**2/(a**2 * (a+b)**2)) 
-		else :
-			r=0
-			dr=1
-		if r> 0 and math.fabs(R.GetBinContent(i) - r)/r >0.02 : 
-			print "Error in ratio from different computations"
-		R.SetBinError(i,dr)
+		SetStatCorr(h1,h2,R);
 
 	if options.mc:
 	    mcR=[]
+	    mcErrR=[]
 	    #SinglePlots
 	    SingleMC1=[]
 	    SingleMC2=[]
+
+	    SingleRawMC1=[]
+	    SingleRawMC2=[]
+
 	    colors=[ROOT.kBlue,ROOT.kRed,ROOT.kGreen+2]
+
 	    styles=[1,2,3]
 	    for iMC in range(0,len(config['mcName1'])):
 		mc1name=FixNames(config['mcName1'][iMC],cut)
@@ -226,6 +208,10 @@ for cut in config['Cut']:
 		print "Going to Get",mc1name,"from ",config['file1'],"and",mc2name,"from",config['file2']
 		mc1Raw=file1.Get(mc1name)
 		mc2Raw=file2.Get(mc2name)
+
+		SingleRawMC1.append(mc1Raw)
+		SingleRawMC2.append(mc2Raw)
+
 		if 'Merge1' in config:
 			mc1Raw=MergeBins(config['Merge1'],mc1Raw)
 		if 'Merge2' in config:
@@ -252,7 +238,48 @@ for cut in config['Cut']:
 		mc2.SetLineStyle( styles[iMC] )
 		SingleMC1.append(mc1)
 		SingleMC2.append(mc2)
+	for iMcErr in range(0,len(config['mcErr1'])):
+		print 'mcErr1=',config['mcErr1'][iMcErr]
+		mcErrName1=FixNames(config['mcErr1'][iMcErr][2],cut)
+		mcErrName2=FixNames(config['mcErr2'][iMcErr][2],cut)
+		typ1=config['mcErr1'][iMcErr][1]
+		typ2=config['mcErr2'][iMcErr][1]
+		refMC1=config['mcErr1'][iMcErr][0]
+		refMC2=config['mcErr2'][iMcErr][0]
+		#leg=config['mcErrLeg'][iMcErr]
+		if refMC1 != refMC2: 
+			print "Error using 1"
+			exit(1)
+		#even tought it does FixNames it add syst
+		print "Goin to Read Syst",mcErrName1,"from file1"
 
+		#assume Merge1=Merge2
+		mcErr1Raw=ReadSyst(config,typ1,0,cut,"",mcErrName1,file1,SingleRawMC1[refMC1])
+		mcErr2Raw=ReadSyst(config,typ2,0,cut,"",mcErrName2,file2,SingleRawMC2[refMC1])
+
+		mcErr1Raw.Scale(1./config['lumi1'])
+		mcErr2Raw.Scale(1./config['lumi2'])
+
+		mcErr1=ROOT.TH1D("mcErr1_"+config['mcLeg'][iMC]+"_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h1",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mcErr2=ROOT.TH1D("mcErr2_"+config['mcLeg'][iMC]+"_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
+		mcErr1=ConvertToTargetTH1(mcErr1,mcErr1Raw)
+		mcErr2=ConvertToTargetTH1(mcErr2,mcErr2Raw)
+
+		#convert to TH1 is done in ReadSyst
+		#
+		if 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr]>=-1 and config['mcErrCorr'] <=1:
+			mcErrR.append(Ratio(mcErr2,mcErr1,False,False,config['mcErrCorr'][iMcErr]))
+		elif 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr]> 1:
+			mcErrR.append(Ratio(mcErr2,mcErr1,False,True,-2))
+		else:
+			mcErrR.append(Ratio(mcErr2,mcErr1,False,False,-2))
+
+		for i in range(1,mcErrR[iMcErr].GetNbinsX()+1):
+			print "Contents (R,1,2) [",mcErrR[iMcErr].GetBinContent(i),",",mcErr1.GetBinContent(i),",",mcErr2.GetBinContent(i),"]"
+		# error is just simple
+		#if 'StatCorr' in config and config['StatCorr']:
+		#	SetStatCorr(mcErr1,mcErr2,mcErrR);
+		
 	if options.table:
 		print "Going to open ROOT File:",  config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root"
 		OutROOT=ROOT.TFile.Open( config["Out"]+"/R_"+FixNames(config['OutName'],cut) + ".root" , "RECREATE")
@@ -462,7 +489,16 @@ for cut in config['Cut']:
 				except:
 					Table[curRow].append("$%f$" % ( -1 ) )
 		# end mc				
-
+	for iMcErr in range(0,len(mcErrR)):
+		leg=config['mcErrLeg'][iMcErr]
+		refMC=config['mcErr1'][iMcErr][0]
+		mcErrR[iMcErr].Scale(config['mcLO1'][refMC]/(config['mcLO2'][refMC]))
+		for i in range(1,mcErrR[iMcErr].GetNbinsX()+1):
+			print "Bin Err [",mcErrR[iMcErr].GetBinCenter(i),"=",mcR[refMC].GetBinCenter(i),"]",
+			print "Content [",mcErrR[iMcErr].GetBinContent(i),"=",mcR[refMC].GetBinContent(i),"]",
+			print "Error   [",mcErrR[iMcErr].GetBinError(i),"~",mcR[refMC].GetBinError(i),"]"
+		plotter.mcErr.push_back(mcErrR[iMcErr])
+		plotter.mcLabelsErr.push_back(leg)
 	#L.Draw();
 	#lat=ROOT.TLatex()
 	#lat.SetNDC()
@@ -648,6 +684,13 @@ for cut in config['Cut']:
 		#mcR[iMC].Scale(config['mcLO1'][iMC]/(config['mcLO2'][iMC]))
                 plot_L.mc.push_back(mc_L)
 		plot_L.mcLabels.push_back(config['mcLeg'][iMC])
+
+	for iMcErr in range(0,len(mcErrR)):
+		leg=config['mcErrLeg'][iMcErr]
+		refMC=config['mcErr1'][iMcErr][0]
+		#mcErrR[iMcErr].Scale(config['mcLO1'][refMC]/(config['mcLO2'][refMC]))
+		plotter.mcErr.push_back( Ratio(mcErrR[iMcErr],data2,NoErrorH=True)  )
+		plotter.mcLabelsErr.push_back(leg)
 	Cdn=plot_L.Draw();
 
 	AllCanvas.append(Cdn)

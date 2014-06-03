@@ -68,7 +68,7 @@ Syst LepRES && h_lepRES_unc_band_comb h_lepRES_unc_band_comb
 #Merge1 600 790
 
 # Style
-xaxis 101 799
+xaxis 101 750
 #xaxis 100 500
 yaxis 0.1 0.9
 #xlog 1

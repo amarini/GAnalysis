@@ -6,7 +6,7 @@ lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
-file2 ../Z/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_V00-14_modJetLepVeto_newMuSFUnc_test.root
+file2 ../Z/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_V00-14_modJetLepVeto_newMuSFUnc.root
 #eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi2 1
 
@@ -69,7 +69,7 @@ Syst LepRES && h_lepRES_unc_band_comb h_lepRES_unc_band_comb
 #Merge1 600 790
 
 # Style
-xaxis 41 799
+xaxis 41 750
 #xaxis 100 500
 yaxis 0.1 0.9
 #xlog 1

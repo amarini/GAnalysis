@@ -24,6 +24,7 @@ TCanvas * NicePlotsBase::Draw(){
 	TCanvas *c=DrawCanvas();
 	SetSystStyle();
 	SetMCStyle();
+	SetMCErrStyle();
 	SetDataStyle();
 	TH1D *data2=NiceRange(data,Range,RangeFactors.first,RangeFactors.second);
 	TH1D *syst2=NiceRange(syst,Range,RangeFactors.first,RangeFactors.second);
@@ -31,7 +32,7 @@ TCanvas * NicePlotsBase::Draw(){
 	int nRowLeg=mc.size()+1+1;//data/syst/header
 	if(legendHeader != "") nRowLeg += 1;
 	float unitLeg=(legendPos2.second-legendPos1.second)/3.;
-	if (autoLegend == 1)
+	if (autoLegend == 1) // change legend in order to preserve size
 	{
 		if (legendPos1.second > 0.5) autoLegend=2;
 		if (legendPos1.second <= 0.5) autoLegend=3;
@@ -61,12 +62,24 @@ TCanvas * NicePlotsBase::Draw(){
 	legend->AddEntry(data2,"data","P");
 	syst2->Draw("E2 SAME");
 	legend->AddEntry(syst2,"stat+syst","F");
+	
+	//Draw bands before
+	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
+		//
+		TH1D* mcErr2=NiceRange( mcErr[iMcErr],Range,RangeFactors.first,RangeFactors.second);
+		mcErr2->Draw("E2 SAME");
+		//if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr2,mcLabelsErr[iMcErr].c_str(),"F");
+		}
 
 	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
         	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
 		mc2->Draw("HIST SAME ][");
 		//legend->AddEntry(mc2,mcLabels[iMC].c_str(),"F");
 		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
+		}
+	//Bands legends are the last
+	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
+		if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr[iMcErr],mcLabelsErr[iMcErr].c_str(),"F");
 		}
 	DrawLegend();
 	DrawCMS();
@@ -151,6 +164,20 @@ void  NicePlotsBase::SetMCStyle()
               mc[iMC]->SetLineColor(mcColors[iMC]);
               mc[iMC]->SetLineWidth(2);
               mc[iMC]->SetLineStyle(mcStyles[iMC]);
+	}
+	return;
+}
+
+void  NicePlotsBase::SetMCErrStyle()
+{
+	gStyle->SetHatchesLineWidth(3);
+	for ( int iMC=0;iMC< int(mcErr.size()) ;iMC++)
+	{
+              mcErr[iMC]->GetXaxis()->SetRangeUser(Range.first,Range.second);
+              mcErr[iMC]->SetLineColor(mcErrColors[iMC]);
+              mcErr[iMC]->SetFillColor(mcErrColors[iMC]);
+              mcErr[iMC]->SetFillStyle(mcErrStyles[iMC]);
+              mcErr[iMC]->SetLineWidth(2);
 	}
 	return;
 }

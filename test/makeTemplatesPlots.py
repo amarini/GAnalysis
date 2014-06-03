@@ -62,8 +62,8 @@ def SetDataStyle(h):
 	h.SetMarkerStyle(20)
 	h.SetLineColor(ROOT.kBlack)
 	h.GetXaxis().SetTitle("#gamma Iso")
-	h.GetYaxis().SetTitle("# Events (norm. to data)")
-	h.GetYaxis().SetTitleOffset(1.5)
+	h.GetYaxis().SetTitle("Events (norm. to data)")
+	h.GetYaxis().SetTitleOffset(1.7)
 	h.GetXaxis().SetTitleOffset(0.8)
 def SetMCStyle(h):
 	h.SetLineColor(ROOT.kBlue)
@@ -129,7 +129,9 @@ for p in range(0,len(PtCuts)-1):
 		Sig["truth"].Scale(Sig["data"].Integral()/Sig["truth"].Integral())
 	except: pass
 
-	l.AddEntry(Sig["data"],"data (RC)","PL")
+	LegendFontSize=0.025
+	e=l.AddEntry(Sig["data"],"data (RC)","PL")
+	e.SetTextSize(LegendFontSize)
 
 	DrawBands=True
 	if DrawBands:
@@ -152,11 +154,15 @@ for p in range(0,len(PtCuts)-1):
 		Sig["truth"].Draw("HIST SAME")
 		Sig["data"].Draw("P SAME")
 
-		l.AddEntry(Sig["mc-err"],"mc (RC)","F")
-		l.AddEntry(Sig["truth-err"],"mc-truth","F")
+		e=l.AddEntry(Sig["mc-err"],"mc (RC)","F")
+		e.SetTextSize(LegendFontSize)
+		e=l.AddEntry(Sig["truth-err"],"mc-truth","F")
+		e.SetTextSize(LegendFontSize)
 	else:
-		l.AddEntry(Sig["mc"],"mc (RC)","L")
-		l.AddEntry(Sig["truth"],"mc-truth","L")
+		e=l.AddEntry(Sig["mc"],"mc (RC)","L")
+		e.SetTextSize(LegendFontSize)
+		e=l.AddEntry(Sig["truth"],"mc-truth","L")
+		e.SetTextSize(LegendFontSize)
 
 	l.Draw()
 	Sig["legend"]=l
@@ -182,7 +188,8 @@ for p in range(0,len(PtCuts)-1):
 	try:
 		Bkg["truth"].Scale(Bkg["data"].Integral()/Bkg["truth"].Integral())
 	except: pass
-	l.AddEntry(Bkg["data"],"data (#sigma_{i#eta i#eta}#geq 0.011)","PL")
+	e=l.AddEntry(Bkg["data"],"data (#scale[0.8]{#sigma_{i#eta i#eta}#geq 0.011})","PL")
+	e.SetTextSize(LegendFontSize)
 
 	if DrawBands:
 		Bkg["truth-err"]=Bkg["truth"].Clone("error-truth")
@@ -204,11 +211,15 @@ for p in range(0,len(PtCuts)-1):
 		Bkg["truth"].Draw("HIST SAME")
 		Bkg["data"].Draw("P SAME")
 
-		l.AddEntry(Bkg["mc-err"],"mc (#sigma_{i#eta i#eta}#geq 0.011)","F")
-		l.AddEntry(Bkg["truth-err"],"mc-truth (#sigma_{i#eta i#eta}< 0.011)","F")
+		e=l.AddEntry(Bkg["mc-err"],"mc (#scale[0.8]{#sigma_{i#eta i#eta}#geq 0.011})","F")
+		e.SetTextSize(LegendFontSize)
+		e=l.AddEntry(Bkg["truth-err"],"mc-truth (#scale[0.8]{#sigma_{i#eta i#eta}< 0.011})","F")
+		e.SetTextSize(LegendFontSize)
 	else:
-		l.AddEntry(Bkg["mc"],"mc (#sigma_{i#eta i#eta}#geq 0.011)","L")
-		l.AddEntry(Bkg["truth"],"mc-truth (#sigma_{i#eta i#eta}< 0.011)","L")
+		e=l.AddEntry(Bkg["mc"],"mc (#scale[0.8]{#sigma_{i#eta i#eta}#geq 0.011})","L")
+		e.SetTextSize(LegendFontSize)
+		e=l.AddEntry(Bkg["truth"],"mc-truth (#scale[0.8]{#sigma_{i#eta i#eta}< 0.011})","L")
+		e.SetTextSize(LegendFontSize)
 	M=max(Bkg["data"].GetMaximum(),Bkg["truth"].GetMaximum(),Bkg["mc"].GetMaximum())
 	Bkg["data"].SetMaximum(M*1.2)
 	l.Draw()

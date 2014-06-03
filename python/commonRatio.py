@@ -61,7 +61,25 @@ def ReadRatioDat( inputDat ):
 		elif parts[0] == 'mcLO1' or parts[0] == 'mcLO2':
 			if parts[0] not in R: R[parts[0]]=[]
 			R[ parts[0] ].append( float(parts[1]) )
+		elif parts[0] =='mcErr1' or parts[0] =='mcErr2':
+			if parts[0] not in R:
+				R[ parts[0] ] = []
+			# mcErr1 0 s NAME the id is needed wrt to the type
+			R[ parts[0] ].append( (int(parts[1]),parts[2],parts[3]) )
+		elif parts[0] =='mcErrCorr':
+			# [-1,1] that correlation
+			# >1 FullCorr
+			# <-1 o not existing Uncorrelated
+			R[ parts[0] ] = float(parts[1])
+		elif parts[0] == 'mcErrLeg':
+			if parts[0] not in R:
+				R[ parts[0] ] = []
+			R[ parts[0] ].append(parts[1])
 		elif parts[0] == 'NoMC':
+			R['mcErr1']=[]
+			R['mcErr2']=[]
+			R['mcErrLeg']=[]
+			R['mcErrCorr']=[]
 			R['mcName1']=[]
 			R['mcName2']=[]
 			R['mcLeg']=[]
@@ -150,6 +168,9 @@ def ReadRatioDat( inputDat ):
 	if 'mcLO1' not in R: R['mcLO1']=[1.]
 	if 'mcLO2' not in R: R['mcLO2']=[1.]
 	if 'mcLeg' not in R: R['mcLeg']=["MG"]
+	if 'mcErr1' not in R: R['mcErr1']=[]
+	if 'mcErr2' not in R: R['mcErr2']=[]
+	if 'mcErrLeg' not in R: R['mcErrLeg']=[]
 	if len(R['mcName1'] ) != len(R['mcName2']): print "Config error in Len mc Name"
 	for i in range(len(R['mcLO1']),len(R['mcName1'])):
 		R['mcLO1'].append(1.)
@@ -186,6 +207,34 @@ def sqrtSum(h1,h2,epsilon=0.0001):
 			print "-- assertion error -- %f -- %f -- %f"%(h1.GetBinError(i),h2.GetBinError(i),epsilon)
 			e=epsilon
 		h1.SetBinError(i, e)
+
+def SetStatCorr(h1,h2,R):
+   print "Stat Errors: A/(A+B)"
+   for i in range(1,h1.GetNbinsX()+1):
+	e1=h1.GetBinError(i)
+	c1=h1.GetBinContent(i)
+	e2=h2.GetBinError(i)
+	c2=h2.GetBinContent(i)
+	a=c1
+	da=e1
+	b=c2-c1
+	if e2<e1:
+		print "Stat Error:", e2,">",e1 ," -- c2,c1 ", c2,">",c1
+		print "Setting db/b= dc2/c2"
+		db= e2/c2*b
+	else:
+		db=math.sqrt(e2**2-e1**2)
+	if a+b >0:
+		r=a/(a+b)
+		dr = math.sqrt( ( (b * da)**2 + (a * db )**2 ) / (a+b)**4)
+		#dr=r*math.sqrt( db**2/(a+b)**2 + b**2/(a**2 * (a+b)**2)) 
+	else :
+		r=0
+		dr=1
+	if r> 0 and math.fabs(R.GetBinContent(i) - r)/r >0.02 : 
+		print "Error in ratio from different computations"
+	R.SetBinError(i,dr)
+   return
 
 def Ratio(H,H1,NoErrorH=False,FullCorr=False,rho=-2):
 	''' Make Ratio between two histograms: H1/H\n\tNoErroron H -> Ratio wrt data,\n\t FullCorr=consider error as fully correlated'''

@@ -107,19 +107,21 @@ if is_Zpt_o_pt1 and not isLog:
 if is_Zpt_o_Ht and not isLog:
 	Range[0]=0
 	#Range[1]=3
-	Range[1]=2.9
+	Range[1]=2.5
 	plotter.xtitle="p_{T}^{Z}/H_{T}"
 	plotter.ytitle="d#sigma/d(p_{T}^{Z}/H_{T})"
+if is_Zpt_o_Ht and nJets == 3 and not isLog:
+	Range[1]=1.7
 if is_Zpt_o_pt1 and isLog:
-	Range[0]=-1.2
-	Range[1]=1.2
+	Range[0]=-1.
+	Range[1]=0.7
 	plotter.xtitle="log_{10} (p_{T}^{Z}/p_{T}^{j1})"
 	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/p_{T}^{j1})"
 if is_Zpt_o_Ht and isLog:
 	#Range[0]=-1.28
 	#Range[1]=1.2
 	Range[0]=-1.2
-	Range[1]=1.15
+	Range[1]=0.35
 	plotter.xtitle="log_{10} (p_{T}^{Z}/H_{T})"
 	plotter.ytitle="d#sigma/d log_{10}(p_{T}^{Z}/H_{T})"
 
