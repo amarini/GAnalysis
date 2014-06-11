@@ -22,6 +22,7 @@ file2 ../Z/h_Zpt_hist_Zpt0/h_Zpt_hist_Zpt0_BY_Inf_njets2plus_HT_300_jet30_V00-14
 
 #StatCorr 1
 ### Load cuts
+NoMCErr
 NoCut
 Cut Ht=300 nJets=2 ptJet=30
 #Cut Ht=300 nJets=1 ptJet=30

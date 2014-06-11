@@ -28,6 +28,9 @@ mcName1 mg_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}
 mcName2 mg_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
 mcLeg MadGraph
 
+mcErr1 0 s mg_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}
+mcErr2 0 s mg_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
+mcErrLeg MG~Stat.~Err.
 ### syst
 Up UP UP
 Down DN DN

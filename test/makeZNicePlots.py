@@ -56,6 +56,7 @@ H_MG_f.Copy(H_MG)
 H_SH_f.Copy(H_SH)
 
 plotter=ROOT.NicePlots.SingleUpperPlot();
+plotter.drawBands=0
 plotter.data=H
 plotter.syst=H_TOT
 plotter.xtitle="p_{T}^{Z} [GeV]"
@@ -172,10 +173,50 @@ plotter.mc.push_back(R_MG);
 plotter.mcLabels.push_back("MadGraph k_{NNLO}");
 plotter.mc.push_back(R_SH);
 plotter.mcLabels.push_back("Sherpa k_{NNLO}");
+## add stat bands
+
+StatErrBands=True
+if StatErrBands:
+	R_MG_Err=R_MG.Clone("MG_Err")
+	plotter.mcErr.push_back(R_MG_Err);
+	plotter.mcLabelsErr.push_back("MG Stat Err");
+	R_SH_Err=R_SH.Clone("SH_Err")
+	plotter.mcErr.push_back(R_SH_Err);
+	plotter.mcLabelsErr.push_back("SH Stat Err");
 if H_BH_f != None:
 	R_BH=Ratio(H,H_BH,True);
 	plotter.mc.push_back(R_BH);
 	plotter.mcLabels.push_back("BlackHat");
+
+	#scale 
+	H_pdf_up_f=fRoot.Get("h_band_PDFUp_rebinned_total")
+	H_pdf_dn_f=fRoot.Get("h_band_PDFDown_rebinned_total")
+	H_scale_up_f=fRoot.Get("h_band_scaleUp_rebinned_total")
+	H_scale_dn_f=fRoot.Get("h_band_scaleDown_rebinned_total")
+
+	if H_pdf_up_f !=None and H_pdf_dn_f != None:
+		H_PDF=ROOT.TH1D()
+		H_BH_f.Copy(H_PDF)
+		for iBin in range(0,H_PDF.GetNbinsX()):
+			c=H_PDF.GetBinContent(iBin+1)
+			up=max(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContnet(iBin+1)) 
+			dn=min(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContnet(iBin+1))
+			H_PDF.SetBinContent(iBin+1,math.abs(up+dn)/2)
+			H_PDF.SetBinError(iBin+1,math.abs(up-dn)/2)
+		plotter.mcLabelsErr.push_back("PDF")
+		plotter.mcErr.push_back(H_PDF)
+	if H_scale_up_f !=None and H_scale_dn_f != None:
+		H_SCALE=ROOT.TH1D()
+		H_BH_f.Copy(H_SCALE)
+		for iBin in range(0,H_SCALE.GetNbinsX()):
+			c=H_SCALE.GetBinContent(iBin+1)
+			up=max(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContnet(iBin+1)) 
+			dn=min(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContnet(iBin+1))
+			H_SCALE.SetBinContent(iBin+1,math.abs(up+dn)/2)
+			H_SCALE.SetBinError(iBin+1,math.abs(up-dn)/2)
+		plotter.mcLabelsErr.push_back("Scale")
+		plotter.mcErr.push_back(H_SCALE)
+
 plotter.SetHeader('Z',nJets,Ht)
 if Y<3:
 	plotter.extraText="|Y^{Z}|<%.1f"%Y

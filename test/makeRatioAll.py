@@ -12,10 +12,14 @@ dats=["data/configRatio.dat",
 	"data/configRatio_Z_nJets12.dat",
 	"data/configRatio_Z_nJets23.dat",
 	"data/configRatio_Z_nJets12_Yinf.dat",
+	"data/configRatio_Z_nJets23_Yinf.dat",
 	"data/configRatio_doubleRatio.dat",
 	"data/configRatio_Rebinned.dat",
-	#"data/configRatio_Z_HT300_nJets23.dat",
-	#"data/configRatio_Z_HT500_nJets23.dat",
+	"data/configRatio_Z_HT100_nJets23.dat",
+	"data/configRatio_Z_HT200_nJets23.dat",
+	"data/configRatio_Z_HT300_nJets23.dat",
+	"data/configRatio_Z_HT400_nJets23.dat",
+	"data/configRatio_Z_HT500_nJets23.dat",
 		]
 
 for dat in dats:

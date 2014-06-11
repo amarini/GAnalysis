@@ -64,6 +64,7 @@ TCanvas * NicePlotsBase::Draw(){
 	legend->AddEntry(syst2,"stat+syst","F");
 	
 	//Draw bands before
+	if(drawBands)
 	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
 		//
 		TH1D* mcErr2=NiceRange( mcErr[iMcErr],Range,RangeFactors.first,RangeFactors.second);
@@ -78,6 +79,7 @@ TCanvas * NicePlotsBase::Draw(){
 		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
 		}
 	//Bands legends are the last
+	if(drawBands)
 	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
 		if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr[iMcErr],mcLabelsErr[iMcErr].c_str(),"F");
 		}
@@ -87,6 +89,110 @@ TCanvas * NicePlotsBase::Draw(){
         data2->Draw("AXIS X+ Y+ SAME");
         data2->Draw("AXIS SAME");
         data2->Draw("P SAME");
+
+	return c;
+}
+
+TCanvas *NicePlotsBase::DrawSeparateLine(){
+	int nMC=mc.size();
+	TCanvas *c=DrawCanvas();
+	c->SetCanvasSize(c->GetWw(),c->GetWh()*nMC);
+	SetSystStyle();
+	SetMCStyle();
+	SetMCErrStyle();
+	SetDataStyle();
+	//DrawLegend() ; // no legend
+	vector<TPad*> pads;
+	float dY=1./(nMC+.6);
+
+	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
+		TH1D *data2=NiceRange(data,Range,RangeFactors.first,RangeFactors.second);
+		TH1D *syst2=NiceRange(syst,Range,RangeFactors.first,RangeFactors.second);
+		data2->SetName(Form("data_for_mc%d",iMC));
+		syst2->SetName(Form("syst_for_mc%d",iMC));
+		float X1=0.;
+		float X2=1.;
+		float Y1=dY*(iMC+0.3);
+		if(iMC==0) //bottom
+			Y1=0;
+		float Y2=dY*(iMC+1+.3);
+		if(iMC==nMC-1) //top
+			Y2=1.;
+
+		TPad *p=new TPad(Form("p%d",iMC),"pad",X1,Y1,X2,Y2);
+		pads.push_back(p);
+		p->SetBottomMargin(0);
+		p->SetTopMargin(0);
+                p->SetLeftMargin(0.18);
+                p->SetRightMargin(0.02);
+
+		if (iMC==nMC-1) //top
+		{
+			p->SetTopMargin(0.3);
+		}
+		if (iMC==0)//bottom
+			p->SetBottomMargin(0.3);
+		//draw the pad in the canvas
+		c->cd();
+		p->Draw();
+		p->cd();
+		//Draw Data & SYST
+		data2->Draw("P AXIS");
+		data2->GetXaxis()->SetRangeUser(Range.first,Range.second);
+		if (RangeY.first >-99 && RangeY.second>-99)
+			data2->GetYaxis()->SetRangeUser(RangeY.first,RangeY.second);
+		//data2->GetYaxis()->SetTitleSize(10); //very small
+		data2->GetYaxis()->SetTitle(   ( mcLabels[iMC]+"/Data").c_str()   ); //very small
+		data2->GetYaxis()->SetTitleOffset(1.5);
+		data2->GetXaxis()->SetTitleOffset(3.0); //this needs to be huge because the pad is small
+		//data2->GetXaxis()->SetTitleSize(14);
+		//data2->GetXaxis()->SetTitleOffset(2.0);
+		//data2->GetYaxis()->SetLabelSize(10);
+		//data2->GetYaxis()->SetNdivisions(501);
+		syst2->Draw("E2 SAME");
+	
+		if(drawBands)	
+		for(int iMcErr=0;iMcErr<mcErrAssociation.size();iMcErr++)
+		{
+			if(iMcErr>= mcErr.size())continue; //no band -- wtf?
+			if(mcErrAssociation[iMcErr]!=iMC) continue; //not draw it here
+			TH1D* mcErr2=NiceRange( mcErr[iMcErr],Range,RangeFactors.first,RangeFactors.second);
+			mcErr2->Draw("E2 SAME");
+		}
+
+		//draw MC
+        	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
+		mc2->Draw("HIST SAME ][");
+	
+		//redraw AXIS and data Points
+        	data2->Draw("AXIS X+ Y+ SAME");
+        	data2->Draw("AXIS SAME");
+        	data2->Draw("P SAME");
+
+	}//iMC loop
+	c->cd();
+	pair<float,float> cmsOrig(cmsPosition);
+	pair<float,float> lumiOrig(lumiPosition);
+	cmsPosition.first=.35;
+	cmsPosition.second=.93;
+	float cmsSpaceOrig=cmsSpace;
+	DrawCMS();
+	
+	cmsPosition.first=.22;
+	cmsPosition.second=1.-0.3 * dY - 0.05;
+	lumiPosition.first=.96;
+	lumiPosition.second=1.-0.3* dY - 0.05;
+	string extraTextTmp(extraText);
+	extraText="";
+	cmsSpace=0.03;
+
+	NicePlotsBase::DrawCMS();
+
+	extraText=extraTextTmp;
+	cmsPosition=cmsOrig;//restore
+	lumiPosition=lumiOrig;//restore
+	cmsSpace=cmsSpaceOrig;
+
 	return c;
 }
 
@@ -100,16 +206,32 @@ void NicePlotsBase::DrawCMS()
 {
 	TLatex *l=new TLatex();
 	l->SetNDC();
+	l->SetTextFont(63); //helvetica Bold
+	l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
+	l->SetTextAlign(11);
+	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS,");
+	l->SetText(cmsPosition.first,cmsPosition.second,"CMS,"); // this is not draw it is used for figure out the dimensions
+	unsigned int w,h;
+	l->GetBoundingBox(w,h);
+	unsigned int ww=gPad->GetWw();
+	unsigned int wh=gPad->GetWh();
+
+	l->SetTextFont(53);//helvetica italics
+	l->SetTextSize(18);
+	l->SetTextAlign(11);
+	l->DrawLatex(cmsPosition.first+ float(w)/ww + cmsSpace,cmsPosition.second,"Preliminary");
+
 	l->SetTextFont(43);
 	l->SetTextSize(18);
-	l->SetTextAlign(22);
-	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS Preliminary, #sqrt{s}=8TeV, L=19.7fb^{-1}");
+	l->SetTextAlign(31);
+	if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"#sqrt{s}=8TeV, L=19.7fb^{-1}");
 //	l->SetTextFont(43);
 //	l->SetTextSize(18);
 //	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
 	l->SetTextSize(15);
+	l->SetTextAlign(11);
 	if( extraText != "")
-		l->DrawLatex(cmsPosition.first-0.10,cmsPosition.second-0.08,extraText.c_str());
+		l->DrawLatex(cmsPosition.first,cmsPosition.second-0.05,extraText.c_str());
 	//TMathText*m=new TMathText();
 	//m->SetTextFont(43);
 	//m->SetTextSize(20);
@@ -171,13 +293,29 @@ void  NicePlotsBase::SetMCStyle()
 void  NicePlotsBase::SetMCErrStyle()
 {
 	gStyle->SetHatchesLineWidth(3);
+	int offset=0;
 	for ( int iMC=0;iMC< int(mcErr.size()) ;iMC++)
 	{
+	     //if( mcErr.size()< mc.size() ) offset=3;
+	     if ( // set a slight different style for scale and pdf unc
+		iMC< mcLabelsErr.size() && (
+		mcLabelsErr[iMC].find("pdf") !=string::npos ||
+		mcLabelsErr[iMC].find("Pdf") !=string::npos ||
+		mcLabelsErr[iMC].find("PDF") !=string::npos )
+		) offset=3 - iMC;
+	     if (
+		iMC< mcLabelsErr.size() && (
+		mcLabelsErr[iMC].find("Scale") !=string::npos ||
+		mcLabelsErr[iMC].find("scale") !=string::npos ||
+		mcLabelsErr[iMC].find("SCALE") !=string::npos )
+		) offset=4 - iMC;
+	
               mcErr[iMC]->GetXaxis()->SetRangeUser(Range.first,Range.second);
-              mcErr[iMC]->SetLineColor(mcErrColors[iMC]);
-              mcErr[iMC]->SetFillColor(mcErrColors[iMC]);
-              mcErr[iMC]->SetFillStyle(mcErrStyles[iMC]);
+              mcErr[iMC]->SetLineColor(mcErrColors[iMC+offset]);
+              mcErr[iMC]->SetFillColor(mcErrColors[iMC+offset]);
+              mcErr[iMC]->SetFillStyle(mcErrStyles[iMC+offset]);
               mcErr[iMC]->SetLineWidth(2);
+              mcErr[iMC]->SetMarkerStyle(0);
 	}
 	return;
 }
@@ -212,8 +350,13 @@ RangeY=pair<double,double>(-100.,-100.);
 legendPos1=pair<double,double>(.70,.70);
 legendPos2=pair<double,double>(.89,.89);
 legendHeader="";
-cmsPosition=pair<double,double>(.45,.94);
+//cmsPosition=pair<double,double>(.45,.94);
+cmsPosition=pair<double,double>(.20,.84); // position is Top Left
+lumiPosition=pair<double,double>(.98,.91); // position is bottom right
 autoLegend=1;
+cmsSpace=0.02;
+drawBands=1;
+drawLumi=1;
 }
 
 //---------------------- LOWER PLOTS-------------
@@ -244,17 +387,38 @@ void SingleLowerPlot::SetDataStyle(){
 		data->GetYaxis()->SetNdivisions(510);
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
+		data->GetYaxis()->SetTitleOffset(1.3);
+		data->GetXaxis()->SetTitleOffset(0.8);
+		data->GetXaxis()->SetTitleSize(20);
 	return; //no legend
 }
 
 void SingleLowerPlot::DrawCMS(){
-	return; //no cms
+	//return; //no cms CHANGEME
+	//c->cd();
+	pair<float,float> cmsOrig(cmsPosition);
+	pair<float,float> lumiOrig(lumiPosition);
+	float cmsSpaceOrig(cmsSpace);
+	
+	cmsPosition.first=.12;
+	cmsPosition.second=0.9;
+	lumiPosition.first=.96;
+	lumiPosition.second=.9;
+	drawLumi=0;
+	string extraTextTmp(extraText);
+	extraText="";
+	cmsSpace=0.05;
+
+	NicePlotsBase::DrawCMS();
+
+	extraText=extraTextTmp;
+	cmsPosition=cmsOrig;//restore
+	lumiPosition=lumiOrig;//restore
+	cmsSpace=cmsSpaceOrig;
 }
 
 //---------------------- RATIO PLOTS-------------
 SingleRatioPlot::SingleRatioPlot() : NicePlotsBase(){
-cmsPosition.first=0.45;
-cmsPosition.second=0.94;
 legendPos1=pair<double,double>(.70,.75);
 legendPos2=pair<double,double>(.97,.94);
 }
@@ -317,6 +481,7 @@ void SingleRatioLowerPlot::SetDataStyle(){
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
         	data->GetYaxis()->SetTitleSize(20);
+		data->GetXaxis()->SetTitleSize(20);
 	return; 
 }
 

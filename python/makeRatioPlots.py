@@ -240,8 +240,10 @@ for cut in config['Cut']:
 		SingleMC2.append(mc2)
 	for iMcErr in range(0,len(config['mcErr1'])):
 		print 'mcErr1=',config['mcErr1'][iMcErr]
-		mcErrName1=FixNames(config['mcErr1'][iMcErr][2],cut)
-		mcErrName2=FixNames(config['mcErr2'][iMcErr][2],cut)
+		#mcErrName1=FixNames(config['mcErr1'][iMcErr][2],cut)
+		#mcErrName2=FixNames(config['mcErr2'][iMcErr][2],cut)
+		mcErrName1=config['mcErr1'][iMcErr][2]
+		mcErrName2=config['mcErr2'][iMcErr][2]
 		typ1=config['mcErr1'][iMcErr][1]
 		typ2=config['mcErr2'][iMcErr][1]
 		refMC1=config['mcErr1'][iMcErr][0]
@@ -251,7 +253,7 @@ for cut in config['Cut']:
 			print "Error using 1"
 			exit(1)
 		#even tought it does FixNames it add syst
-		print "Goin to Read Syst",mcErrName1,"from file1"
+		print "Goin to Read Syst: ",mcErrName1," from file1"
 
 		#assume Merge1=Merge2
 		mcErr1Raw=ReadSyst(config,typ1,0,cut,"",mcErrName1,file1,SingleRawMC1[refMC1])
@@ -267,11 +269,14 @@ for cut in config['Cut']:
 
 		#convert to TH1 is done in ReadSyst
 		#
-		if 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr]>=-1 and config['mcErrCorr'] <=1:
+		if 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr] >= -1.0 and config['mcErrCorr'][iMcErr] <= 1.0:
+			print "Error for MC ERR",iMcErr,"is done with correlation",config['mcErrCorr'][iMcErr]
 			mcErrR.append(Ratio(mcErr2,mcErr1,False,False,config['mcErrCorr'][iMcErr]))
-		elif 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr]> 1:
+		elif 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr]> 1.0:
+			print "Error for MC ERR",iMcErr,"is done with correlation",config['mcErrCorr'][iMcErr]," = Fully correlated"
 			mcErrR.append(Ratio(mcErr2,mcErr1,False,True,-2))
 		else:
+			print "Error for MC ERR",iMcErr,"is done with correlation = Uncorrelated"
 			mcErrR.append(Ratio(mcErr2,mcErr1,False,False,-2))
 
 		for i in range(1,mcErrR[iMcErr].GetNbinsX()+1):
@@ -385,6 +390,7 @@ for cut in config['Cut']:
 			Table[curRow].append("$%.1f$" % (r))
 
 	plotter=ROOT.NicePlots.SingleRatioPlot();
+	plotter.drawBands=0
 	#C=ROOT.TCanvas("C_Ht_%s_nJets_%s_ptJet_%s"%cut)
 	#ROOT.gPad.SetBottomMargin(0.15)
 	#ROOT.gPad.SetTopMargin(0.05)
@@ -499,6 +505,7 @@ for cut in config['Cut']:
 			print "Error   [",mcErrR[iMcErr].GetBinError(i),"~",mcR[refMC].GetBinError(i),"]"
 		plotter.mcErr.push_back(mcErrR[iMcErr])
 		plotter.mcLabelsErr.push_back(leg)
+		plotter.mcErrAssociation.push_back(refMC)
 	#L.Draw();
 	#lat=ROOT.TLatex()
 	#lat.SetNDC()
@@ -669,6 +676,10 @@ for cut in config['Cut']:
 		plot_L.Range.first=99.99
 		plot_L.Range.second=1093
 
+	plot_L.xtitle="P_{T}^{Z/#gamma}[GeV]"
+	if 'xtitle' in config:
+		plot_L.xtitle=config['xtitle']
+
 	data2 = plotter.data.Clone("dataLower")
 	syst2 = plotter.syst.Clone("systLower")
 	data_L = Ratio(data2,data2,NoErrorH=True)
@@ -689,14 +700,23 @@ for cut in config['Cut']:
 		leg=config['mcErrLeg'][iMcErr]
 		refMC=config['mcErr1'][iMcErr][0]
 		#mcErrR[iMcErr].Scale(config['mcLO1'][refMC]/(config['mcLO2'][refMC]))
-		plotter.mcErr.push_back( Ratio(mcErrR[iMcErr],data2,NoErrorH=True)  )
-		plotter.mcLabelsErr.push_back(leg)
+		plot_L.mcErr.push_back( Ratio(data2,mcErrR[iMcErr],NoErrorH=True)  )
+		plot_L.mcLabelsErr.push_back(leg)
+		plot_L.mcErrAssociation.push_back(refMC)
+		
 	Cdn=plot_L.Draw();
-
 	AllCanvas.append(Cdn)
 
 	for ext in extensions:
 		name= config["Out"]+("/Lower_"+FixNames(config['OutName'],cut) + "."+ext)
 		print "Going to save '"+ name+"'"
 		Cdn.SaveAs( name )	
+
+	Cdn2=plot_L.DrawSeparateLine();
+	AllCanvas.append(Cdn2)
+
+	for ext in extensions:
+		name= config["Out"]+("/Lower2_"+FixNames(config['OutName'],cut) + "."+ext)
+		print "Going to save '"+ name+"'"
+		Cdn2.SaveAs( name )	
 	#for cut in Cuts

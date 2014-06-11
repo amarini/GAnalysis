@@ -29,9 +29,9 @@ mcName1 h_MG_GEN_leptons_combined
 mcName2 mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
 mcLeg MadGraph
 
-#mcErr1 0 s h_MG_GEN_leptons_combined
-#mcErr2 0 s mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
-#mcErrLeg MC~Stat~Err
+mcErr1 0 s h_MG_GEN_leptons_combined
+mcErr2 0 s mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
+mcErrLeg MG~Stat.~Err.
 
 ### syst
 Up UP UP

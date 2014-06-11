@@ -1,5 +1,5 @@
 ### Z ###
-#file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_njets2plus_jet30_V00-14_modJetLepVeto.root
+#file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_eta_2_40_njets2plus_V00-14_modJetLepVeto_newMuSFUnc_MPI.root
 file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_eta_2_40_njets2plus_V00-14_modJetLepVeto_newMuSFUnc_MPI.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 lumi1 1
@@ -36,9 +36,25 @@ mcName1 h_BH_rebinned_mumu
 mcName2 h_BH_rebinned_mumu
 mcLeg BlackHat
 
+mcErr1 0 s h_MG_GEN_leptons_combined
+mcErr2 0 s h_MG_GEN_leptons_combined
+mcErrLeg MG~Stat.~Err.
+mcCorr 2
+
+mcErr1 1 s h_SH_GEN_leptons_combined
+mcErr2 1 s h_SH_GEN_leptons_combined
+mcErrLeg SH~Stat.~Err.
+mcCorr 2
+
+#mcErr1 2 s h_BH_rebinned_mumu
+#mcErr2 2 s h_BH_rebinned_mumu
+#mcErrLeg BH~Stat.~Err.
+#mcCorr 2
+
+
 ### syst
-Up UP UP
-Down DN DN
+Up Up Up
+Down Down Down
 PrePendSyst "_" "_"
 #Syst JES ++ - -
 #Syst JER ++ - -

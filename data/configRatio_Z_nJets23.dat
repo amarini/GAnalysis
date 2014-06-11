@@ -1,4 +1,5 @@
 ### Z ###
+include data/configRatio_Z_nJets12.dat
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_njets3plus_jet30_V00-14_modJetLepVeto.root
 file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_eta_2_40_njets3plus_V00-14_modJetLepVeto_newMuSFUnc_MPI.root
@@ -12,56 +13,57 @@ file2 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_eta_2_40_njets2plus_V00-14_modJetLepV
 lumi2 1
 
 ### histo name1
-histoName1 hData_leptons_combined
-#cov1  ???
-
-### histo name2
-histoName2 hData_leptons_combined
-#cov2 cov_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
-
-StatCorr 1
+#histoName1 hData_leptons_combined
+##cov1  ???
+#
+#### histo name2
+#histoName2 hData_leptons_combined
+##cov2 cov_Ht_${.1fHT}_nJets_${.1fNJETS}${SYST}
+#
+#StatCorr 1
 ### Load cuts
+NoCut
 Cut Ht=0 nJets=2 ptJet=30
 #Cut Ht=300 nJets=1 ptJet=30
 #Cut Ht=0 nJets=3 ptJet=30
 #
-mcName1 h_MG_GEN_leptons_combined
-mcName2 h_MG_GEN_leptons_combined
-mcLeg MadGraph
-
-mcName1 h_SH_GEN_leptons_combined
-mcName2 h_SH_GEN_leptons_combined
-mcLeg Sherpa
-
-mcName1 h_BH_rebinned_mumu
-mcName2 h_BH_rebinned_mumu
-mcLeg BlackHat
-### syst
-Up UP UP
-Down DN DN
-PrePendSyst "_" "_"
-#Syst JES ++ - -
-#Syst JER ++ - -
-#Syst PU ++ - -
-#Syst SIG :: - - 
-#Syst BKG :: - - 
-#Syst LUM .. - - #equivalently . means ignore
-
-#Out /afs/cern.ch/user/a/amarini/work/V00-13/
-Out ../V00-14/Z/
-
-# + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
-Syst JES && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
-Syst JER && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
-Syst PhBG && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
-Syst PU && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
-Syst LUM %% 2.6 2.6 #equivalently . means ignore
-Syst UNF && h_Unf_unc_band_comb h_Unf_unc_band_comb
-#trick two different systematic are not correlated. These two shold not simplify
-Syst SF && h_SF_unc_band_comb h${SYST}_unc_band_comb
-Syst LepSCALE && h_lepScale_unc_band_comb h_lepScale_unc_band_comb
-Syst LepRES && h_lepRES_unc_band_comb h_lepRES_unc_band_comb
-
+#mcName1 h_MG_GEN_leptons_combined
+#mcName2 h_MG_GEN_leptons_combined
+#mcLeg MadGraph
+#
+#mcName1 h_SH_GEN_leptons_combined
+#mcName2 h_SH_GEN_leptons_combined
+#mcLeg Sherpa
+#
+#mcName1 h_BH_rebinned_mumu
+#mcName2 h_BH_rebinned_mumu
+#mcLeg BlackHat
+#### syst
+#Up UP UP
+#Down DN DN
+#PrePendSyst "_" "_"
+##Syst JES ++ - -
+##Syst JER ++ - -
+##Syst PU ++ - -
+##Syst SIG :: - - 
+##Syst BKG :: - - 
+##Syst LUM .. - - #equivalently . means ignore
+#
+##Out /afs/cern.ch/user/a/amarini/work/V00-13/
+#Out ../V00-14/Z/
+#
+## + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
+#Syst JES && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
+#Syst JER && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
+#Syst PhBG && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
+#Syst PU && h${SYST}_unc_band_comb h${SYST}_unc_band_comb
+#Syst LUM %% 2.6 2.6 #equivalently . means ignore
+#Syst UNF && h_Unf_unc_band_comb h_Unf_unc_band_comb
+##trick two different systematic are not correlated. These two shold not simplify
+#Syst SF && h_SF_unc_band_comb h${SYST}_unc_band_comb
+#Syst LepSCALE && h_lepScale_unc_band_comb h_lepScale_unc_band_comb
+#Syst LepRES && h_lepRES_unc_band_comb h_lepRES_unc_band_comb
+#
 #veto Bin Boundaries. Can be casted multiple times
 #Merge2 560 790
 #Merge2 600 790
@@ -83,5 +85,5 @@ text |y^{Z}|<1.4
 xleg 0.70 .97
 yleg 0.11 .31
 
-mc 1
-table 1
+#mc 1
+#table 1

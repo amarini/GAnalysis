@@ -352,6 +352,7 @@ for jpt in [30.0,300.0]:
 
 		if doJP:
 			fileList=options.jetphox.split(',')	
+			print "Adding JetPhox compontent ", fileList[0]
 			f_JP=ROOT.TFile.Open(fileList[0])
 			h_JetPhox_tmp=f_JP.Get("hp40")
 			for i in range(1,len(fileList)):
@@ -390,6 +391,7 @@ for jpt in [30.0,300.0]:
 
 
 		plotter=ROOT.NicePlots.SingleUpperPlot();
+		plotter.drawBands=0
 		plotter.data=H
 		plotter.syst=H_TOT
 		#plotter.xtitle="p_{T}^{\\gamma} [\\textup{G}e\\textup{V}]"
@@ -428,10 +430,16 @@ for jpt in [30.0,300.0]:
 		 	R_MC=Ratio(H,H_MC,NoErrorH=True);
 			plotter.mc.push_back(R_MC);
 			plotter.mcLabels.push_back("MadGraph");
+			R_MC_Err=R_MC.Clone("MGError")
+			plotter.mcErr.push_back(R_MC_Err);
+			plotter.mcLabelsErr.push_back("MG Stat");
 		if doJP:
 			R_JP=Ratio(H,h_JetPhox,NoErrorH=True)
 			plotter.mc.push_back(R_JP);
+			R_JP_Err=R_JP.Clone("JPErr")
 			plotter.mcLabels.push_back("JetPhox (parton)")
+			plotter.mcErr.push_back(R_JP_Err);
+			plotter.mcLabelsErr.push_back("JP Stat");
 			#R_JP_scaled=Ratio(H,h_JetPhox_scaled,NoErrorH=True)
 			#plotter.mc.push_back(R_JP_scaled);
 			#plotter.mcLabels.push_back("JetPhox (parton scaled)")

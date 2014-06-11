@@ -70,7 +70,8 @@ def ReadRatioDat( inputDat ):
 			# [-1,1] that correlation
 			# >1 FullCorr
 			# <-1 o not existing Uncorrelated
-			R[ parts[0] ] = float(parts[1])
+			if parts[0] not in R: R[ parts[0] ] =[]
+			R[ parts[0] ].append(float(parts[1]))
 		elif parts[0] == 'mcErrLeg':
 			if parts[0] not in R:
 				R[ parts[0] ] = []
@@ -85,6 +86,11 @@ def ReadRatioDat( inputDat ):
 			R['mcLeg']=[]
 			R['mcLO1']=[]
 			R['mcLO2']=[]
+		elif parts[0] == 'NoMCErr':
+			R['mcErr1']=[]
+			R['mcErr2']=[]
+			R['mcErrLeg']=[]
+			R['mcErrCorr']=[]
 		#elif parts[0] == 'mcName1': R["mcName1"]=parts[1]
 		#elif parts[0] == 'mcName2': R["mcName2"]=parts[1]
 		elif parts[0] == 'cov1': R["cov1"]=parts[1]
@@ -547,6 +553,32 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 			for i in range(1,s1.GetNbinsX()+1): 
 				#print "DEBUG Z ",syst,"Bin%d"%i,"%.0f %%"%( h1err.GetBinContent(i)/h1.GetBinContent(i) ), " %.0f-%.0f"%( h1err.GetBinCenter(i),h1.GetBinCenter(i) ),"%f/%f"%(h1err.GetBinContent(i),h1.GetBinContent(i))
 				s1.SetBinError(i,h1err.GetBinContent(i) );
+		elif typ[n]=='^': #h1 double band, content is the error
+			h1nup=FixNames(hns1,cut,config['Up'][n])
+			h1ndn=FixNames(hns1,cut,config['Down'][n])
+			print "Going to get Histo " +h1nup + " - " + h1ndn
+			h1up=file1.Get(h1nup)
+			h1dn=file1.Get(h1ndn)
+			if 'Merge%d'%(n+1) in config:
+				h1up=MergeBins(config['Merge%d'%(n+1)],h1up)
+				h1dn=MergeBins(config['Merge%d'%(n+1)],h1dn)
+			h1up.Scale(1./config["lumi%d"%(n+1)])
+			h1dn.Scale(1./config["lumi%d"%(n+1)])
+			h1up=ConvertToTargetTH1(h1,h1up)
+			h1dn=ConvertToTargetTH1(h1,h1dn)
+			#s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
+			for i in range(1,h1up.GetNbinsX()+1): 
+				print "Syst",h1nup,"h1up=",h1up.GetBinContent(i)/h1.GetBinContent(i) *100,"%% h1dn=",h1dn.GetBinContent(i)/h1.GetBinContent(i) *100,"%%"
+				upUnc=h1.GetBinContent(i)
+				dnUnc=h1.GetBinContent(i)
+				upUnc=max(upUnc,h1.GetBinContent(i)+h1up.GetBinContent(i))
+				upUnc=max(upUnc,h1.GetBinContent(i)-h1dn.GetBinContent(i))
+				dnUnc=min(dnUnc,h1.GetBinContent(i)+h1dn.GetBinContent(i))
+				dnUnc=min(dnUnc,h1.GetBinContent(i)-h1dn.GetBinContent(i))
+				h1.GetBinContent(i)-h1dn.GetBinContent(i)
+				h1up.SetBinContent(i,upUnc );
+				h1dn.SetBinContent(i,dnUnc );
+			s1=makeBands(h1up,h1dn,"Mean")
 		elif typ[n]=='%': #content of the histo is the error itsef
 			e=float(hns1)/100.
 			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled

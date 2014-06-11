@@ -46,13 +46,16 @@ namespace NicePlots
 
 const Int_t mcColors[]={kBlue+2,kRed,kGreen+2};
 const Int_t mcStyles[]={1,2,3};
-const Int_t mcErrColors[]={kMagenta+2,kGreen+2,kOrange};
-const Int_t mcErrStyles[]={3254,3644,3445};
+//                                                 \/ Scale and pdf
+const Int_t mcErrColors[]={kBlue+2,kRed,kGreen+2,kMagenta+2,kGreen+2,kOrange};
+const Int_t mcErrStyles[]={3002,3003,3017,3254,3445,3644};
+//                                          /\ Scale and pdf
+//17-18 == 04 05 
 
-class NicePlotsBase;
-class SingleUpperPlot;
+class NicePlotsBase; // base Class everyone inheriths here if possible
+class SingleUpperPlot; // Z or sigle G plots
 class SingleLowerPlot ;
-class SingleRatioPlot ;
+class SingleRatioPlot ; // ratio
 class SingleRatioLowerPlot ;
 
 TH1D* NiceRange(TH1*H,pair<double,double> Range, double f1,double f2);
@@ -64,7 +67,8 @@ class NicePlots::NicePlotsBase
 public: 
 	NicePlotsBase();
 	virtual TCanvas * Draw();
-	virtual TCanvas * DrawCanvas();
+	virtual TCanvas * DrawSeparateLine(); //intended for ratio to draw separetely the mc/data plots
+	virtual TCanvas * DrawCanvas(); //draw the canvas and set the actual size
 	virtual void DrawCMS();
 	virtual void DrawLegend();
 	virtual void SetDataStyle();
@@ -80,6 +84,7 @@ public:
 	int autoLegend; // change X,Y according to number of entries
 	vector<TH1D*> mc;
 	vector<TH1D*> mcErr; // bands
+	vector<int> mcErrAssociation;
 	vector<string> mcLabels;
 	vector<string> mcLabelsErr;
 	pair<double,double>RangeFactors;
@@ -93,6 +98,10 @@ public:
 	string legendHeader;
 	string extraText;
 	pair<double,double> cmsPosition;
+	pair<double,double> lumiPosition;
+	float cmsSpace;//space between CMS, and preliminary
+	int drawBands;
+	int drawLumi;
 };
 
 class NicePlots::SingleUpperPlot : public NicePlots::NicePlotsBase {
@@ -127,3 +136,4 @@ class NicePlots::SingleRatioLowerPlot : public NicePlots::NicePlotsBase {
 	virtual void DrawCMS();
 	virtual void SetDataStyle();
 };
+
