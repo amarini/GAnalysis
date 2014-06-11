@@ -42,12 +42,12 @@ mcLeg BlackHat
 mcErr1 0 s h_MG_GEN_leptons_combined
 mcErr2 0 s h_MG_GEN_leptons_combined
 mcErrLeg MG~Stat.~Err.
-mcCorr 2
+mcErrCorr 2
 
 mcErr1 1 s h_SH_GEN_leptons_combined
 mcErr2 1 s h_SH_GEN_leptons_combined
 mcErrLeg SH~Stat.~Err.
-mcCorr 2
+mcErrCorr 2
 
 #mcErr1 2 s h_BH_rebinned_mumu
 #mcErr2 2 s h_BH_rebinned_mumu

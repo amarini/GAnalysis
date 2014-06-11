@@ -176,15 +176,17 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	cmsPosition.first=.35;
 	cmsPosition.second=.93;
 	float cmsSpaceOrig=cmsSpace;
-	DrawCMS();
+	int drawLumiOrig=drawLumi;
+	//DrawCMS();
 	
 	cmsPosition.first=.22;
-	cmsPosition.second=1.-0.3 * dY - 0.05;
+	cmsPosition.second=1.-0.3 * dY - 0.06;
 	lumiPosition.first=.96;
-	lumiPosition.second=1.-0.3* dY - 0.05;
+	lumiPosition.second=1.-0.3* dY - 0.01 ;
 	string extraTextTmp(extraText);
 	extraText="";
 	cmsSpace=0.03;
+	drawLumi=1;
 
 	NicePlotsBase::DrawCMS();
 
@@ -192,6 +194,7 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	cmsPosition=cmsOrig;//restore
 	lumiPosition=lumiOrig;//restore
 	cmsSpace=cmsSpaceOrig;
+	drawLumi=drawLumiOrig;
 
 	return c;
 }
@@ -388,7 +391,7 @@ void SingleLowerPlot::SetDataStyle(){
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
 		data->GetYaxis()->SetTitleOffset(1.3);
-		data->GetXaxis()->SetTitleOffset(0.8);
+		data->GetXaxis()->SetTitleOffset(0.9);
 		data->GetXaxis()->SetTitleSize(20);
 	return; //no legend
 }
@@ -415,6 +418,7 @@ void SingleLowerPlot::DrawCMS(){
 	cmsPosition=cmsOrig;//restore
 	lumiPosition=lumiOrig;//restore
 	cmsSpace=cmsSpaceOrig;
+	return;
 }
 
 //---------------------- RATIO PLOTS-------------
@@ -462,13 +466,43 @@ void SingleRatioLowerPlot::DrawLegend(){
 	return; //no legend
 }
 void SingleRatioLowerPlot::DrawCMS(){
+//	TLatex *l=new TLatex();
+//	l->SetNDC();
+//	l->SetTextFont(43);
+//	l->SetTextSize(15);
+//	l->SetTextAlign(12);
+//	if( extraText != "")
+//		//l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
+//		l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
+//	return; //only extraText
+	pair<float,float> cmsOrig(cmsPosition);
+	pair<float,float> lumiOrig(lumiPosition);
+	float cmsSpaceOrig(cmsSpace);
+	
+	cmsPosition.first=.20;
+	cmsPosition.second=0.78;
+	lumiPosition.first=.96;
+	lumiPosition.second=.9;
+	drawLumi=0;
+	string extraTextTmp(extraText);
+	extraText="";
+	cmsSpace=0.05;
+
+	NicePlotsBase::DrawCMS();
+
+	extraText=extraTextTmp;
+	cmsPosition=cmsOrig;//restore
+	lumiPosition=lumiOrig;//restore
+	cmsSpace=cmsSpaceOrig;
+
 	TLatex *l=new TLatex();
 	l->SetNDC();
 	l->SetTextFont(43);
 	l->SetTextSize(15);
-	l->SetTextAlign(12);
+	l->SetTextAlign(11);
 	if( extraText != "")
-		l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
+		//l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
+		l->DrawLatex(cmsPosition.first,.22,extraText.c_str());
 	return; //only extraText
 }
 void SingleRatioLowerPlot::SetDataStyle(){
