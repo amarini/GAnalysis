@@ -156,75 +156,144 @@ plotter.RangeFactors.second=0.00
 #	plotter.RangeFactors.second=0.05
 plotter.Range.first=Range[0]
 plotter.Range.second=Range[1]
-C1=plotter.Draw()
-C1.SaveAs(outputFile)		
 
 R_H=Ratio(H,H,NoErrorH=True); 
 R_TOT=Ratio(H,H_TOT,True);
 xtitle=plotter.xtitle
-plotter=ROOT.NicePlots.SingleLowerPlot();
-plotter.data=R_H
-plotter.syst=R_TOT
-plotter.xtitle=xtitle
-plotter.ytitle="MC/Data"
+
+plot_L=ROOT.NicePlots.SingleLowerPlot();
+plot_L.data=R_H
+plot_L.syst=R_TOT
+plot_L.xtitle=xtitle
+plot_L.ytitle="MC/Data"
 R_MG=Ratio(H,H_MG,True);
 R_SH=Ratio(H,H_SH,True);
-plotter.mc.push_back(R_MG);
-plotter.mcLabels.push_back("MadGraph k_{NNLO}");
-plotter.mc.push_back(R_SH);
-plotter.mcLabels.push_back("Sherpa k_{NNLO}");
+plot_L.mc.push_back(R_MG);
+plot_L.mcLabels.push_back("MadGraph k_{NNLO}");
+plot_L.mc.push_back(R_SH);
+plot_L.mcLabels.push_back("Sherpa k_{NNLO}");
 ## add stat bands
 
 StatErrBands=True
 if StatErrBands:
 	R_MG_Err=R_MG.Clone("MG_Err")
-	plotter.mcErr.push_back(R_MG_Err);
-	plotter.mcLabelsErr.push_back("MG Stat Err");
+	plot_L.mcErr.push_back(R_MG_Err);
+	plot_L.mcLabelsErr.push_back("MG Stat Err");
+	plot_L.mcErrAssociation.push_back(0);
+
 	R_SH_Err=R_SH.Clone("SH_Err")
-	plotter.mcErr.push_back(R_SH_Err);
-	plotter.mcLabelsErr.push_back("SH Stat Err");
+	plot_L.mcErr.push_back(R_SH_Err);
+	plot_L.mcLabelsErr.push_back("SH Stat Err");
+	plot_L.mcErrAssociation.push_back(1);
 if H_BH_f != None:
 	R_BH=Ratio(H,H_BH,True);
-	plotter.mc.push_back(R_BH);
-	plotter.mcLabels.push_back("BlackHat");
+	plot_L.mc.push_back(R_BH);
+	plot_L.mcLabels.push_back("BlackHat");
 
 	#scale 
-	H_pdf_up_f=fRoot.Get("h_band_PDFUp_rebinned_total")
-	H_pdf_dn_f=fRoot.Get("h_band_PDFDown_rebinned_total")
-	H_scale_up_f=fRoot.Get("h_band_scaleUp_rebinned_total")
-	H_scale_dn_f=fRoot.Get("h_band_scaleDown_rebinned_total")
+	H_pdf_up_f=fRoot.Get("h_band_BH_PDFUp_rebinned_total")
+	H_pdf_dn_f=fRoot.Get("h_band_BH_PDFDown_rebinned_total")
+	H_scale_up_f=fRoot.Get("h_band_BH_scaleUp_rebinned_total")
+	H_scale_dn_f=fRoot.Get("h_band_BH_scaleDown_rebinned_total")
 
 	if H_pdf_up_f !=None and H_pdf_dn_f != None:
 		H_PDF=ROOT.TH1D()
 		H_BH_f.Copy(H_PDF)
 		for iBin in range(0,H_PDF.GetNbinsX()):
 			c=H_PDF.GetBinContent(iBin+1)
-			up=max(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContnet(iBin+1)) 
-			dn=min(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContnet(iBin+1))
-			H_PDF.SetBinContent(iBin+1,math.abs(up+dn)/2)
-			H_PDF.SetBinError(iBin+1,math.abs(up-dn)/2)
-		plotter.mcLabelsErr.push_back("PDF")
-		plotter.mcErr.push_back(H_PDF)
+			up=max(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContent(iBin+1)) 
+			dn=min(c,c+H_pdf_up_f.GetBinContent(iBin+1),c-H_pdf_dn_f.GetBinContent(iBin+1))
+			H_PDF.SetBinContent(iBin+1,abs(up+dn)/2)
+			H_PDF.SetBinError(iBin+1,abs(up-dn)/2)
+		R_H_PDF=Ratio(H,H_PDF,NoErrorH=True); 
+		plot_L.mcLabelsErr.push_back("PDF")
+		plot_L.mcErr.push_back(R_H_PDF)
+		plot_L.mcErrAssociation.push_back(2);
 	if H_scale_up_f !=None and H_scale_dn_f != None:
 		H_SCALE=ROOT.TH1D()
 		H_BH_f.Copy(H_SCALE)
 		for iBin in range(0,H_SCALE.GetNbinsX()):
 			c=H_SCALE.GetBinContent(iBin+1)
-			up=max(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContnet(iBin+1)) 
-			dn=min(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContnet(iBin+1))
-			H_SCALE.SetBinContent(iBin+1,math.abs(up+dn)/2)
-			H_SCALE.SetBinError(iBin+1,math.abs(up-dn)/2)
-		plotter.mcLabelsErr.push_back("Scale")
-		plotter.mcErr.push_back(H_SCALE)
+			up=max(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContent(iBin+1)) 
+			dn=min(c,c+H_scale_up_f.GetBinContent(iBin+1),c-H_scale_dn_f.GetBinContent(iBin+1))
+			H_SCALE.SetBinContent(iBin+1,abs(up+dn)/2)
+			H_SCALE.SetBinError(iBin+1,abs(up-dn)/2)
+		R_H_SCALE=Ratio(H,H_SCALE,NoErrorH=True); 
+		plot_L.mcLabelsErr.push_back("Scale")
+		plot_L.mcErr.push_back(R_H_SCALE)
+		plot_L.mcErrAssociation.push_back(2);
+	## more than one pdf
+	H_BH_NNPDF_f =fRoot.Get("h_BH_NNPDF_rebinned_total")
+	H_BH_CT10_f =fRoot.Get("h_BH_CT10_rebinned_total")
 
-plotter.SetHeader('Z',nJets,Ht)
+	H_BH_NNPDF_scale_up_f=fRoot.Get("h_band_BH_NNPDF_scaleUp_rebinned_total")
+	H_BH_NNPDF_scale_dn_f=fRoot.Get("h_band_BH_NNPDF_scaleDown_rebinned_total")
+	H_BH_CT10_scale_up_f=fRoot.Get("h_band_BH_CT10_scaleUp_rebinned_total")
+	H_BH_CT10_scale_dn_f=fRoot.Get("h_band_BH_CT10_scaleDown_rebinned_total")
+	
+	if H_BH_CT10_f !=None and H_BH_CT10_scale_up_f !=None and H_BH_CT10_scale_dn_f != None:
+		H_BH_CT10=ROOT.TH1D()
+		H_BH_CT10_f.Copy(H_BH_CT10)
+
+		H_BH_CT10_SCALE=ROOT.TH1D()
+		H_BH_CT10_f.Copy(H_BH_CT10_SCALE)
+
+		R_H_BH_CT10=Ratio(H,H_BH_CT10,NoErrorH=True); 
+
+		for iBin in range(0,H_BH_CT10_SCALE.GetNbinsX()):
+			c=H_BH_CT10_SCALE.GetBinContent(iBin+1)
+			up=max(c,c+H_BH_CT10_scale_up_f.GetBinContent(iBin+1),c-H_BH_CT10_scale_dn_f.GetBinContent(iBin+1)) 
+			dn=min(c,c+H_BH_CT10_scale_up_f.GetBinContent(iBin+1),c-H_BH_CT10_scale_dn_f.GetBinContent(iBin+1))
+			H_BH_CT10_SCALE.SetBinContent(iBin+1,abs(up+dn)/2)
+			H_BH_CT10_SCALE.SetBinError(iBin+1,abs(up-dn)/2)
+		R_H_BH_CT10_SCALE=Ratio(H,H_BH_CT10_SCALE,NoErrorH=True); 
+		
+		plotter.mc.push_back(H_BH_CT10)
+		plotter.mcLabels.push_back("BH CT10")
+		plot_L.mc.push_back(R_H_BH_CT10)
+		plot_L.mcLabels.push_back("BH CT10")
+		plot_L.mcLabelsErr.push_back("Scale")
+		plot_L.mcErr.push_back(R_H_BH_CT10_SCALE)
+		plot_L.mcErrAssociation.push_back(3);
+
+	if H_BH_NNPDF_f !=None and H_BH_NNPDF_scale_up_f !=None and H_BH_NNPDF_scale_dn_f != None:
+		H_BH_NNPDF=ROOT.TH1D()
+		H_BH_NNPDF_f.Copy(H_BH_NNPDF)
+
+		H_BH_NNPDF_SCALE=ROOT.TH1D()
+		H_BH_NNPDF_f.Copy(H_BH_NNPDF_SCALE)
+
+		R_H_BH_NNPDF=Ratio(H,H_BH_NNPDF,NoErrorH=True); 
+
+		for iBin in range(0,H_BH_NNPDF_SCALE.GetNbinsX()):
+			c=H_BH_NNPDF_SCALE.GetBinContent(iBin+1)
+			up=max(c,c+H_BH_NNPDF_scale_up_f.GetBinContent(iBin+1),c-H_BH_NNPDF_scale_dn_f.GetBinContent(iBin+1)) 
+			dn=min(c,c+H_BH_NNPDF_scale_up_f.GetBinContent(iBin+1),c-H_BH_NNPDF_scale_dn_f.GetBinContent(iBin+1))
+			H_BH_NNPDF_SCALE.SetBinContent(iBin+1,abs(up+dn)/2)
+			H_BH_NNPDF_SCALE.SetBinError(iBin+1,abs(up-dn)/2)
+		R_H_BH_NNPDF_SCALE=Ratio(H,H_BH_NNPDF_SCALE,NoErrorH=True); 
+		
+		plotter.mc.push_back(H_BH_NNPDF)
+		plotter.mcLabels.push_back("BH NNPDF")
+		plot_L.mc.push_back(R_H_BH_NNPDF)
+		plot_L.mcLabels.push_back("BH NNPDF")
+		plot_L.mcLabelsErr.push_back("Scale")
+		plot_L.mcErr.push_back(R_H_BH_NNPDF_SCALE)
+		plot_L.mcErrAssociation.push_back(4);
+	
+
+plot_L.SetHeader('Z',nJets,Ht)
 if Y<3:
-	plotter.extraText="|Y^{Z}|<%.1f"%Y
-plotter.RangeFactors.first=0.05
-plotter.RangeFactors.second=0.05
-plotter.Range.first=Range[0]
-plotter.Range.second=Range[1]
-C2=plotter.Draw()
+	plot_L.extraText="|Y^{Z}|<%.1f"%Y
+plot_L.RangeFactors.first=0.05
+plot_L.RangeFactors.second=0.05
+plot_L.Range.first=Range[0]
+plot_L.Range.second=Range[1]
+
+C1=plotter.Draw()
+C1.SaveAs(outputFile)		
+
+C2=plot_L.Draw()
 
 if 'pdf' in outputFile:
 	name=outputFile.replace(".pdf","")
@@ -241,3 +310,7 @@ elif 'root' in outputFile:
 else: print 'unsupported format'
 C2.SaveAs(name)
 
+C3=plot_L.DrawSeparateLine()
+
+name=name.replace('_lower','_lower2')
+C3.SaveAs(name)

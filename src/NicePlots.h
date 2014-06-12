@@ -44,8 +44,8 @@ using namespace std;
 namespace NicePlots
 {
 
-const Int_t mcColors[]={kBlue+2,kRed,kGreen+2};
-const Int_t mcStyles[]={1,2,3};
+const Int_t mcColors[]={kBlue+2,kRed,kGreen+2,kOrange+2,38,kYellow};
+const Int_t mcStyles[]={1,2,3,1,2,3};
 //                                                 \/ Scale and pdf
 const Int_t mcErrColors[]={kBlue+2,kRed,kGreen+2,kMagenta+2,kGreen+2,kOrange};
 const Int_t mcErrStyles[]={3002,3003,3017,3254,3445,3644};

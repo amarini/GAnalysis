@@ -1,6 +1,6 @@
 ### Z ###
 #
-include data/configRatio_Z_nJets12_Yinf.dat
+include data/configRatio_Z_nJets12.dat
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
 file1 ../Z/h_Zpt_hist_Zpt0/h_Zpt_hist_Zpt0_BY_Inf_njets3plus_HT_200_jet30_V00-14_modJetLepVeto_newMuSFUnc.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA

@@ -199,9 +199,9 @@ for cut in config['Cut']:
 	    SingleRawMC1=[]
 	    SingleRawMC2=[]
 
-	    colors=[ROOT.kBlue,ROOT.kRed,ROOT.kGreen+2]
+	    colors=[ROOT.kBlue,ROOT.kRed,ROOT.kGreen+2,ROOT.kOrange,ROOT.kCyan,ROOT.kBlack]
 
-	    styles=[1,2,3]
+	    styles=[1,2,3,1,2,3]
 	    for iMC in range(0,len(config['mcName1'])):
 		mc1name=FixNames(config['mcName1'][iMC],cut)
 		mc2name=FixNames(config['mcName2'][iMC],cut)

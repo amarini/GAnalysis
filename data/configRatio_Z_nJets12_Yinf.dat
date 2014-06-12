@@ -1,15 +1,12 @@
 ### Z ###
-#file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_njets2plus_V00-14_modJetLepVeto_newMuSFUnc_testMPI_PREP_PDF_Scale.root
-file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_BH_PDF_Scale_MSTW.root
-#eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
+#file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_BH_PDF_Scale_MSTW.root
+file1 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
 lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
-file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_V00-14_BH_PDF_Scale_MSTW.root
-#file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_V00-14_modJetLepVeto_newMuSFUnc_testMPI_PREP_PDF_Scale.root
-#h_Zpt_hist_Zpt40_BY_Inf_njets2plus_jet30_V00-14_BH_PDF_Scale_MSTW.root
-#eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
+#file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_V00-14_BH_PDF_Scale_MSTW.root
+file2 ../Z//hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
 lumi2 1
 
 ### histo name1
@@ -64,7 +61,23 @@ mcErr2 2 ^ h_band_BH_scale${SYST}_rebinned_total
 mcErrLeg Scale
 mcErrCorr 2
 
+mcName1 h_BH_CT10_rebinned_total
+mcName2 h_BH_CT10_rebinned_total
+mcLeg BH-CT10
 
+mcErr1 3 ^ h_band_BH_CT10_scale${SYST}_rebinned_total
+mcErr2 3 ^ h_band_BH_CT10_scale${SYST}_rebinned_total
+mcErrLeg Scale
+mcErrCorr 2
+
+mcName1 h_BH_NNPDF_rebinned_total
+mcName2 h_BH_NNPDF_rebinned_total
+mcLeg BH-NNPDF
+
+mcErr1 4 ^ h_band_BH_NNPDF_scale${SYST}_rebinned_total
+mcErr2 4 ^ h_band_BH_NNPDF_scale${SYST}_rebinned_total
+mcErrLeg Scale
+mcErrCorr 2
 ### syst
 Up Up Up
 Down Down Down

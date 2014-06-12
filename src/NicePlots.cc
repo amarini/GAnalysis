@@ -143,12 +143,15 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 			data2->GetYaxis()->SetRangeUser(RangeY.first,RangeY.second);
 		//data2->GetYaxis()->SetTitleSize(10); //very small
 		data2->GetYaxis()->SetTitle(   ( mcLabels[iMC]+"/Data").c_str()   ); //very small
+		// this works for nMC==3
+		if (nMC==3){
 		data2->GetYaxis()->SetTitleOffset(1.5);
 		data2->GetXaxis()->SetTitleOffset(3.0); //this needs to be huge because the pad is small
-		//data2->GetXaxis()->SetTitleSize(14);
-		//data2->GetXaxis()->SetTitleOffset(2.0);
-		//data2->GetYaxis()->SetLabelSize(10);
-		//data2->GetYaxis()->SetNdivisions(501);
+		}
+		else if (nMC==5){
+			data2->GetYaxis()->SetTitleOffset(2.5);
+			data2->GetXaxis()->SetTitleOffset(5.5); //this needs to be huge because the pad is small
+		}
 		syst2->Draw("E2 SAME");
 	
 		if(drawBands)	
@@ -178,7 +181,7 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	float cmsSpaceOrig=cmsSpace;
 	int drawLumiOrig=drawLumi;
 	//DrawCMS();
-	
+	//if nMC==3	
 	cmsPosition.first=.22;
 	cmsPosition.second=1.-0.3 * dY - 0.06;
 	lumiPosition.first=.96;
@@ -187,6 +190,17 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	extraText="";
 	cmsSpace=0.03;
 	drawLumi=1;
+
+	if (nMC==5){
+	cmsPosition.first=.22;
+	cmsPosition.second=1.-0.3 * dY - 0.04;
+	lumiPosition.first=.96;
+	lumiPosition.second=1.-0.3* dY - 0.01 ;
+	string extraTextTmp(extraText);
+	extraText="";
+	cmsSpace=0.05;
+	drawLumi=1;
+	}
 
 	NicePlotsBase::DrawCMS();
 
@@ -212,8 +226,8 @@ void NicePlotsBase::DrawCMS()
 	l->SetTextFont(63); //helvetica Bold
 	l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
 	l->SetTextAlign(11);
-	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS,");
-	l->SetText(cmsPosition.first,cmsPosition.second,"CMS,"); // this is not draw it is used for figure out the dimensions
+	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS");
+	l->SetText(cmsPosition.first,cmsPosition.second,"CMS"); // this is not draw it is used for figure out the dimensions
 	unsigned int w,h;
 	l->GetBoundingBox(w,h);
 	unsigned int ww=gPad->GetWw();
@@ -227,7 +241,9 @@ void NicePlotsBase::DrawCMS()
 	l->SetTextFont(43);
 	l->SetTextSize(18);
 	l->SetTextAlign(31);
-	if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"#sqrt{s}=8TeV, L=19.7fb^{-1}");
+	//oldlumi
+	//if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"#sqrt{s}=8TeV, L=19.7fb^{-1}");
+	if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"19.7fb^{-1} (8TeV)");
 //	l->SetTextFont(43);
 //	l->SetTextSize(18);
 //	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
@@ -391,7 +407,8 @@ void SingleLowerPlot::SetDataStyle(){
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
 		data->GetYaxis()->SetTitleOffset(1.3);
-		data->GetXaxis()->SetTitleOffset(0.9);
+		data->GetXaxis()->SetTitleOffset(1.2);
+		data->GetXaxis()->SetLabelOffset(0.02);
 		data->GetXaxis()->SetTitleSize(20);
 	return; //no legend
 }

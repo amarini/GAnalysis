@@ -1,16 +1,13 @@
 ### Z ###
-#file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_njets2plus_V00-14_modJetLepVeto_newMuSFUnc_testMPI_PREP_PDF_Scale.root
 include data/configRatio_Z_nJets12_Yinf.dat
-file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_BH_PDF_Scale_MSTW.root
-#eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
+#file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_BH_PDF_Scale_MSTW.root
+file1 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
 lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
-#file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_eta_2_40_V00-14_modJetLepVeto_newMuSFUnc_testMPI_PREP_PDF_Scale.root
-#h_Zpt_hist_Zpt40_BY_Inf_njets2plus_jet30_V00-14_BH_PDF_Scale_MSTW.root
-file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_BH_PDF_Scale_MSTW.root
-#eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
+#file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_BH_PDF_Scale_MSTW.root
+file2 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
 lumi2 1
 
 ### histo name1
@@ -79,7 +76,7 @@ Cut Ht=0 nJets=2 ptJet=30
 #
 ##Out /afs/cern.ch/user/a/amarini/work/V00-13/
 #Out ../V00-14/Z/
-#OutName Ht_${.0fHT}_nJets_1_JPt_${.0fPTJ}_Y_Inf
+OutName Ht_${.0fHT}_nJets_2_JPt_${.0fPTJ}_Y_Inf
 #
 ## + = double band ; : = single band ; . = ignore. - = histoname ; & content is the abs err ; % means const x%
 #Syst JES && h_${SYST}_unc_band_comb h_${SYST}_unc_band_comb
@@ -106,7 +103,7 @@ yaxis 0.1 0.9
 #xlog 1
 ylog 0
 xtitle P_{T}^{Z}
-ytitle @frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq1)}{dp_{T}^{Z}}
+ytitle @frac{d@sigma(N_{jets}@geq3)}{dp_{T}^{Z}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}
 text ~
 
 #default
