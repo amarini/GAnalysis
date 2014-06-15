@@ -328,7 +328,8 @@ void Analyzer::Loop()
 		if( int((*photonPassConversionVeto)[iGamma]) == 0  ) continue; //it is a float, why - always 1 .
 	
 		//selection = Hgg PreSelection	
-		if(!PassHggPreSelection(iGamma,RhoCorr))continue;	
+		//if(!PassHggPreSelection(iGamma,RhoCorr))continue;	
+		if(!PassPhotonId2012(iGamma))continue;	
 	
 		unsigned long long trigger=TriMatchF4Path_photon->at(iGamma);
 		string triggerMenu="";
@@ -961,14 +962,36 @@ string Analyzer::SystName(enum SYST a){
 }
 
 bool Analyzer::PassPhotonId2012(int iGamma){
-		if( (*photonid_hadronicOverEm)[iGamma] >0.05) return false; 
-		if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
-		if( (*photonPfIsoChargedHad)[iGamma]>1.5) return false;
-		if(currentSyst==NONE)Sel2->FillAndInit("IsoCharged"); //Selection
-		if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) return false;
-		if(currentSyst==NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
-		//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) return false;
-		return true;
+	//	if( (*photonid_hadronicOverEm)[iGamma] >0.05) return false; 
+	//	if(currentSyst==NONE)Sel2->FillAndInit("HoE"); //Selection
+	//	if( (*photonPfIsoChargedHad)[iGamma]>1.5) return false;
+	//	if(currentSyst==NONE)Sel2->FillAndInit("IsoCharged"); //Selection
+	//	if( (*photonPfIsoNeutralHad)[iGamma]>1.0+ 0.04*(*photonPt)[iGamma]) return false;
+	//	if(currentSyst==NONE)Sel2->FillAndInit("IsoNeutral"); //Selection
+	//	//if( (*photonPfIsoPhoton)[iGamma]>0.7+0.005*(*photonPt)[iGamma]) return false;
+	//	return true;
+  // PHOTON ID CUT BASED 2012, MEDIUM WP, BARREL
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonID2012
+  if( (*photonPassConversionVeto)[iGamma] < 0.5) return false;
+  if( (*photonid_hadronicOverEm)[iGamma] >0.05) return false;
+  if( (*photonid_sieie)[iGamma] >0.011) return false;
+  float ea_charged=0;
+  float ea_neutral=0;
+  float ea_photon=0;
+  if( fabs((*photonEta)[iGamma])<1){ // inner EB
+    ea_charged=0.012;
+    ea_neutral=0.030;
+    ea_photon=0.148;
+  }
+  else{ // outer EB
+    ea_charged=0.010;
+    ea_neutral=0.057;
+    ea_photon=0.130;
+  }
+  if( (*photonPfIsoChargedHad)[iGamma]-ea_charged*rho>1.5) return false;
+  if( (*photonPfIsoNeutralHad)[iGamma]-ea_neutral*rho>1.0+ 0.04*(*photonPt)[iGamma]) return false;
+ // if( (*photonPfIsoPhoton)[iGamma]-ea_photon*rho>0.7+0.005*(*photonPt)[iGamma]) return false;
+  return true;
 }
 
 bool Analyzer::PassHggPreSelection(int iGamma,float RhoCorr)

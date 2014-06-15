@@ -4,7 +4,7 @@
 #DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/SinglePhoton*.root root://eoscms///store/user/amarini/zjets_V00-12/Photon*.root #V00-12
 DATATREE=root://eoscms///store/user/amarini/V00-14/SinglePhoton*.root root://eoscms///store/user/amarini/V00-14/Photon*.root
 # -- Directory where it will write output or search for input
-WorkDir=/afs/cern.ch/user/a/amarini/work/V00-14_JEta
+WorkDir=/afs/cern.ch/user/a/amarini/work/PhotonId2012/data
 # -- output of Analyzer
 outputFileName=output
 dumpAscii=1
