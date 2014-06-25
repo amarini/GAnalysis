@@ -1,0 +1,5 @@
+#
+#
+include=config.dat
+WorkDir=/Users/andreamarini/Documents/ZJets2/PhotonId2012/PhotonId2012/data
+# -- output of Analyzer

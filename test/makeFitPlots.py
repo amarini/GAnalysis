@@ -63,15 +63,44 @@ for h in range(0,len(HtCuts)):
 				C=file.Get("Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_canvas"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) )
 				if not C.InheritsFrom("TCanvas"):raise ReferenceError
 				C.Draw()
-				plot=file.Get("Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_plot"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) )
-				plot.SetMaximum(plot.GetMaximum()*5)
-				plot.SetMinimum(0.001)
-				P=ROOT.TPad("newPad","LOG",.6,.6,.89,.89)
-				P.Draw("SAME")
-				P.cd()
-				plot.Draw()
-				P.SetLogy()
+				#plot=file.Get("Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_plot"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj]) )
+				#plot.SetMaximum(plot.GetMaximum()*5)
+				#plot.SetMinimum(0.001)
+				#P=ROOT.TPad("newPad","LOG",.6,.6,.89,.89)
+				#P.Draw("SAME")
+				#P.cd()
+				#plot.Draw()
+				#P.SetLogy()
+				C.cd()
+				latex=ROOT.TLatex()
+				latex.SetNDC();
+				latex.SetTextAlign(11)
+				latex.SetTextFont(62);
+				latex.SetTextSize(0.04);
+
+				latex.DrawLatex(.80,.86,"CMS")
+
+				latex.SetTextFont(52);
+				latex.SetTextSize(0.03)
+				latex.DrawLatex(.80,.82,"Preliminary")
+
+				nex=ROOT.TIter(C.GetListOfPrimitives());
+				o=nex()
+				while True:
+					if o==None:break;
+					if o.InheritsFrom("TText"):
+						print "Considering Text",o.GetTitle()
+						if "Fraction" in o.GetTitle(): 
+							o.SetX(0.6)
+							o.SetY(.50)
+						if "P_{T}" in o.GetTitle():
+							o.SetX(0.6)
+							o.SetY(.46)
+					o=nex()
+				C.Draw()
+
 				C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".pdf")
+				if(PtCuts2[p]==100):C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".root")
 			except (ReferenceError,TypeError): 
 				print "Error in Pt="+str(PtCuts2[p])+" HT="+str(HtCuts[h])+" nJets="+str(nJetsCuts[nj])
 				print "-- Name="+"Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_canvas"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])

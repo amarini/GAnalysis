@@ -32,6 +32,7 @@ mcLeg MadGraph
 
 mcErr1 0 s mg_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
 mcErr2 0 s mg_Ht_${.1fHT}_nJets_1.0_JPt_${.1fPTJ}
+mcErrCorr 2
 mcErrLeg MG~Stat.~Err.
 
 ### syst

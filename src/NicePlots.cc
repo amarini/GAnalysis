@@ -1,4 +1,5 @@
 #define NICEPLOTS_CXX
+#define DEBUG 1
 
 #include "NicePlots.h"
 //#include "TMathText.h"
@@ -11,7 +12,8 @@ using NicePlots::SingleRatioLowerPlot;
 using NicePlots::NiceRange;
 
 TCanvas* NicePlotsBase::DrawCanvas(){
-
+if (DEBUG) cout<< "Draw BasePlot Canvas "<<
+	"T0.1 R0.03 LY"<<endl;
 TCanvas *c=new TCanvas("c","c",600,500);
                 c->SetTopMargin(0.10);
                 c->SetRightMargin(0.03);
@@ -19,9 +21,46 @@ TCanvas *c=new TCanvas("c","c",600,500);
 return c;
 }
 
+TCanvas *NicePlotsBase::DrawStandaloneLegend()
+{
+
+	TCanvas *c=new TCanvas("legendCanvas","legendCanvas",300,300);
+	legend->Draw();
+	legend->SetHeader("Legend");
+	legend->SetX1(0.1);
+	legend->SetX2(0.9);
+	legend->SetY1(0.1);
+	legend->SetY2(0.9);
+        legend->SetFillStyle(0);
+        legend->SetBorderSize(1);
+	legend->Draw();
+
+	TLatex *l=new TLatex();
+	l->SetNDC();
+	l->SetTextFont(63); //helvetica Bold
+	l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
+	l->SetTextAlign(11);
+	l->DrawLatex(0.15,.92,"CMS");
+	l->SetText(0.15,0.92,"CMS"); // this is not draw it is used for figure out the dimensions
+	unsigned int w,h;
+	l->GetBoundingBox(w,h);
+	unsigned int ww=gPad->GetWw();
+	unsigned int wh=gPad->GetWh();
+
+	l->SetTextFont(53);//helvetica italics
+	l->SetTextSize(18);
+	l->SetTextAlign(11);
+	l->DrawLatex(0.15+ float(w)/ww + 0.04,0.92,"Preliminary");
+
+	c->Update();
+return c;
+}
+
 TCanvas * NicePlotsBase::Draw(){
 	//cout<< "NiceRangeFactors"<<RangeFactors.first<<" "<<RangeFactors.second<<endl;
 	TCanvas *c=DrawCanvas();
+	cout<<"Setting Canvas Size to "<< c->GetWw() <<" "<<c->GetWh() <<endl;
+	c->SetCanvasSize(c->GetWw(),c->GetWh());
 	SetSystStyle();
 	SetMCStyle();
 	SetMCErrStyle();
@@ -73,14 +112,26 @@ TCanvas * NicePlotsBase::Draw(){
 		}
 
 	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
+		if(!isMcToDraw(iMC)) continue;
         	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
 		mc2->Draw("HIST SAME ][");
 		//legend->AddEntry(mc2,mcLabels[iMC].c_str(),"F");
 		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
 		}
 	//Bands legends are the last
-	if(drawBands)
+
+	AutoAssociation();
+	if(drawBands )
 	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
+		// figure out if there is an association - for ErrorBandsLegend only
+		if (mcErrAssociation.size()< iMcErr) continue;
+		int mc_ln  = mcErrAssociation[iMcErr];//line number
+		bool isAssMC=false;
+		map<int,int>::const_iterator mcA=mcAssociation.find(mc_ln);
+		if( mcA!=mcAssociation.end() ){isAssMC=true;}
+		if (isAssMC) continue;
+		
+		cout<<"Adding mcErrorBands "<<mcLabelsErr[iMcErr]<<" to the legend "<< " mc_ln "<<mc_ln<<" isAssMC="<<isAssMC<<endl;
 		if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr[iMcErr],mcLabelsErr[iMcErr].c_str(),"F");
 		}
 	DrawLegend();
@@ -93,9 +144,41 @@ TCanvas * NicePlotsBase::Draw(){
 	return c;
 }
 
+bool NicePlotsBase::isMcToDraw(int i)
+{
+	if( (mcLabels[i].find("NNPDF") != string::npos )
+	    || (mcLabels[i].find("CT10") != string::npos )
+	  ) return false;
+	else return true;
+}
+
+void NicePlotsBase::AutoAssociation(){
+	int bh=-1;
+	for(unsigned int i=0;i<mcLabels.size() ;i++)
+	{
+		if (mcLabels[i].find("BlackHat") != string::npos && mcLabels[i].find("NNPDF") == string::npos && (mcLabels[i].find("CT10") != string::npos ) ) 
+		{
+			bh=i;
+			break;
+		}
+	
+	}
+
+	for(unsigned int i=0;i<mcLabels.size() ;i++)
+	{
+	if( (mcLabels[i].find("NNPDF") != string::npos )
+	    || (mcLabels[i].find("CT10") != string::npos )
+	  )
+		mcAssociation[i]=2; //todo put here bh
+	}
+	return;
+}
+
 TCanvas *NicePlotsBase::DrawSeparateLine(){
-	int nMC=mc.size();
+	AutoAssociation();
+	int nMC=mc.size() - mcAssociation.size();
 	TCanvas *c=DrawCanvas();
+	cout<<"Setting Canvas Size to "<< c->GetWw() <<" "<<c->GetWh()*nMC <<endl;
 	c->SetCanvasSize(c->GetWw(),c->GetWh()*nMC);
 	SetSystStyle();
 	SetMCStyle();
@@ -119,30 +202,40 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 		if(iMC==nMC-1) //top
 			Y2=1.;
 
-		TPad *p=new TPad(Form("p%d",iMC),"pad",X1,Y1,X2,Y2);
-		pads.push_back(p);
-		p->SetBottomMargin(0);
-		p->SetTopMargin(0);
-                p->SetLeftMargin(0.18);
-                p->SetRightMargin(0.02);
-
-		if (iMC==nMC-1) //top
-		{
-			p->SetTopMargin(0.3);
-		}
-		if (iMC==0)//bottom
-			p->SetBottomMargin(0.3);
 		//draw the pad in the canvas
-		c->cd();
-		p->Draw();
-		p->cd();
+		bool isAssMC=false;
+		map<int,int>::const_iterator mcA=mcAssociation.find(iMC);
+		if( mcA==mcAssociation.end() ){
+			TPad *p=new TPad(Form("p%d",iMC),"pad",X1,Y1,X2,Y2);
+			pads.push_back(p);
+			p->SetBottomMargin(0);
+			p->SetTopMargin(0);
+                	p->SetLeftMargin(c->GetLeftMargin());
+                	p->SetRightMargin(c->GetRightMargin());
+
+			if (iMC==nMC-1) //top
+			{
+				p->SetTopMargin(0.3);
+			}
+			if (iMC==0)//bottom
+				p->SetBottomMargin(0.3);
+			c->cd();
+			p->Draw();
+			p->cd();
+		}
+		else {
+		pads[ mcA->second ]->cd();
+		isAssMC=true;
+		}
 		//Draw Data & SYST
-		data2->Draw("P AXIS");
-		data2->GetXaxis()->SetRangeUser(Range.first,Range.second);
-		if (RangeY.first >-99 && RangeY.second>-99)
-			data2->GetYaxis()->SetRangeUser(RangeY.first,RangeY.second);
+		if( !isAssMC){
+			data2->Draw("P AXIS");
+			data2->GetXaxis()->SetRangeUser(Range.first,Range.second);
+			if (RangeY.first >-99 && RangeY.second>-99)
+				data2->GetYaxis()->SetRangeUser(RangeY.first,RangeY.second);
 		//data2->GetYaxis()->SetTitleSize(10); //very small
-		data2->GetYaxis()->SetTitle(   ( mcLabels[iMC]+"/Data").c_str()   ); //very small
+			data2->GetYaxis()->SetTitle(   ( mcLabels[iMC]+"/Data").c_str()   ); //very small
+		}
 		// this works for nMC==3
 		if (nMC==3){
 		data2->GetYaxis()->SetTitleOffset(1.5);
@@ -152,9 +245,16 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 			data2->GetYaxis()->SetTitleOffset(2.5);
 			data2->GetXaxis()->SetTitleOffset(5.5); //this needs to be huge because the pad is small
 		}
-		syst2->Draw("E2 SAME");
+		else if (nMC==1){
+			data2->GetYaxis()->SetLabelSize(12);
+			data2->GetXaxis()->SetLabelOffset(0.02);
+			data2->GetYaxis()->SetTitleOffset(0.5);
+			data2->GetXaxis()->SetTitleOffset(1.0); //this needs to be huge because the pad is small
+		}
+		if(!isAssMC)
+			syst2->Draw("E2 SAME");
 	
-		if(drawBands)	
+		if(drawBands && !isAssMC)	
 		for(int iMcErr=0;iMcErr<mcErrAssociation.size();iMcErr++)
 		{
 			if(iMcErr>= mcErr.size())continue; //no band -- wtf?
@@ -180,22 +280,34 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	cmsPosition.second=.93;
 	float cmsSpaceOrig=cmsSpace;
 	int drawLumiOrig=drawLumi;
+	string extraTextTmp(extraText);
 	//DrawCMS();
 	//if nMC==3	
+	if (nMC==3){
 	cmsPosition.first=.22;
 	cmsPosition.second=1.-0.3 * dY - 0.06;
 	lumiPosition.first=.96;
 	lumiPosition.second=1.-0.3* dY - 0.01 ;
-	string extraTextTmp(extraText);
 	extraText="";
 	cmsSpace=0.03;
 	drawLumi=1;
+	}
 
 	if (nMC==5){
 	cmsPosition.first=.22;
 	cmsPosition.second=1.-0.3 * dY - 0.04;
 	lumiPosition.first=.96;
 	lumiPosition.second=1.-0.3* dY - 0.01 ;
+	string extraTextTmp(extraText);
+	extraText="";
+	cmsSpace=0.05;
+	drawLumi=1;
+	}
+	if (nMC==1){
+	cmsPosition.first=.20;
+	cmsPosition.second=1.-0.3 * dY - 0.09;
+	lumiPosition.first=.96;
+	lumiPosition.second=1.-0.3* dY - 0.09 ;
 	string extraTextTmp(extraText);
 	extraText="";
 	cmsSpace=0.05;
@@ -354,9 +466,14 @@ void NicePlotsBase::SetHeader(char type,int nJets,int Ht)
 		break;
 	default: break;
 	}
-legendHeader += Form("N_{jets} #geq %d",nJets);
+if (Ht==0)
+	legendHeader += Form("N_{jets} #geq %d",nJets);
 if (Ht>0)
-	legendHeader += Form(", H_{T} #geq %d GeV",Ht);
+	{
+	legendHeader += Form("H_{T} #geq %d GeV",Ht);
+	if (nJets>1)
+		legendHeader += Form(", N_{jets} #geq %d",nJets);
+	}
 return; 
 }
 
@@ -381,6 +498,8 @@ drawLumi=1;
 //---------------------- LOWER PLOTS-------------
 
 TCanvas* SingleLowerPlot::DrawCanvas(){
+if (DEBUG) cout<< "Draw SingleLowerPlot Canvas"
+	<<"T0.02 R0.03 B0.2"<<endl;
 		TCanvas *c=new TCanvas("c","c",600,300);
                 c->SetTopMargin(0.02);
                 c->SetRightMargin(0.03);
@@ -444,6 +563,8 @@ legendPos1=pair<double,double>(.70,.75);
 legendPos2=pair<double,double>(.97,.94);
 }
 TCanvas* SingleRatioPlot::DrawCanvas(){
+if (DEBUG) cout<< "Draw SingleRatioPlot Canvas"
+	<<"T0.10 L0.18  R0.02 B0.1 "<<endl;
 
 TCanvas *c=new TCanvas("c","c",600,500);
                 c->SetLeftMargin(0.18);
@@ -471,6 +592,8 @@ cmsPosition.second=0.76;
 }
 
 TCanvas* SingleRatioLowerPlot::DrawCanvas(){
+if (DEBUG) cout<< "Draw SingleRatioLowerPlot Canvas"
+	<<"T0.15 L0.18  R0.02 B0.15 "<<endl;
 
 TCanvas *c=new TCanvas("cL","cL",600,300);
                 c->SetLeftMargin(0.18);
@@ -537,7 +660,15 @@ void SingleRatioLowerPlot::SetDataStyle(){
 }
 
 
+bool SingleRatioLowerPlot::isMcToDraw(int i)
+{
+	return true; //always draw in ratio plot
+}
 
+bool SingleLowerPlot::isMcToDraw(int i)
+{
+	return true; //always draw in ratio plot
+}
 
 //-----------     GENERAL FUNCTIONS --
 TH1D* NicePlots::NiceRange(TH1*h,pair<double,double> Range, double f1=0.2,double f2=0.2){

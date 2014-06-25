@@ -1,0 +1,10 @@
+#
+include=config.dat
+# CHANGE THIS TWO LINES FROM DATA 
+#DATATREE=root://eoscms///store/user/sandro/GammaJets/2013_09_13_reprocessed/samples/QCD*.root
+#DATATREE=root://eoscms///store/user/webermat/zgfiles_V00-12/GJet*.root
+#DATATREE=root://eoscms///store/user/amarini/zjets_V00-12/GJet*.root #V00-12
+#DATATREE=root://eoscms///store/user/amarini/V00-13/GJet*.root
+#WorkDir=/afs/cern.ch/user/a/amarini/work/V00-13_MC/
+WorkDir=/Users/andreamarini/Documents/ZJets2/V00-14/V00-14_MC_pythia/
+Lumi=1

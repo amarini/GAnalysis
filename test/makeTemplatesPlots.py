@@ -226,6 +226,22 @@ for p in range(0,len(PtCuts)-1):
 	Bkg["legend"]=l
 	txt.DrawLatex(.5,.94,"Background Templates")
 
+	C.cd()
+
+	latex=ROOT.TLatex()
+	latex.SetNDC();
+	latex.SetTextAlign(11)
+	latex.SetTextFont(62);
+	latex.SetTextSize(0.04);
+
+	latex.DrawLatex(.34,.86,"CMS")
+	latex.DrawLatex(.84,.86,"CMS")
+
+	latex.SetTextFont(52);
+	latex.SetTextSize(0.03)
+	latex.DrawLatex(.34,.82,"Preliminary")
+	latex.DrawLatex(.84,.82,"Preliminary")
+
 	C.SaveAs(WorkDir+"/plots/Templates_Pt%.0f_%.0f.pdf"%(PtCuts[p],PtCuts[p+1]))
 	
 

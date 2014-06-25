@@ -99,6 +99,12 @@ if 'Zpt_over_pt1' in inputFile:
 if 'log10' in inputFile:
 	isLog=True
 
+m=H.GetMaximum()
+for i in range(1,H.GetNbinsX()+1):
+	if H.GetBinContent(i)<m and H.GetBinContent(i)>0:
+		m= H.GetBinContent(i)
+plotter.RangeY.first=m*0.6
+plotter.RangeY.second=H.GetMaximum()*1.3
 if is_Zpt_o_pt1 and not isLog:
 	Range[0]=0
 	#Range[1]=3.2
@@ -111,6 +117,7 @@ if is_Zpt_o_Ht and not isLog:
 	Range[1]=2.5
 	plotter.xtitle="p_{T}^{Z}/H_{T}"
 	plotter.ytitle="d#sigma/d(p_{T}^{Z}/H_{T})"
+	plotter.RangeY.second=H.GetMaximum()*5
 if is_Zpt_o_Ht and nJets == 3 and not isLog:
 	Range[1]=1.7
 if is_Zpt_o_pt1 and isLog:
@@ -132,9 +139,17 @@ if  is_Zpt_o_Ht or is_Zpt_o_pt1 or isLog:
 	plotter.legendPos2.first=0.70
 	plotter.legendPos2.second=0.33
 
-if is_Zpt_o_Ht and nJets == 2 and not isLog:
-	plotter.legendPos1.first=0.20
-	plotter.legendPos2.first=0.55
+if is_Zpt_o_Ht and (nJets == 2 or nJets==3 ) and not isLog:
+	plotter.legendPos1.first=0.15
+	plotter.legendPos2.first=0.50
+
+if  nJets==2 and is_Zpt_o_pt1 and isLog:
+	plotter.legendPos1.first=0.45
+	plotter.legendPos2.first=0.75
+if Ht>250 and not isLog:
+	plotter.legendPos1.first=0.60
+	plotter.legendPos2.first=0.90
+
 #if isLog:
 #	plotter.legendPos1.first=0.65
 #	plotter.legendPos1.second=0.13
@@ -314,3 +329,12 @@ C3=plot_L.DrawSeparateLine()
 
 name=name.replace('_lower','_lower2')
 C3.SaveAs(name)
+
+import re
+print "njets=",nJets,"Ht=",Ht,"Y=",Y,"pt1=",pt1,"is Z/Ht",is_Zpt_o_Ht,"is Z/pt1",is_Zpt_o_pt1,"isLog",isLog
+if nJets==1 and Ht==0 and Y==100 and pt1==30 and not is_Zpt_o_Ht and not is_Zpt_o_pt1 and not isLog:
+	print "--------------------- DRAW LEGEND ---------"
+	C_L=plot_L.DrawStandaloneLegend()
+	name=re.sub('/[^/]*$','',outputFile)+"/Legend.pdf"
+	C_L.SaveAs(name)
+

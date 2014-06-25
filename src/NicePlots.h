@@ -45,7 +45,7 @@ namespace NicePlots
 {
 
 const Int_t mcColors[]={kBlue+2,kRed,kGreen+2,kOrange+2,38,kYellow};
-const Int_t mcStyles[]={1,2,3,1,2,3};
+const Int_t mcStyles[]={1,2,3,2,2,3};
 //                                                 \/ Scale and pdf
 const Int_t mcErrColors[]={kBlue+2,kRed,kGreen+2,kMagenta+2,kGreen+2,kOrange};
 const Int_t mcErrStyles[]={3002,3003,3017,3254,3445,3644};
@@ -71,12 +71,15 @@ public:
 	virtual TCanvas * DrawCanvas(); //draw the canvas and set the actual size
 	virtual void DrawCMS();
 	virtual void DrawLegend();
+	virtual TCanvas * DrawStandaloneLegend();
 	virtual void SetDataStyle();
 	virtual void SetSystStyle();
 	virtual void SetMCStyle();
 	virtual void SetMCErrStyle();
 	virtual void SetHeader(char type='G',int nJets=1,int Ht=0);
 
+	virtual void AutoAssociation();
+	virtual bool isMcToDraw(int i);
 	//utility
 	TH1D* data;
 	TH1D* syst;
@@ -85,6 +88,7 @@ public:
 	vector<TH1D*> mc;
 	vector<TH1D*> mcErr; // bands
 	vector<int> mcErrAssociation;
+	map<int,int> mcAssociation; //show mc[i] in the canvas of j
 	vector<string> mcLabels;
 	vector<string> mcLabelsErr;
 	pair<double,double>RangeFactors;
@@ -116,6 +120,7 @@ class NicePlots::SingleLowerPlot : public NicePlots::NicePlotsBase {
 	virtual void DrawLegend();
 	virtual void DrawCMS();
 	virtual void SetDataStyle();
+	virtual bool isMcToDraw(int i);
 	SingleLowerPlot();
 };
 
@@ -135,5 +140,6 @@ class NicePlots::SingleRatioLowerPlot : public NicePlots::NicePlotsBase {
 	virtual void DrawLegend();
 	virtual void DrawCMS();
 	virtual void SetDataStyle();
+	virtual bool isMcToDraw(int i);
 };
 
