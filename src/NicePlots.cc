@@ -37,20 +37,24 @@ TCanvas *NicePlotsBase::DrawStandaloneLegend()
 
 	TLatex *l=new TLatex();
 	l->SetNDC();
-	l->SetTextFont(63); //helvetica Bold
-	l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
-	l->SetTextAlign(11);
-	l->DrawLatex(0.15,.92,"CMS");
-	l->SetText(0.15,0.92,"CMS"); // this is not draw it is used for figure out the dimensions
-	unsigned int w,h;
-	l->GetBoundingBox(w,h);
-	unsigned int ww=gPad->GetWw();
-	unsigned int wh=gPad->GetWh();
+	//l->SetTextFont(63); //helvetica Bold
+	//l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
+	//l->SetTextAlign(11);
+	//l->DrawLatex(0.15,.92,"CMS");
+	//l->SetText(0.15,0.92,"CMS"); // this is not draw it is used for figure out the dimensions
+	//unsigned int w,h;
+	//l->GetBoundingBox(w,h);
+	//unsigned int ww=gPad->GetWw();
+	//unsigned int wh=gPad->GetWh();
 
-	l->SetTextFont(53);//helvetica italics
-	l->SetTextSize(18);
+	//l->SetTextFont(53);//helvetica italics
+	//l->SetTextSize(18);
+	//l->SetTextAlign(11);
+	//l->DrawLatex(0.15+ float(w)/ww + 0.04,0.92,"Preliminary");
+	l->SetTextFont(43);
+	l->SetTextSize(24);
 	l->SetTextAlign(11);
-	l->DrawLatex(0.15+ float(w)/ww + 0.04,0.92,"Preliminary");
+	l->DrawLatex(.15,.92,Form("#bf{CMS} #scale[0.75]{#it{%s}}",cmsPreliminary.c_str()));
 
 	c->Update();
 return c;
@@ -58,6 +62,8 @@ return c;
 
 TCanvas * NicePlotsBase::Draw(){
 	//cout<< "NiceRangeFactors"<<RangeFactors.first<<" "<<RangeFactors.second<<endl;
+	if (RangeY.first==0.5) RangeY.first+=0.0001;
+	if (RangeY.second==1.5) RangeY.second-=0.0001;
 	TCanvas *c=DrawCanvas();
 	cout<<"Setting Canvas Size to "<< c->GetWw() <<" "<<c->GetWh() <<endl;
 	c->SetCanvasSize(c->GetWw(),c->GetWh());
@@ -94,6 +100,7 @@ TCanvas * NicePlotsBase::Draw(){
 	cout<<"Setting Legend Header "<<legendHeader<<endl;
 	legend->SetHeader(legendHeader.c_str());
 
+	cout<<"Data Drawing "<<endl;
 	data2->Draw("P AXIS");
 	data2->GetXaxis()->SetRangeUser(Range.first,Range.second);
 	if (RangeY.first >-99 && RangeY.second>-99)
@@ -103,29 +110,76 @@ TCanvas * NicePlotsBase::Draw(){
 	legend->AddEntry(syst2,"stat+syst","F");
 	
 	//Draw bands before
+	cout<<"Bands Drawing "<<endl;
 	if(drawBands)
 	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
 		//
+		cout<<" --> Drawing Band for "<< mcLabelsErr[iMcErr] <<endl;
 		TH1D* mcErr2=NiceRange( mcErr[iMcErr],Range,RangeFactors.first,RangeFactors.second);
 		mcErr2->Draw("E2 SAME");
 		//if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr2,mcLabelsErr[iMcErr].c_str(),"F");
+		//DEBUG
+			int iBin=mcErr2->FindBin(600);
+			cout<<" --> ERROR "<<mcErr2->GetName() <<" ON BIN 600:"<<mcErr2->GetBinError(iBin)/mcErr2->GetBinContent(iBin)<<endl;
+			cout<<" --> ERROR "<<mcErr2->GetName() <<" ON BIN 600: E,C"<<mcErr2->GetBinError(iBin)<<","<<mcErr2->GetBinContent(iBin)<<endl;
 		}
 
-	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
+	cout<<"MC Drawing "<<endl;
+	//for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
+	for ( int iMC=int(mc.size())-1;iMC>=0 ;iMC--){
 		if(!isMcToDraw(iMC)) continue;
         	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
 		mc2->Draw("HIST SAME ][");
 		//legend->AddEntry(mc2,mcLabels[iMC].c_str(),"F");
-		legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
+		//legend->AddEntry(mc2,mcLabels[iMC].c_str(),"L");
 		}
+	//--localLegend
+			float x1=c->GetLeftMargin()+0.02;
+			float y1=c->GetBottomMargin()+0.02;
+			float x2=x1+.5;
+			float y2=y1+.1;
+			
+			int bin=1;
+			if(Range.first>-90)bin=syst2->FindBin(Range.first+0.001);
+			if( (syst2->GetBinContent(bin)-syst2->GetBinError(bin) < RangeY.first + 0.2) || ( mc.size() > 0 && mc[0]->GetBinContent(bin)-mc[0]->GetBinError(bin) < RangeY.first + 0.2 ) )
+				{x1+=0.2;x2+=.2;}
+			TLegend *localLegend=new TLegend(x1,y1,x2,y2);
+			localLegend->SetBorderSize(0);
+			localLegend->SetFillStyle(0);
+			localLegend->SetNColumns(2);
+	//Add legend
+	cout<<"Make MC Legend"<<endl;
+	AutoAssociation();
+	for ( int iMC=int(mc.size())-1;iMC>=0 ;iMC--){
+		if(!isMcToDraw(iMC))continue;
+		map<int,int>::const_iterator mcAss=mcAssociation.find(iMC);
+		bool isAss=false;
+		if (mcAss != mcAssociation.end() ) isAss=true;
+		if (isAss) continue;
+		legend->AddEntry(mc[iMC],mcLabels[iMC].c_str(),"L");
+	}
+	//now draw ass mc with right order
+	//	for ( int iMC=int(mc.size())-1;iMC>=0 ;iMC--){
+	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
+		if(!isMcToDraw(iMC))continue;
+		map<int,int>::const_iterator mcAss=mcAssociation.find(iMC);
+		bool isAss=false;
+		if (mcAss != mcAssociation.end() ) isAss=true;
+		if (!isAss) continue;
+		legend->AddEntry(mc[iMC],mcLabels[iMC].c_str(),"L");
+	}
 	//Bands legends are the last
 
+	cout<<"Auto Association "<<endl;
 	AutoAssociation();
+	cout<<"Bands Errors in legend "<<endl;
 	if(drawBands )
 	for (int iMcErr=0;iMcErr<mcErr.size();iMcErr++){
 		// figure out if there is an association - for ErrorBandsLegend only
+		cout<<"MC Err "<<iMcErr<<endl;
 		if (mcErrAssociation.size()< iMcErr) continue;
 		int mc_ln  = mcErrAssociation[iMcErr];//line number
+		cout<<"MC ln "<<mc_ln<<endl;
 		bool isAssMC=false;
 		map<int,int>::const_iterator mcA=mcAssociation.find(mc_ln);
 		if( mcA!=mcAssociation.end() ){isAssMC=true;}
@@ -133,14 +187,23 @@ TCanvas * NicePlotsBase::Draw(){
 		
 		cout<<"Adding mcErrorBands "<<mcLabelsErr[iMcErr]<<" to the legend "<< " mc_ln "<<mc_ln<<" isAssMC="<<isAssMC<<endl;
 		if( mcLabelsErr[iMcErr]!="")legend->AddEntry(mcErr[iMcErr],mcLabelsErr[iMcErr].c_str(),"F");
+		if( mcLabelsErr[iMcErr]!="")localLegend->AddEntry(mcErr[iMcErr],mcLabelsErr[iMcErr].c_str(),"F");
 		}
+	cout<<"Draw legend "<<endl;
 	DrawLegend();
+	cout<<"Draw local legend "<<endl;
+	if (data2->GetBinContent(1)==1 && data2->GetBinContent(2)==1) //???
+		localLegend->Draw();
+	cout<<"Draw CMS "<<endl;
 	DrawCMS();
 	//redraw axis and data points
+	cout<<"Redraw Axis plots & co"<<endl;
+	syst2->Draw("E2 SAME");
         data2->Draw("AXIS X+ Y+ SAME");
         data2->Draw("AXIS SAME");
         data2->Draw("P SAME");
 
+	cout<<"Draw END "<<endl;
 	return c;
 }
 
@@ -176,6 +239,8 @@ void NicePlotsBase::AutoAssociation(){
 
 TCanvas *NicePlotsBase::DrawSeparateLine(){
 	AutoAssociation();
+	if (RangeY.first==0.5) RangeY.first+=0.0001;
+	if (RangeY.second==1.5) RangeY.second-=0.0001;
 	int nMC=mc.size() - mcAssociation.size();
 	TCanvas *c=DrawCanvas();
 	cout<<"Setting Canvas Size to "<< c->GetWw() <<" "<<c->GetWh()*nMC <<endl;
@@ -186,6 +251,7 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	SetDataStyle();
 	//DrawLegend() ; // no legend
 	vector<TPad*> pads;
+	vector<TLegend*> legs;
 	float dY=1./(nMC+.6);
 
 	for ( int iMC=0;iMC< int(mc.size()) ;iMC++){
@@ -222,6 +288,21 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 			c->cd();
 			p->Draw();
 			p->cd();
+
+			float x1=p->GetLeftMargin()+0.02;
+			float y1=p->GetBottomMargin()+0.02;
+			float x2=x1+.5;
+			float y2=y1+.1;
+			
+			int bin=1;
+			if(Range.first>-90)bin=syst2->FindBin(Range.first+0.001);
+			if(syst2->GetBinContent(bin)-syst2->GetBinError(bin) < RangeY.first + 0.2 )
+				{x1+=0.2;x2+=.2;}
+			TLegend *localLegend=new TLegend(x1,y1,x2,y2);
+			localLegend->SetBorderSize(0);
+			localLegend->SetFillStyle(0);
+			localLegend->SetNColumns(2);
+			legs.push_back(localLegend);	
 		}
 		else {
 		pads[ mcA->second ]->cd();
@@ -260,14 +341,49 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 			if(iMcErr>= mcErr.size())continue; //no band -- wtf?
 			if(mcErrAssociation[iMcErr]!=iMC) continue; //not draw it here
 			TH1D* mcErr2=NiceRange( mcErr[iMcErr],Range,RangeFactors.first,RangeFactors.second);
+			for(int bin=1;bin<=mcErr2->GetNbinsX();bin++)
+			{
+				if( mcErr2->GetBinContent(bin) <RangeY.first)
+					{
+					double c=mcErr2->GetBinContent(bin) ;
+					double e=mcErr2->GetBinError(bin) ;
+					double newcontent=RangeY.first+0.0001;
+					if( c+e>RangeY.first){ //do it only if it would appear
+						mcErr2->SetBinContent(bin,newcontent);
+						mcErr2->SetBinError(bin,c+e-newcontent);
+						double newerr=mcErr2->GetBinError(bin);
+						printf("************* D old=%f new= %f\n",c+e,newcontent+newerr);
+						}
+					}
+				if( mcErr2->GetBinContent(bin) >RangeY.second)
+					{
+					double c=mcErr2->GetBinContent(bin) ;
+					double e=mcErr2->GetBinError(bin) ;
+					double newcontent=RangeY.second-0.0001;
+					if( c - e <RangeY.second ){
+						mcErr2->SetBinContent(bin,newcontent);
+						mcErr2->SetBinError(bin,newcontent-(c-e));
+						double newerr=mcErr2->GetBinError(bin);
+
+						printf("************* U old=%f new= %f\n",c-e,newcontent-newerr);
+						}
+					}
+			}
+			legs[iMC]->AddEntry(mcErr2,mcLabelsErr[iMcErr].c_str(),"F"); // iMC==mcErrAss[iMcErr]
 			mcErr2->Draw("E2 SAME");
 		}
 
 		//draw MC
         	TH1D* mc2 = NiceRange(mc[iMC],Range,RangeFactors.first,RangeFactors.second);
 		mc2->Draw("HIST SAME ][");
+
+		//drawLeg
+		if (!isAssMC)
+			legs[iMC]->Draw();
 	
 		//redraw AXIS and data Points
+		if(!isAssMC)
+			syst2->Draw("E2 SAME");
         	data2->Draw("AXIS X+ Y+ SAME");
         	data2->Draw("AXIS SAME");
         	data2->Draw("P SAME");
@@ -276,41 +392,47 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	c->cd();
 	pair<float,float> cmsOrig(cmsPosition);
 	pair<float,float> lumiOrig(lumiPosition);
-	cmsPosition.first=.35;
+	cmsPosition.first=c->GetLeftMargin()+0.03; //Moving CMS
+
+	int bin;
+	if(Range.first>-90)bin=syst->FindBin(Range.first+0.001);
+	if(syst->GetBinContent(bin)+syst->GetBinError(bin) > RangeY.second - 0.15 )
+		{cmsPosition.first+=0.2;}
+
 	cmsPosition.second=.93;
-	float cmsSpaceOrig=cmsSpace;
+ 	//float cmsSpaceOrig=cmsSpace;
 	int drawLumiOrig=drawLumi;
 	string extraTextTmp(extraText);
 	//DrawCMS();
 	//if nMC==3	
 	if (nMC==3){
-	cmsPosition.first=.22;
+//	cmsPosition.first=.22;
 	cmsPosition.second=1.-0.3 * dY - 0.06;
 	lumiPosition.first=.96;
 	lumiPosition.second=1.-0.3* dY - 0.01 ;
 	extraText="";
-	cmsSpace=0.03;
+	//cmsSpace=0.03;
 	drawLumi=1;
 	}
 
 	if (nMC==5){
-	cmsPosition.first=.22;
+//	cmsPosition.first=.22;
 	cmsPosition.second=1.-0.3 * dY - 0.04;
 	lumiPosition.first=.96;
 	lumiPosition.second=1.-0.3* dY - 0.01 ;
 	string extraTextTmp(extraText);
 	extraText="";
-	cmsSpace=0.05;
+	//cmsSpace=0.05;
 	drawLumi=1;
 	}
 	if (nMC==1){
-	cmsPosition.first=.20;
+//	cmsPosition.first=.20;
 	cmsPosition.second=1.-0.3 * dY - 0.09;
 	lumiPosition.first=.96;
 	lumiPosition.second=1.-0.3* dY - 0.09 ;
 	string extraTextTmp(extraText);
 	extraText="";
-	cmsSpace=0.05;
+	//cmsSpace=0.05;
 	drawLumi=1;
 	}
 
@@ -319,7 +441,7 @@ TCanvas *NicePlotsBase::DrawSeparateLine(){
 	extraText=extraTextTmp;
 	cmsPosition=cmsOrig;//restore
 	lumiPosition=lumiOrig;//restore
-	cmsSpace=cmsSpaceOrig;
+	//cmsSpace=cmsSpaceOrig;
 	drawLumi=drawLumiOrig;
 
 	return c;
@@ -335,30 +457,34 @@ void NicePlotsBase::DrawCMS()
 {
 	TLatex *l=new TLatex();
 	l->SetNDC();
-	l->SetTextFont(63); //helvetica Bold
+	l->SetTextAlign(11);
+	l->SetTextFont(43); //helvetica Bold
 	l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
-	l->SetTextAlign(11);
-	l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS");
-	l->SetText(cmsPosition.first,cmsPosition.second,"CMS"); // this is not draw it is used for figure out the dimensions
-	unsigned int w,h;
-	l->GetBoundingBox(w,h);
-	unsigned int ww=gPad->GetWw();
-	unsigned int wh=gPad->GetWh();
+	l->DrawLatex(cmsPosition.first,cmsPosition.second,Form("#bf{CMS} #scale[0.75]{#it{%s}}",cmsPreliminary.c_str()));
+	//l->SetTextFont(63); //helvetica Bold
+	//l->SetTextSize(24);  // ratio CMS/Preliminary Size is 0.76
+	//l->SetTextAlign(11);
+	//l->DrawLatex(cmsPosition.first,cmsPosition.second,"CMS");
+	//l->SetText(cmsPosition.first,cmsPosition.second,"CMS"); // this is not draw it is used for figure out the dimensions
+	//unsigned int w,h;
+	//l->GetBoundingBox(w,h);
+	//unsigned int ww=gPad->GetWw();
+	//unsigned int wh=gPad->GetWh();
 
-	l->SetTextFont(53);//helvetica italics
-	l->SetTextSize(18);
-	l->SetTextAlign(11);
-	l->DrawLatex(cmsPosition.first+ float(w)/ww + cmsSpace,cmsPosition.second,"Preliminary");
+	//l->SetTextFont(53);//helvetica italics
+	//l->SetTextSize(18);
+	//l->SetTextAlign(11);
+	//l->DrawLatex(cmsPosition.first+ float(w)/ww + cmsSpace,cmsPosition.second,"Preliminary");
 
 	l->SetTextFont(43);
 	l->SetTextSize(18);
 	l->SetTextAlign(31);
-	//oldlumi
+	////oldlumi
 	//if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"#sqrt{s}=8TeV, L=19.7fb^{-1}");
 	if(drawLumi)l->DrawLatex(lumiPosition.first,lumiPosition.second,"19.7fb^{-1} (8TeV)");
-//	l->SetTextFont(43);
-//	l->SetTextSize(18);
-//	l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
+//	//l->SetTextFont(43);
+//	//l->SetTextSize(18);
+//	//l->DrawLatex(cmsPosition.first,cmsPosition.second-0.04,"#sqrt{s} = 8TeV, L=19.7fb^{-1}");
 	l->SetTextSize(15);
 	l->SetTextAlign(11);
 	if( extraText != "")
@@ -400,13 +526,18 @@ void  NicePlotsBase::SetDataStyle()
 }
 void  NicePlotsBase::SetSystStyle(){
 	syst->SetMarkerStyle(0);
-	syst->SetMarkerColor(kOrange-4);
-	syst->SetFillColor(kOrange-4);
-	syst->SetLineColor(kOrange-4);
+	//syst->SetMarkerColor(kOrange-4);
+	//syst->SetFillColor(kOrange-4);
+	//syst->SetLineColor(kOrange-4);
+	//syst->SetFillStyle(3001);
 	syst->SetLineStyle(1);
 	syst->SetLineWidth(2);
-	syst->SetFillStyle(3001);
         syst->GetXaxis()->SetRangeUser(Range.first,Range.second);
+
+	syst->SetMarkerColor(kBlack);
+	syst->SetFillColor(kBlack);
+	syst->SetLineColor(kBlack);
+	syst->SetFillStyle(3004);
 	return ;
 }
 void  NicePlotsBase::SetMCStyle()
@@ -443,6 +574,7 @@ void  NicePlotsBase::SetMCErrStyle()
 	
               mcErr[iMC]->GetXaxis()->SetRangeUser(Range.first,Range.second);
               mcErr[iMC]->SetLineColor(mcErrColors[iMC+offset]);
+              mcErr[iMC]->SetLineStyle(mcErrLineStyles[iMC+offset]);
               mcErr[iMC]->SetFillColor(mcErrColors[iMC+offset]);
               mcErr[iMC]->SetFillStyle(mcErrStyles[iMC+offset]);
               mcErr[iMC]->SetLineWidth(2);
@@ -490,7 +622,8 @@ legendHeader="";
 cmsPosition=pair<double,double>(.20,.84); // position is Top Left
 lumiPosition=pair<double,double>(.98,.91); // position is bottom right
 autoLegend=1;
-cmsSpace=0.02;
+//cmsSpace=0.02;
+cmsPreliminary="Preliminary";
 drawBands=1;
 drawLumi=1;
 }
@@ -509,7 +642,7 @@ return c;
 }
 
 SingleLowerPlot::SingleLowerPlot() : NicePlotsBase(){
-	ytitle="MC/Data";
+	ytitle="MadGraph/Data";
 	RangeY.first=0.5;
 	RangeY.second=1.5;
 }
@@ -521,11 +654,11 @@ void SingleLowerPlot::DrawLegend(){
 void SingleLowerPlot::SetDataStyle(){
 	NicePlotsBase::SetDataStyle();
 		data->GetYaxis()->SetTitleOffset(0.5);
-		data->GetYaxis()->SetTitle("MC/Data");
+		data->GetYaxis()->SetTitle("MadGraph/Data");
 		data->GetYaxis()->SetNdivisions(510);
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);
-		data->GetYaxis()->SetTitleOffset(1.3);
+		data->GetYaxis()->SetTitleOffset(0.5);
 		data->GetXaxis()->SetTitleOffset(1.2);
 		data->GetXaxis()->SetLabelOffset(0.02);
 		data->GetXaxis()->SetTitleSize(20);
@@ -537,23 +670,23 @@ void SingleLowerPlot::DrawCMS(){
 	//c->cd();
 	pair<float,float> cmsOrig(cmsPosition);
 	pair<float,float> lumiOrig(lumiPosition);
-	float cmsSpaceOrig(cmsSpace);
+	//float cmsSpaceOrig(cmsSpace);
 	
 	cmsPosition.first=.12;
 	cmsPosition.second=0.9;
 	lumiPosition.first=.96;
 	lumiPosition.second=.9;
-	drawLumi=0;
+	//drawLumi=0;
 	string extraTextTmp(extraText);
 	extraText="";
-	cmsSpace=0.05;
+	//cmsSpace=0.05;
 
 	NicePlotsBase::DrawCMS();
 
 	extraText=extraTextTmp;
 	cmsPosition=cmsOrig;//restore
 	lumiPosition=lumiOrig;//restore
-	cmsSpace=cmsSpaceOrig;
+	//cmsSpace=cmsSpaceOrig;
 	return;
 }
 
@@ -617,32 +750,32 @@ void SingleRatioLowerPlot::DrawCMS(){
 //	return; //only extraText
 	pair<float,float> cmsOrig(cmsPosition);
 	pair<float,float> lumiOrig(lumiPosition);
-	float cmsSpaceOrig(cmsSpace);
+	//float cmsSpaceOrig(cmsSpace);
 	
 	cmsPosition.first=.20;
 	cmsPosition.second=0.78;
 	lumiPosition.first=.96;
 	lumiPosition.second=.9;
-	drawLumi=0;
+	//drawLumi=1;
 	string extraTextTmp(extraText);
 	extraText="";
-	cmsSpace=0.05;
+	//cmsSpace=0.05;
 
 	NicePlotsBase::DrawCMS();
 
 	extraText=extraTextTmp;
 	cmsPosition=cmsOrig;//restore
 	lumiPosition=lumiOrig;//restore
-	cmsSpace=cmsSpaceOrig;
+	//cmsSpace=cmsSpaceOrig;
 
 	TLatex *l=new TLatex();
 	l->SetNDC();
 	l->SetTextFont(43);
 	l->SetTextSize(15);
-	l->SetTextAlign(11);
+	l->SetTextAlign(31);
 	if( extraText != "")
 		//l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
-		l->DrawLatex(cmsPosition.first,.22,extraText.c_str());
+		l->DrawLatex(.85,.22,extraText.c_str());
 	return; //only extraText
 }
 void SingleRatioLowerPlot::SetDataStyle(){
@@ -650,7 +783,7 @@ void SingleRatioLowerPlot::SetDataStyle(){
 	RangeY.first=0.5;
 	RangeY.second=1.5;
 		data->GetYaxis()->SetTitleOffset(0.5);
-		data->GetYaxis()->SetTitle("MC/Data");
+		data->GetYaxis()->SetTitle("MadGraph/Data");
 		data->GetYaxis()->SetNdivisions(510);
 		data->GetYaxis()->SetDecimals();
 		data->GetYaxis()->SetRangeUser(0.5,1.5);

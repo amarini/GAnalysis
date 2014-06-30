@@ -44,13 +44,20 @@ using namespace std;
 namespace NicePlots
 {
 
-const Int_t mcColors[]={kBlue+2,kRed,kGreen+2,kOrange+2,38,kYellow};
+// ---------- const Int_t mcColors[]={kBlue+2,kRed,kGreen+2,kOrange+2,38,kYellow};
+// ---------- const Int_t mcStyles[]={1,2,3,2,2,3};
+// ---------- //                                                 \/ Scale and pdf
+// ---------- const Int_t mcErrColors[]={kBlue+2,kRed,kGreen+2,kMagenta+2,kGreen+2,kOrange};
+// ---------- const Int_t mcErrStyles[]={3002,3003,3017,3254,3445,3644};
+// ---------- const Int_t mcErrLineStyles[]={1,2,3,3,3};
+// ---------- //                                          /\ Scale and pdf
+const Int_t mcColors[]={kOrange+7,kBlue+2,kMagenta+2,kOrange+2,38,kYellow};
 const Int_t mcStyles[]={1,2,3,2,2,3};
 //                                                 \/ Scale and pdf
-const Int_t mcErrColors[]={kBlue+2,kRed,kGreen+2,kMagenta+2,kGreen+2,kOrange};
-const Int_t mcErrStyles[]={3002,3003,3017,3254,3445,3644};
+const Int_t mcErrColors[]={kOrange-9,kBlue-7,kGreen-7,kRed+2,kGreen+2,kOrange};
+const Int_t mcErrStyles[]={1001,1001,1001,3254,3445,3644};
+const Int_t mcErrLineStyles[]={1,1,1,1,1,1,1,1};
 //                                          /\ Scale and pdf
-//17-18 == 04 05 
 
 class NicePlotsBase; // base Class everyone inheriths here if possible
 class SingleUpperPlot; // Z or sigle G plots
@@ -103,7 +110,8 @@ public:
 	string extraText;
 	pair<double,double> cmsPosition;
 	pair<double,double> lumiPosition;
-	float cmsSpace;//space between CMS, and preliminary
+	//float cmsSpace;//space between CMS, and preliminary -- remove
+	string cmsPreliminary;//space between CMS, and preliminary
 	int drawBands;
 	int drawLumi;
 };

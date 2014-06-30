@@ -239,8 +239,8 @@ for p in range(0,len(PtCuts)-1):
 
 	latex.SetTextFont(52);
 	latex.SetTextSize(0.03)
-	latex.DrawLatex(.34,.82,"Preliminary")
-	latex.DrawLatex(.84,.82,"Preliminary")
+	latex.DrawLatex(.34,.82,"Unpublished")
+	latex.DrawLatex(.84,.82,"Unpublished")
 
 	C.SaveAs(WorkDir+"/plots/Templates_Pt%.0f_%.0f.pdf"%(PtCuts[p],PtCuts[p+1]))
 	

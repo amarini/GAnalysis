@@ -8,3 +8,5 @@ python ../GAnalysis/test/MatthiasMv.py  > map.sh
 cd -
 
 for i in ../Z//hist_files_MSTW_CT10_NNPDF/h_*.root ; do  python test/makeZNicePlots.py -i $i -o ${i%%.root}.pdf ; done
+for i in ../Z/hist_files_updated/h_*.root ; do  python test/makeZNicePlots.py -i $i -o ${i%%.root}.pdf ; done
+for i in ../Z/Monday*/h_*.root ; do  python test/makeZNicePlots.py -i $i -o ${i%%.root}.pdf ; done

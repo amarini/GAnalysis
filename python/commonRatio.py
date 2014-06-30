@@ -55,9 +55,12 @@ def ReadRatioDat( inputDat ):
 					R['eventList2HistoName']=parts[i].split('=')[1]
 		elif parts[0] == 'histoName1': R["histoName1"]=parts[1]
 		elif parts[0] == 'histoName2': R["histoName2"]=parts[1]
-		elif parts[0] == 'mcName1' or parts[0]=='mcName2' or parts[0]=='mcLeg': 
+		elif parts[0] == 'mcName1' or parts[0]=='mcName2' : 
 			if parts[0] not in R: R[parts[0]]=[]
 			R[parts[0]].append(parts[1])
+		elif parts[0] == 'mcLeg':
+			if parts[0] not in R: R[parts[0]]=[]
+			R[parts[0]].append(parts[1].replace('~',' ').replace('@','#').replace('!',''))
 		elif parts[0] == 'mcLO1' or parts[0] == 'mcLO2':
 			if parts[0] not in R: R[parts[0]]=[]
 			R[ parts[0] ].append( float(parts[1]) )
@@ -75,7 +78,7 @@ def ReadRatioDat( inputDat ):
 		elif parts[0] == 'mcErrLeg':
 			if parts[0] not in R:
 				R[ parts[0] ] = []
-			R[ parts[0] ].append(parts[1])
+			R[ parts[0] ].append(parts[1].replace('~',' ').replace('@','#').replace('!','') )
 		elif parts[0] == 'NoMC':
 			R['mcErr1']=[]
 			R['mcErr2']=[]
@@ -156,6 +159,8 @@ def ReadRatioDat( inputDat ):
 				R[ key ] = tmp[ key ]
 		elif parts[0] == 'mc' or parts[0] == 'table' or parts[0] == 'StatCorr': ## set mc in the config file
 			R[ parts[0] ] = int(parts[1])
+		elif parts[0] == 'Preliminary':
+			R[ parts[0] ] = parts[1].replace('~',' ').replace('@','#').replace('!','')
 		else:
 			if len(parts)>0 and parts[0].replace(' ','').replace('\t','') != '' :print "Malformed line (probably ignored):"+l
 	   except: 
@@ -590,10 +595,17 @@ def ReadSyst(config,typ,n,cut,syst,hns1,file1,h1):
 			h1err=ConvertToTargetTH1(h1,h1err)
 			h1err.Scale(1./config["lumi%d"%(n+1)])
 			s1=h1.Clone("syst%d_"%(n+1)+syst) #h1 is already scaled
+
 			if 'Merge%d'%(n+1) in config:
 				s1=MergeBins(config['Merge%d'%(n+1)],s1)
+				h1err=MergeBins(config['Merge%d'%(n+1)],h1err)
 			for i in range(1,s1.GetNbinsX()+1): 
 				s1.SetBinError(i,h1err.GetBinError(i) );
+				try:
+				   if h1err.GetBinContent(i)/s1.GetBinContent(i) >19  or s1.GetBinContent(i)/h1err.GetBinContent(i)>19:
+					print "ERROR IN LUMI"
+				except: pass
+
 			return s1
 		else: print "error on type "+str(n)+" of "+typ	
 		s1.SetName("syst%d_"%(n+1)+syst)

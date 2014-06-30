@@ -1,13 +1,15 @@
 ### Z ###
 include data/configRatio_Z_nJets12_Yinf.dat
 #file1 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_BH_PDF_Scale_MSTW.root
-file1 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
+#file1 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
+file1 ../Z/MondayPlots/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets3plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10_redBH.root
 lumi1 1
 #mcLO1 2590./3503.71
 
 #### Gamma ###
 #file2 ../Z/PDF_Scale/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_BH_PDF_Scale_MSTW.root
-file2 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
+#file2 ../Z/hist_files_MSTW_CT10_NNPDF/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10.root
+file2 ../Z/MondayPlots/h_Zpt_hist_Zpt40_BY_Inf_jet30_njets2plus_V00-14_modJetLepVeto_PDF_MSTW_Scale_NNPDF_MSTW_CT10_rebinFirstBins.root
 lumi2 1
 
 ### histo name1
@@ -22,46 +24,67 @@ lumi2 1
 ### Load cuts
 NoCut
 Cut Ht=0 nJets=2 ptJet=30
+
 #Cut Ht=300 nJets=1 ptJet=30
 #Cut Ht=0 nJets=3 ptJet=30
 #
-#mcName1 h_MG_GEN_leptons_combined
-#mcName2 h_MG_GEN_leptons_combined
-#mcLeg MadGraph
 #
-#mcName1 h_SH_GEN_leptons_combined
-#mcName2 h_SH_GEN_leptons_combined
-#mcLeg Sherpa
+NoMC
+mcName1 h_MG_GEN_leptons_combined
+mcName2 h_MG_GEN_leptons_combined
+mcLeg MadGraph
+
+mcName1 h_SH_GEN_leptons_combined
+mcName2 h_SH_GEN_leptons_combined
+mcLeg Sherpa
+
+mcName1 h_BH_rebinned_mumu
+mcName2 h_BH_rebinned_mumu
+mcLeg BlackHat(@scale[0.75]{Z+2/3jet})
+
+# mc Errors
+mcErr1 0 s h_MG_GEN_leptons_combined
+mcErr2 0 s h_MG_GEN_leptons_combined
+mcErrLeg MG~Stat.~Err.
+mcCorr 2
 #
-#mcName1 h_BH_rebinned_mumu
-#mcName2 h_BH_rebinned_mumu
-#mcLeg BlackHat
-#
-### mc Errors
-#mcErr1 0 s h_MG_GEN_leptons_combined
-#mcErr2 0 s h_MG_GEN_leptons_combined
-#mcErrLeg MG~Stat.~Err.
-#mcCorr 2
-#
-#mcErr1 1 s h_SH_GEN_leptons_combined
-#mcErr2 1 s h_SH_GEN_leptons_combined
-#mcErrLeg SH~Stat.~Err.
-#mcCorr 2
+mcErr1 1 s h_SH_GEN_leptons_combined
+mcErr2 1 s h_SH_GEN_leptons_combined
+mcErrLeg SH~Stat.~Err.
+mcCorr 2
 #
 #mcErr1 2 s h_BH_rebinned_mumu
 #mcErr2 2 s h_BH_rebinned_mumu
 #mcErrLeg BH~Stat.~Err.
 #mcCorr 2
 ### mc Errors
-#mcErr1 2 ^ h_band_BH_PDF${SYST}_rebinned_total
-#mcErr2 2 ^ h_band_BH_PDF${SYST}_rebinned_total
-#mcErrLeg Pdf
-#mcErrCorr 2
+mcErr1 2 ^ h_band_BH_PDF${SYST}_rebinned_total
+mcErr2 2 ^ h_band_BH_PDF${SYST}_rebinned_total
+mcErrLeg Pdf
+mcErrCorr 2
 #
-#mcErr1 2 ^ h_band_BH_scale${SYST}_rebinned_total
-#mcErr2 2 ^ h_band_BH_scale${SYST}_rebinned_total
-#mcErrLeg Scale
-#mcErrCorr 2
+mcErr1 2 ^ h_band_BH_scale${SYST}_rebinned_total
+mcErr2 2 ^ h_band_BH_scale${SYST}_rebinned_total
+mcErrLeg Scale
+mcErrCorr 2
+
+mcName1 h_BH_CT10_rebinned_total
+mcName2 h_BH_CT10_rebinned_total
+mcLeg BH-CT10
+
+mcErr1 3 ^ h_band_BH_CT10_scale${SYST}_rebinned_total
+mcErr2 3 ^ h_band_BH_CT10_scale${SYST}_rebinned_total
+mcErrLeg Scale
+mcErrCorr 2
+
+mcName1 h_BH_NNPDF_rebinned_total
+mcName2 h_BH_NNPDF_rebinned_total
+mcLeg BH-NNPDF
+
+mcErr1 4 ^ h_band_BH_NNPDF_scale${SYST}_rebinned_total
+mcErr2 4 ^ h_band_BH_NNPDF_scale${SYST}_rebinned_total
+mcErrLeg Scale
+mcErrCorr 2
 #
 #### syst
 #Up Up Up
@@ -99,7 +122,7 @@ OutName Ht_${.0fHT}_nJets_2_JPt_${.0fPTJ}_Y_Inf
 xaxis 41 750
 #xaxis 100 500
 #yaxis 0.1 0.9
-yaxis 0.1 0.9
+yaxis 0.1 0.7
 #xlog 1
 ylog 0
 xtitle P_{T}^{Z}
@@ -114,3 +137,4 @@ yleg 0.11 .31
 
 #mc 1
 #table 1
+Preliminary Unpublished

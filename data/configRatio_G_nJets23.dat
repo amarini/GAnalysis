@@ -2,12 +2,14 @@
 #file1 ../Z/h_Zpt_hist_Zpt100_BY_1_40_jet30_V00-14.root
 file1 ../V00-14/V00-14_JEta/UnfoldedDistributions.root
 #eventList1 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
-lumi1 19.7
+#lumi1 19.7
+lumi1 1
 
 #### Gamma ###
 #eventList2 file=/afs/cern.ch/user/a/amarini/work/V00-13/output_*_100.txt.gz compress=1 histoName=AAA
 file2 ../V00-14/V00-14_JEta/UnfoldedDistributions.root
-lumi2 19.7
+#lumi2 19.7
+lumi2 1
 
 ### histo name1
 histoName1 b_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}${SYST}
@@ -30,7 +32,7 @@ mcLeg MadGraph
 
 mcErr1 0 s mg_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}
 mcErr2 0 s mg_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
-mcErrCorr 2
+mcErrCorr 0
 mcErrLeg MG~Stat.~Err.
 ### syst
 Up UP UP
@@ -83,3 +85,5 @@ text |y^{@gamma}|<1.4
 
 mc 1
 table 1
+
+Preliminary Unpublished

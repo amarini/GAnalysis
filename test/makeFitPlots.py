@@ -82,7 +82,7 @@ for h in range(0,len(HtCuts)):
 
 				latex.SetTextFont(52);
 				latex.SetTextSize(0.03)
-				latex.DrawLatex(.80,.82,"Preliminary")
+				latex.DrawLatex(.80,.82,"Unpublished")
 
 				nex=ROOT.TIter(C.GetListOfPrimitives());
 				o=nex()

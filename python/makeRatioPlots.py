@@ -209,8 +209,6 @@ for cut in config['Cut']:
 		mc1Raw=file1.Get(mc1name)
 		mc2Raw=file2.Get(mc2name)
 
-		SingleRawMC1.append(mc1Raw)
-		SingleRawMC2.append(mc2Raw)
 
 		if 'Merge1' in config:
 			mc1Raw=MergeBins(config['Merge1'],mc1Raw)
@@ -224,6 +222,17 @@ for cut in config['Cut']:
 
 		mc1.Scale(1./config['lumi1'])
 		mc2.Scale(1./config['lumi2'])
+
+		#mc1Raw.Scale(1./config['lumi1'])
+		#mc2Raw.Scale(1./config['lumi2'])
+
+		mc1RawScaled=mc1Raw.Clone("mc1rawclone")
+		mc2RawScaled=mc2Raw.Clone("mc2rawclone")
+		mc1RawScaled.Scale(1./config['lumi1'])
+		mc2RawScaled.Scale(1./config['lumi2'])
+
+		SingleRawMC1.append(mc1Raw)
+		SingleRawMC2.append(mc2Raw)
 
 		mc1.SetName("MC_"+str(iMC)+"_Ht_%s_nJets_%s_ptJet_%s"%cut )
 	
@@ -266,7 +275,7 @@ for cut in config['Cut']:
 		mcErr2=ROOT.TH1D("mcErr2_"+config['mcLeg'][iMC]+"_Ht_%s_nJets_%s_ptJet_%s"%cut ,"h2",hBinCommon.nBins-1,hBinCommon.PtBins)
 		mcErr1=ConvertToTargetTH1(mcErr1,mcErr1Raw)
 		mcErr2=ConvertToTargetTH1(mcErr2,mcErr2Raw)
-
+		
 		#convert to TH1 is done in ReadSyst
 		#
 		if 'mcErrCorr' in config and len(config['mcErrCorr']) > iMcErr and config['mcErrCorr'][iMcErr] >= -1.0 and config['mcErrCorr'][iMcErr] <= 1.0:
@@ -417,6 +426,8 @@ for cut in config['Cut']:
 	plotter.ytitle="d#sigma/dP_{T}^{Z} / d#sigma/dP_{T}^{#gamma}"
 	if'ytitle' in config:
 		plotter.ytitle=config['ytitle']
+	if 'Preliminary' in config:
+		plotter.cmsPreliminary=config['Preliminary']
 
 	#L=ROOT.TLegend(0.75+xshift,0.75+yshift,.89+xshift,.89+yshift)
 	#L.SetFillStyle(0);
@@ -625,9 +636,9 @@ for cut in config['Cut']:
 	plotter1.syst=Ratio(h1,h1_TOT,NoErrorH=True)
 	plotter2.syst=Ratio(h2,h2_TOT,NoErrorH=True);
 	plotter1.xtitle="p_{T}^{Z} [GeV]"
-	plotter1.ytitle="MC/Data"
+	plotter1.ytitle="MadGraph/Data"
 	plotter2.xtitle="p_{T}^{#gamma} [GeV]"
-	plotter2.ytitle="MC/Data"
+	plotter2.ytitle="MadGraph/Data"
 	for iMC in range(0,len(config['mcName1'])):
 		plotter1.mc.push_back(Ratio( h1,SingleMC1[iMC],NoErrorH=True ));
 		plotter1.mcLabels.push_back(config['mcLeg'][iMC])
@@ -664,6 +675,8 @@ for cut in config['Cut']:
 		C2dn.SaveAs( name )	
 	#------------- Ratio Lower --------------------
 	plot_L = ROOT.NicePlots.SingleRatioLowerPlot();
+	if 'Preliminary' in config:
+		plot_L.cmsPreliminary=config['Preliminary']
 	if 'ytitle' in config:
 		plot_L.extraText=config['ytitle']+", "+text;
 	else:

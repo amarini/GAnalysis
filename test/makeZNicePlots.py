@@ -65,11 +65,6 @@ plotter.mc.push_back(H_MG);
 plotter.mcLabels.push_back("MadGraph k_{NNLO}");
 plotter.mc.push_back(H_SH);
 plotter.mcLabels.push_back("Sherpa k_{NNLO}");
-if H_BH_f != None :
-	H_BH=ROOT.TH1D()
-	H_BH_f.Copy(H_BH)
-	plotter.mc.push_back(H_BH);
-	plotter.mcLabels.push_back("BlackHat");
 
 nJets=1
 Ht=0
@@ -99,12 +94,22 @@ if 'Zpt_over_pt1' in inputFile:
 if 'log10' in inputFile:
 	isLog=True
 
+if H_BH_f != None :
+	H_BH=ROOT.TH1D()
+	H_BH_f.Copy(H_BH)
+	plotter.mc.push_back(H_BH);
+	plotter.mcLabels.push_back("BlackHat(#scale[0.75]{Z+%djet})"%nJets);
+
 m=H.GetMaximum()
 for i in range(1,H.GetNbinsX()+1):
 	if H.GetBinContent(i)<m and H.GetBinContent(i)>0:
 		m= H.GetBinContent(i)
 plotter.RangeY.first=m*0.6
 plotter.RangeY.second=H.GetMaximum()*1.3
+
+if (nJets>2 or Ht>50) and not (is_Zpt_o_pt1) and not ( is_Zpt_o_Ht):
+	plotter.cmsPreliminary="Unpublished"
+
 if is_Zpt_o_pt1 and not isLog:
 	Range[0]=0
 	#Range[1]=3.2
@@ -149,6 +154,10 @@ if  nJets==2 and is_Zpt_o_pt1 and isLog:
 if Ht>250 and not isLog:
 	plotter.legendPos1.first=0.60
 	plotter.legendPos2.first=0.90
+if  nJets==3 and is_Zpt_o_pt1 and not isLog:
+	plotter.legendPos1.first=0.25
+	plotter.legendPos2.first=0.65
+	plotter.RangeY.second=H.GetMaximum()*5
 
 #if isLog:
 #	plotter.legendPos1.first=0.65
@@ -188,6 +197,10 @@ plot_L.mcLabels.push_back("MadGraph k_{NNLO}");
 plot_L.mc.push_back(R_SH);
 plot_L.mcLabels.push_back("Sherpa k_{NNLO}");
 ## add stat bands
+#if nJets>2 or Ht>50 or (is_Zpt_o_pt1 and not isLog) or ( is_Zpt_o_Ht and isLog):
+#	plot_L.cmsPreliminary="Unpublished"
+if (nJets>2 or Ht>50) and not (is_Zpt_o_pt1) and not ( is_Zpt_o_Ht):
+	plotter.cmsPreliminary="Unpublished"
 
 StatErrBands=True
 if StatErrBands:

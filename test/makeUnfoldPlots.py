@@ -399,6 +399,8 @@ for jpt in [30.0,300.0]:
 		plotter.xtitle="p_{T}^{#gamma} [GeV]"
 		plotter.ytitle="d#sigma/dp_{T} [fb GeV^{-1}]"
 		plotter.extraText="|y^{#gamma}|<1.4"
+		if nJetsCuts[nj] >2 or HtCuts[h] >50:
+			plotter.cmsPreliminary="Unpublished";
 		if doMC:
 			plotter.mc.push_back(H_MC);
 			plotter.mcLabels.push_back("MadGraph");
@@ -425,7 +427,7 @@ for jpt in [30.0,300.0]:
 		plotter.data=R_H
 		plotter.syst=R_TOT
 		plotter.xtitle="p_{T}^{#gamma} [GeV]"
-		plotter.ytitle="MC/Data"
+		plotter.ytitle="MadGraph/Data"
 		if doMC:
 		 	R_MC=Ratio(H,H_MC,NoErrorH=True);
 			plotter.mc.push_back(R_MC);
@@ -433,6 +435,7 @@ for jpt in [30.0,300.0]:
 			R_MC_Err=R_MC.Clone("MGError")
 			plotter.mcErr.push_back(R_MC_Err);
 			plotter.mcLabelsErr.push_back("MG Stat");
+			plotter.mcErrAssociation.push_back(plotter.mcErr.size()-1);
 		if doJP:
 			R_JP=Ratio(H,h_JetPhox,NoErrorH=True)
 			plotter.mc.push_back(R_JP);
@@ -440,6 +443,7 @@ for jpt in [30.0,300.0]:
 			plotter.mcLabels.push_back("JetPhox (parton)")
 			plotter.mcErr.push_back(R_JP_Err);
 			plotter.mcLabelsErr.push_back("JP Stat");
+			plotter.mcErrAssociation.push_back(plotter.mcErr.size()-1);
 			#R_JP_scaled=Ratio(H,h_JetPhox_scaled,NoErrorH=True)
 			#plotter.mc.push_back(R_JP_scaled);
 			#plotter.mcLabels.push_back("JetPhox (parton scaled)")

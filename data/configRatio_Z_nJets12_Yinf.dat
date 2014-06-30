@@ -33,7 +33,7 @@ mcLeg Sherpa
 
 mcName1 h_BH_rebinned_mumu
 mcName2 h_BH_rebinned_mumu
-mcLeg BlackHat
+mcLeg BlackHat(@scale[0.75]{Z+1/2jet})
 
 ## mc Errors
 mcErr1 0 s h_MG_GEN_leptons_combined
