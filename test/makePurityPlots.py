@@ -11,6 +11,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="MC Input Configuration file",default="")
+parser.add_option("","--doBands" ,dest='doBands',action='store_true',help="DoBands",default=False)
 
 (options,args)=parser.parse_args()
 
@@ -164,7 +165,9 @@ for h in range(0,len(HtCuts)):
 			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
 			H.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), er )
 
-			HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), bias )
+			#HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), bias )
+			HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
+			HBias.SetBinError  ( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), abs(fr-bias) )
 
 			if doMC:
 				RU= fMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
@@ -176,6 +179,10 @@ for h in range(0,len(HtCuts)):
 					frmc=0
 				HMC.SetBinContent( HMC.FindBin((PtCuts2[p]+PtCuts2[p+1])/2.) , frmc)
 		## PLOT HISTOS
+		HBias.SetMarkerStyle(0)
+		HBias.SetFillStyle(3004)
+		HBias.SetFillColor(ROOT.kBlack)
+
 		if   HtCuts[h] == 0 and nJetsCuts[nj]==1:
 			H.SetMarkerColor(ROOT.kBlack)
 			H.SetMarkerStyle(20)
@@ -227,7 +234,7 @@ for h in range(0,len(HtCuts)):
 		H.SetFillColor(H.GetLineColor());
 		if   h== 0 and nj==0:
 			print "Draw"
-			H.GetXaxis().SetTitle("p_{T}^{#gamma}");
+			H.GetXaxis().SetTitle("p_{T}^{#gamma} [GeV]");
 			H.GetYaxis().SetTitle("Purity");
 			H.GetXaxis().SetMoreLogLabels()
 			H.GetXaxis().SetNoExponent()
@@ -237,7 +244,9 @@ for h in range(0,len(HtCuts)):
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
 			H.Draw("P E4 SAME")
-		#HBias.Draw("HIST SAME")
+		if options.doBands:
+			HBias.Draw("E2 SAME")
+			H.Draw("P E4 SAME")
 
 		if doMC:
 			HMC.Draw("HIST SAME")
@@ -270,14 +279,14 @@ AllH[ b ].GetYaxis().SetDecimals()
 AllH[ b ].SetMarkerSize(1.5)
 AllH[ b ].SetLineColor(ROOT.kBlack)
 AllH[ b ].Draw("P")
-#AllHBias[ b ].SetLineWidth(2)
-#AllHBias[ b ].SetLineColor(ROOT.kBlack)
-#AllHBias[ b ].SetLineStyle(ROOT.kDashed)
-#AllHBias[ b ].GetXaxis().SetRangeUser(100,1000)
-#AllHBias[ b ].GetYaxis().SetRangeUser(0.6,1.0)
-#for i in range(1,AllHBias[ b ].GetNbinsX()+1):
-#	print AllHBias[ b ].GetBinCenter(i)," -> ",AllHBias[ b ].GetBinContent(i)
-
+if options.doBands:
+	AllHBias[ b ].SetLineWidth(2)
+	AllHBias[ b ].SetLineColor(ROOT.kBlack)
+	AllHBias[ b ].SetLineStyle(ROOT.kDashed)
+	AllHBias[ b ].GetXaxis().SetRangeUser(100,1000)
+	AllHBias[ b ].GetYaxis().SetRangeUser(0.6,1.0)
+	AllHBias[ b ].Draw("E2 SAME")
+	AllH[ b ].Draw("P SAME")
 #f2=ROOT.TF1("func","[0] * TMath::TanH(  TMath::Sqrt( (x-[1])/[2]) ) ",0,1000)
 #f2.SetParameter(0,1)
 #f2.SetParameter(1,100)

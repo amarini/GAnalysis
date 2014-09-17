@@ -206,12 +206,12 @@ StatErrBands=True
 if StatErrBands:
 	R_MG_Err=R_MG.Clone("MG_Err")
 	plot_L.mcErr.push_back(R_MG_Err);
-	plot_L.mcLabelsErr.push_back("MG Stat Err");
+	plot_L.mcLabelsErr.push_back("MadGraph Stat. Err.");
 	plot_L.mcErrAssociation.push_back(0);
 
 	R_SH_Err=R_SH.Clone("SH_Err")
 	plot_L.mcErr.push_back(R_SH_Err);
-	plot_L.mcLabelsErr.push_back("SH Stat Err");
+	plot_L.mcLabelsErr.push_back("Sherpa Stat. Err.");
 	plot_L.mcErrAssociation.push_back(1);
 if H_BH_f != None:
 	R_BH=Ratio(H,H_BH,True);

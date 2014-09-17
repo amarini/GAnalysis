@@ -45,12 +45,12 @@ mcLeg BlackHat(@scale[0.75]{Z+2/3jet})
 # mc Errors
 mcErr1 0 s h_MG_GEN_leptons_combined
 mcErr2 0 s h_MG_GEN_leptons_combined
-mcErrLeg MG~Stat.~Err.
+mcErrLeg MadGraph~Stat.~Err.
 mcCorr 2
 #
 mcErr1 1 s h_SH_GEN_leptons_combined
 mcErr2 1 s h_SH_GEN_leptons_combined
-mcErrLeg SH~Stat.~Err.
+mcErrLeg Sherpa~Stat.~Err.
 mcCorr 2
 #
 #mcErr1 2 s h_BH_rebinned_mumu
@@ -125,7 +125,7 @@ xaxis 41 750
 yaxis 0.1 0.7
 #xlog 1
 ylog 0
-xtitle P_{T}^{Z}
+xtitle P_{T}^{Z}~[GeV]
 ytitle @frac{d@sigma(N_{jets}@geq3)}{dp_{T}^{Z}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{Z}}
 text ~
 

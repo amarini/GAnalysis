@@ -137,6 +137,7 @@ TCanvas * NicePlotsBase::Draw(){
 			float x1=c->GetLeftMargin()+0.02;
 			float y1=c->GetBottomMargin()+0.02;
 			float x2=x1+.5;
+			if( mc.size() ==1) x2=x1+.3; 
 			float y2=y1+.1;
 			
 			int bin=1;
@@ -538,6 +539,10 @@ void  NicePlotsBase::SetSystStyle(){
 	syst->SetFillColor(kBlack);
 	syst->SetLineColor(kBlack);
 	syst->SetFillStyle(3004);
+	unsigned int ww=gPad->GetWw();
+	unsigned int wh=gPad->GetWh();
+	if (wh > ww)
+		syst->SetFillStyle(3005);
 	return ;
 }
 void  NicePlotsBase::SetMCStyle()
@@ -634,7 +639,7 @@ TCanvas* SingleLowerPlot::DrawCanvas(){
 if (DEBUG) cout<< "Draw SingleLowerPlot Canvas"
 	<<"T0.02 R0.03 B0.2"<<endl;
 		TCanvas *c=new TCanvas("c","c",600,300);
-                c->SetTopMargin(0.02);
+                c->SetTopMargin(0.10);
                 c->SetRightMargin(0.03);
                 c->SetBottomMargin(0.2);
                // c->SetLogy();
@@ -672,10 +677,13 @@ void SingleLowerPlot::DrawCMS(){
 	pair<float,float> lumiOrig(lumiPosition);
 	//float cmsSpaceOrig(cmsSpace);
 	
-	cmsPosition.first=.12;
-	cmsPosition.second=0.9;
+	//cmsPosition.first=.12;
+//	cmsPosition.second=0.85;
+	cmsPosition.first=gPad->GetLeftMargin()+0.01;
+	cmsPosition.second=1.0-gPad->GetTopMargin()-0.08;
 	lumiPosition.first=.96;
-	lumiPosition.second=.9;
+	//lumiPosition.second=.9;
+	lumiPosition.second=1.0-gPad->GetTopMargin()+0.01;
 	//drawLumi=0;
 	string extraTextTmp(extraText);
 	extraText="";
@@ -775,7 +783,7 @@ void SingleRatioLowerPlot::DrawCMS(){
 	l->SetTextAlign(31);
 	if( extraText != "")
 		//l->DrawLatex(cmsPosition.first,cmsPosition.second,extraText.c_str());
-		l->DrawLatex(.85,.22,extraText.c_str());
+		l->DrawLatex(.96,.22,extraText.c_str());
 	return; //only extraText
 }
 void SingleRatioLowerPlot::SetDataStyle(){

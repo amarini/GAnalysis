@@ -31,7 +31,7 @@ mcLeg MadGraph
 
 mcErr1 0 s h_MG_GEN_leptons_combined
 mcErr2 0 s mg_Ht_${.1fHT}_nJets_${.1fNJETS}_JPt_${.1fPTJ}
-mcErrLeg MG~Stat.~Err.
+mcErrLeg MadGraph~Stat.~Err.
 mcErrCorr 0
 
 ### syst

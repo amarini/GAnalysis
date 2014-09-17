@@ -1,15 +1,11 @@
 #!/usr/bin/python
 import sys,os
 import array
-import ROOT
 import time
 from optparse import OptionParser
 
 DEBUG=1
 
-ROOT.gROOT.SetBatch()
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetOptTitle(0)
 
 if(DEBUG>0):print "----- BEGIN -----"
 
@@ -17,8 +13,15 @@ if(DEBUG>0):print "-PARSING OPTIONS-"
 usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
+parser.add_option("","--cms" ,dest='cmsextra',type='string',help="Unpublished,Preliminary or nothing",default="")
 
 (options,args)=parser.parse_args()
+
+sys.argv=[]
+import ROOT
+ROOT.gROOT.SetBatch()
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptTitle(0)
 
 print "inserting in path cwd"
 sys.path.insert(0,os.getcwd())
@@ -76,13 +79,20 @@ for h in range(0,len(HtCuts)):
 				latex.SetNDC();
 				latex.SetTextAlign(11)
 				latex.SetTextFont(62);
-				latex.SetTextSize(0.04);
+				latex.SetTextSize(0.06);
 
-				latex.DrawLatex(.80,.86,"CMS")
+				#latex.DrawLatex(.80,.85,"CMS") ##right
+				latex.DrawLatex(.13,.85,"CMS") ##left
 
 				latex.SetTextFont(52);
 				latex.SetTextSize(0.03)
-				latex.DrawLatex(.80,.82,"Unpublished")
+				#latex.DrawLatex(.80,.82,"Unpublished")
+				if(options.cmsextra != ""): latex.DrawLatex(.80,.82,options.cmsextra)
+
+				latex.SetTextFont(42)
+				latex.SetTextSize(0.03)
+				latex.SetTextAlign(31)
+				latex.DrawLatex(.89,.91, "19.7fb^{-1}(8TeV)")
 
 				nex=ROOT.TIter(C.GetListOfPrimitives());
 				o=nex()
@@ -91,16 +101,27 @@ for h in range(0,len(HtCuts)):
 					if o.InheritsFrom("TText"):
 						print "Considering Text",o.GetTitle()
 						if "Fraction" in o.GetTitle(): 
-							o.SetX(0.6)
-							o.SetY(.50)
+							o.SetX(0.55)
+							o.SetY(.82)
+							o.SetTextFont(52)
+							o.SetTextSize(0.04)
+							#o.SetTitle("");
 						if "P_{T}" in o.GetTitle():
-							o.SetX(0.6)
-							o.SetY(.46)
+							o.SetTitle( o.GetTitle().replace("P_{T}","P_{T}#scale[0.6]{[GeV]}") )
+							o.SetTextFont(52)
+							o.SetX(0.55)
+							o.SetY(.86)
+							o.SetTextSize(0.04)
+							#o.SetTitle("")
+					if o.InheritsFrom("TH1D"):
+						#o.GetXaxis().SetTitle("Photon Isolation [GeV]")
+						o.GetXaxis().SetTitle("I_{ #gamma} [GeV]")
 					o=nex()
 				C.Draw()
 
 				C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".pdf")
 				if(PtCuts2[p]==100):C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".root")
+				if(PtCuts2[p]<66.0 +0.1 and PtCuts2[p]> 66.0-0.1): C.SaveAs(WorkDir+"plots/fit_"+C.GetName()+".root")
 			except (ReferenceError,TypeError): 
 				print "Error in Pt="+str(PtCuts2[p])+" HT="+str(HtCuts[h])+" nJets="+str(nJetsCuts[nj])
 				print "-- Name="+"Bin_PT_%.1f_%.1f_HT_%.1f_nJets_%.0f_canvas"%(PtCuts2[p],PtCuts2[p+1],HtCuts[h],nJetsCuts[nj])

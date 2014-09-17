@@ -363,6 +363,8 @@ for jpt in [30.0,300.0]:
 
 			#scale
 			h_JetPhox_tmp.Scale(1000.) # pb->fb
+			h_JetPhox_tmp.Scale(2./len(fileList)) # if more than one fileset (direct+frag), do the mean
+			print "JetPhox Mean between",len(fileList)/2.,"components"
 			#this is necessary in order to make Ratio work
 			h_JetPhox=H.Clone("JP")
 			for i in range(1,h_JetPhox.GetNbinsX()+1):
@@ -434,7 +436,7 @@ for jpt in [30.0,300.0]:
 			plotter.mcLabels.push_back("MadGraph");
 			R_MC_Err=R_MC.Clone("MGError")
 			plotter.mcErr.push_back(R_MC_Err);
-			plotter.mcLabelsErr.push_back("MG Stat");
+			plotter.mcLabelsErr.push_back("MadGraph Stat. Err.");
 			plotter.mcErrAssociation.push_back(plotter.mcErr.size()-1);
 		if doJP:
 			R_JP=Ratio(H,h_JetPhox,NoErrorH=True)
@@ -447,6 +449,8 @@ for jpt in [30.0,300.0]:
 			#R_JP_scaled=Ratio(H,h_JetPhox_scaled,NoErrorH=True)
 			#plotter.mc.push_back(R_JP_scaled);
 			#plotter.mcLabels.push_back("JetPhox (parton scaled)")
+		if nJetsCuts[nj] >2 or HtCuts[h] >50:
+			plotter.cmsPreliminary="Unpublished";
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))
 		plotter.RangeFactors.first=1.0
 		plotter.RangeFactors.second=0.05

@@ -12,6 +12,7 @@ usage = "usage: %prog [options] arg1 arg2"
 parser=OptionParser(usage=usage)
 parser.add_option("","--inputDat" ,dest='inputDat',type='string',help="Input Configuration file",default="")
 parser.add_option("","--inputDatMC" ,dest='inputDatMC',type='string',help="MC Input Configuration file",default="")
+parser.add_option("","--doBands" ,dest='doBands',action='store_true',help="DoBands",default=False)
 
 (options,args)=parser.parse_args()
 
@@ -125,6 +126,7 @@ AllH={}
 AllHBias={}
 AllHMC={}
 AllHCorrected={}
+AllHBiasCorrected={}
 C=ROOT.TCanvas("C","C")
 C2=ROOT.TCanvas("C2","C2")
 L=ROOT.TLegend(0.65,0.15,.89,.45)
@@ -152,7 +154,7 @@ for h in range(0,len(HtCuts)):
 		H=ROOT.TH1D("f_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 		HCorrected=ROOT.TH1D("fCorr_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 		HBias=ROOT.TH1D("bias_"+Bin,"Bias_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
-		HCorrectedBias=ROOT.TH1D("biasiCorr_"+Bin,"Bias_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
+		HBiasCorrected=ROOT.TH1D("biasCorr_"+Bin,"Bias_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
 
 		if doMC:
 			HMC=ROOT.TH1D("mc_"+Bin,"Fraction_"+Bin , len(PtCuts2)-1 , PtBins.PtBins )
@@ -178,7 +180,9 @@ for h in range(0,len(HtCuts)):
 			H.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
 			H.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), er )
 
-			HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), bias )
+			#HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), bias )
+			HBias.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), fr )
+			HBias.SetBinError  ( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), abs(fr-bias) )
 
 			if doMC:
 				RU= fMC.Get("gammaPt_RECO_UNFOLD_VPt_0_8000_Ht_%.0f_8000_phid_%.3f_%.3f_nJets_%d"%(HtCuts[h],SigPhId[0],SigPhId[1],nJetsCuts[nj]))
@@ -235,9 +239,14 @@ for h in range(0,len(HtCuts)):
 				if fr<1 and bkgeff>0:
 					HCorrected.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), newpurity)
 					HCorrected.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), newerror)
+					HBiasCorrected.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), newpurity )
+					HBiasCorrected.SetBinError  ( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), abs(fr-bias)*newpurity/fr )
 				else:
 					HCorrected.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), 0)
 					HCorrected.SetBinError( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), 1)
+					HBiasCorrected.SetBinContent( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), 0 )
+					HBiasCorrected.SetBinError  ( H.FindBin( (PtCuts2[p]+PtCuts2[p+1])/2.), 1 )
+
 
 		## PLOT HISTOS
 		if   HtCuts[h] == 0 and nJetsCuts[nj]==1:
@@ -316,7 +325,9 @@ for h in range(0,len(HtCuts)):
 		else:
 			print "Draw h"+str(h)+" nj"+str(nj)
 			H.Draw("P E4 SAME")
-		#HBias.Draw("HIST SAME")
+		if options.doBands:
+			HBias.Draw("E2 SAME")
+			H.Draw("P E4 SAME")
 
 		if doMC:
 			HMC.Draw("HIST SAME")
@@ -334,6 +345,10 @@ for h in range(0,len(HtCuts)):
 		AllHBias[ (h,nj) ] = HBias
 		AllH[ (h,nj) ] = H
 		AllHCorrected[ (h,nj) ] = HCorrected
+		HBiasCorrected.SetFillStyle(1001)
+		#HBiasCorrected.SetFillColor(ROOT.kBlack)
+		HBiasCorrected.SetFillColor(ROOT.kOrange-9)
+		AllHBiasCorrected[ (h,nj) ] = HBiasCorrected
 C.cd()
 L.Draw()
 C.SaveAs(WorkDir+"plots/fraction.pdf")		
@@ -353,7 +368,7 @@ C3.SetBottomMargin(0.13)
 #bin, not value
 b=(0,0)
 AllHCorrected[ b ].GetXaxis().SetRangeUser(50,500)
-AllHCorrected[ b ].GetYaxis().SetRangeUser(0.6,1.0)
+AllHCorrected[ b ].GetYaxis().SetRangeUser(0.6,1.05)
 AllHCorrected[ b ].GetXaxis().SetTitle("p_{T}^{#gamma}")
 AllHCorrected[ b ].GetYaxis().SetTitle("purity")
 AllHCorrected[ b ].GetYaxis().SetTitleOffset(1.8)
@@ -363,24 +378,16 @@ AllHCorrected[ b ].GetXaxis().SetLabelOffset(0.015)
 AllHCorrected[ b ].GetYaxis().SetDecimals()
 AllHCorrected[ b ].SetMarkerSize(1.5)
 AllHCorrected[ b ].SetLineColor(ROOT.kBlack)
+
 AllHCorrected[ b ].Draw("P")
-#AllHBias[ b ].SetLineWidth(2)
-#AllHBias[ b ].SetLineColor(ROOT.kBlack)
-#AllHBias[ b ].SetLineStyle(ROOT.kDashed)
-#AllHBias[ b ].GetXaxis().SetRangeUser(100,1000)
-#AllHBias[ b ].GetYaxis().SetRangeUser(0.6,1.0)
+
+if options.doBands:
+	AllHBiasCorrected[ b ].Draw("E2 SAME")
+	AllHCorrected[ b ].Draw("P SAME") # redraw AXIS
+	AllHCorrected[ b ].Draw("AXIS SAME") # redraw AXIS
 #for i in range(1,AllHBias[ b ].GetNbinsX()+1):
 #	print AllHBias[ b ].GetBinCenter(i)," -> ",AllHBias[ b ].GetBinContent(i)
 
-#f2=ROOT.TF1("func","[0] * TMath::TanH(  TMath::Sqrt( (x-[1])/[2]) ) ",0,1000)
-#f2.SetParameter(0,1)
-#f2.SetParameter(1,100)
-#f2.SetParameter(2,100)
-#f2.SetParLimits(1,30,200)
-#f2.SetParLimits(2,30,200)
-#AllH[ b ].Fit("func");
-#f2.Draw("SAME")
-#AllHBias[ b ].Draw("HIST ][ SAME")
 
 l=ROOT.TLatex()
 l.SetNDC()
@@ -390,11 +397,20 @@ l.SetTextSize(28)
 l.DrawLatex(0.15,0.86,"CMS")
 l.SetTextFont(53)
 l.SetTextSize(20)
-l.DrawLatex(0.23,0.86,"Preliminary")
+#l.DrawLatex(0.23,0.86,"Preliminary")
+l.DrawLatex(0.23,0.86,"")
 l.SetTextFont(43)
 l.SetTextSize(20)
 l.SetTextAlign(31)
 l.DrawLatex(0.89,0.91,"19.7 fb^{-1}(8TeV)")
+
+line=ROOT.TGraph()
+line.SetName("line")
+line.SetPoint(0,0,1)
+line.SetPoint(1,1000,1)
+line.SetLineColor(ROOT.kGray+1)
+line.SetLineStyle(ROOT.kDashed)
+line.Draw("L SAME")
 
 C3.SaveAs(WorkDir+"plots/fraction2_Corrected.pdf")
 C3.SaveAs(WorkDir+"plots/fraction2_Corrected.root")

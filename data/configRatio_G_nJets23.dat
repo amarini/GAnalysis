@@ -33,7 +33,7 @@ mcLeg MadGraph
 mcErr1 0 s mg_Ht_${.1fHT}_nJets_3.0_JPt_${.1fPTJ}
 mcErr2 0 s mg_Ht_${.1fHT}_nJets_2.0_JPt_${.1fPTJ}
 mcErrCorr 0
-mcErrLeg MG~Stat.~Err.
+mcErrLeg MadGraph~Stat.~Err.
 ### syst
 Up UP UP
 Down DN DN
@@ -79,7 +79,7 @@ ylog 0
 xleg 0.70 .97
 yleg 0.11 .31
 
-xtitle P_{T}^{@gamma}
+xtitle P_{T}^{@gamma}~[GeV]
 ytitle @frac{d@sigma(N_{jets}@geq3)}{dp_{T}^{@gamma}}@scale[2]{/}@frac{d@sigma(N_{jets}@geq2)}{dp_{T}^{@gamma}}
 text |y^{@gamma}|<1.4
 
