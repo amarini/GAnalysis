@@ -40,10 +40,11 @@ from commonRatio import NiceRange
 # GLOBAL in order to avoid that ROOT uses random file as buffers
 outFile=ROOT.TFile.Open(options.out,"RECREATE");
 
-def GetJetPhoxPrediction(jetphox,histName="hp40"): 
+def GetJetPhox(jetphox,histName="hp40"):  ### BASE NO MERGING OF LO
 	''' Get the TH1D jetfox prediction out of a list of jetphox files '''
 	#fileList=jetphox.split(',')	 ### I use glob so it is already a filelist
 	fileList=jetphox
+	if(DEBUG>0): print "fileList=",fileList
 	if(DEBUG>0):print "Adding JetPhox compontent ", fileList[0]
 	f_JP=ROOT.TFile.Open(fileList[0])
 	outFile.cd()
@@ -60,6 +61,30 @@ def GetJetPhoxPrediction(jetphox,histName="hp40"):
 	h_JetPhox_tmp.Scale(2./len(fileList)) # if more than one fileset (direct+frag), do the mean
 	f_JP.Close()
 	return h_JetPhox_tmp;
+def GetJetPhoxPrediction(jetphox,histName="hp40"): 
+	print "Getting",jetphox,"hist",histName
+	if histName=="xxx" : pass
+	## elif histName=="hp40":
+	## 	hJetPhox=GetJetPhox(jetphox,histName)
+	## 	hJetPhox2=GetJetPhox(jetphox,"hp41")
+	## 	hJetPhox.Add(hJetPhox2)
+	## 	return hJetPhox
+	## elif histName=="hp20":
+	## 	hJetPhox=GetJetPhox(jetphox,histName)
+	## 	hJetPhox2=GetJetPhox(jetphox,"hp21")
+	## 	hJetPhox.Add(hJetPhox2)
+	## 	return hJetPhox
+	## elif histName=="hp22":
+	## 	hJetPhox=GetJetPhox(jetphox,histName)
+	## 	hJetPhox2=GetJetPhox(jetphox,"hp23")
+	## 	hJetPhox.Add(hJetPhox2)
+	## 	return hJetPhox
+	## elif histName=="hp24":
+	## 	hJetPhox=GetJetPhox(jetphox,histName)
+	## 	hJetPhox2=GetJetPhox(jetphox,"hp25")
+	## 	hJetPhox.Add(hJetPhox2)
+	## 	return hJetPhox
+	else: return GetJetPhox(jetphox,histName)
 
 
 def Envelope(listH):
@@ -81,6 +106,7 @@ def GetAllHisto(histoName="hp40",BaseName="jp"):
 	##first prediction
 	jetphoxlist=glob( options.jetphox + "_[0-9]/*root" )
 	jetphoxlist.extend(glob( options.jetphox + "_[0-9][0-9]/*root" ))
+	if DEBUG>0: print "Getting ",options.jetphox + "_[0-9]/*root",jetphoxlist 
 	outFile.cd()
 	h=GetJetPhoxPrediction(jetphoxlist,histoName);	
 	h.SetName(BaseName);
@@ -125,6 +151,7 @@ def GetAllHisto(histoName="hp40",BaseName="jp"):
 ###   KEY: TH1D	hp43;1	dsigmalo_forComp 
 if __name__=="__main__":
 	GetAllHisto("hp40","jp");
+	GetAllHisto("hp41","jp_LO");
 	if options.plot != "":
 		GetAllHisto("hp22","jp_ptjet");
 		GetAllHisto("hp24","jp_yjet");

@@ -351,25 +351,28 @@ for jpt in [30.0,300.0]:
 		else: doJP=True
 
 		if doJP:
-			fileList=options.jetphox.split(',')	
-			print "Adding JetPhox compontent ", fileList[0]
-			f_JP=ROOT.TFile.Open(fileList[0])
-			h_JetPhox_tmp=f_JP.Get("hp40")
-			for i in range(1,len(fileList)):
-				f_JP=ROOT.TFile.Open(fileList[i])
-				h_i=f_JP.Get("hp40")
-				print "Adding JetPhox compontent ", fileList[i]
-				h_JetPhox_tmp.Add(h_i)
-
-			#scale
-			h_JetPhox_tmp.Scale(1000.) # pb->fb
-			h_JetPhox_tmp.Scale(2./len(fileList)) # if more than one fileset (direct+frag), do the mean
-			print "JetPhox Mean between",len(fileList)/2.,"components"
-			#this is necessary in order to make Ratio work
+			#fileList=options.jetphox.split(',')	
+			#print "Adding JetPhox compontent ", fileList[0]
+			print "Adding JetPhox file ", options.jetphox
+			f_JP=ROOT.TFile.Open(options.jetphox)
+			h_JetPhox_tmp=f_JP.Get("jp")
+			h_JetPhox_SCALE_tmp=f_JP.Get("jp_SCALE")
 			h_JetPhox=H.Clone("JP")
-			for i in range(1,h_JetPhox.GetNbinsX()+1):
+			h_JetPhox_SCALE=H.Clone("JP_SCALE")
+			for i in range(1,h_JetPhox.GetNbinsX()+1): ## COPY with the exact same binnings
 				h_JetPhox.SetBinContent(i, h_JetPhox_tmp.GetBinContent(h_JetPhox_tmp.FindBin(h_JetPhox.GetBinCenter(i))) )
 				h_JetPhox.SetBinError(i, h_JetPhox_tmp.GetBinError(h_JetPhox_tmp.FindBin(h_JetPhox.GetBinCenter(i))) )
+			for i in range(1,h_JetPhox_SCALE.GetNbinsX()+1): ## COPY with the exact same binnings
+				h_JetPhox_SCALE.SetBinContent(i, h_JetPhox_SCALE_tmp.GetBinContent(h_JetPhox_SCALE_tmp.FindBin(h_JetPhox_SCALE.GetBinCenter(i))) )
+				h_JetPhox_SCALE.SetBinError(i, h_JetPhox_SCALE_tmp.GetBinError(h_JetPhox_SCALE_tmp.FindBin(h_JetPhox_SCALE.GetBinCenter(i))) )
+			## SACLE FOR BINWIDTH
+			## for i in range(1,h_JetPhox.GetNbinsX()+1): ## COPY with the exact same binnings
+			## 	c= h_JetPhox.GetBinContent(i)
+			## 	e= h_JetPhox.GetBinError(i)
+			## 	w= h_JetPhox.GetBinWidth(i)
+			## 	h_JetPhox.SetBinContent(i, c/w*19.7 )
+			## 	h_JetPhox.SetBinError(i, e/w*19.7 )
+
 
 
 		BinsToMerge=[(750,1000)]
@@ -389,6 +392,7 @@ for jpt in [30.0,300.0]:
 
 		if doJP:
 			h_JetPhox = MergeBins(BinsToMerge,h_JetPhox)
+			h_JetPhox_SCALE = MergeBins(BinsToMerge,h_JetPhox_SCALE)
 			#No LUMI SCALE FOR JP
 
 
@@ -407,8 +411,10 @@ for jpt in [30.0,300.0]:
 			plotter.mc.push_back(H_MC);
 			plotter.mcLabels.push_back("MadGraph");
 		if doJP:
+			iJP=plotter.mc.size()
 			plotter.mc.push_back(h_JetPhox);
 			plotter.mcLabels.push_back("JetPhox (parton)")
+
 		#	h_JetPhox_scaled=h_JetPhox.Clone("JP_scaled")
 		#	h_JetPhox_scaled.Scale( H.Integral(H.FindBin(101),H.FindBin(999))/h_JetPhox.Integral(h_JetPhox.FindBin(101),h_JetPhox.FindBin(999)) )
 		#	plotter.mc.push_back(h_JetPhox_scaled);
@@ -440,6 +446,7 @@ for jpt in [30.0,300.0]:
 			plotter.mcErrAssociation.push_back(plotter.mcErr.size()-1);
 		if doJP:
 			R_JP=Ratio(H,h_JetPhox,NoErrorH=True)
+			R_JP_SCALE=Ratio(H,h_JetPhox_SCALE,NoErrorH=True)
 			plotter.mc.push_back(R_JP);
 			R_JP_Err=R_JP.Clone("JPErr")
 			plotter.mcLabels.push_back("JetPhox (parton)")
@@ -449,6 +456,9 @@ for jpt in [30.0,300.0]:
 			#R_JP_scaled=Ratio(H,h_JetPhox_scaled,NoErrorH=True)
 			#plotter.mc.push_back(R_JP_scaled);
 			#plotter.mcLabels.push_back("JetPhox (parton scaled)")
+			plotter.mcErr.push_back(R_JP_SCALE);
+			plotter.mcErrAssociation.push_back(plotter.mcErr.size()-2);
+			plotter.mcLabelsErr.push_back("SCALE")
 		if nJetsCuts[nj] >2 or HtCuts[h] >50:
 			plotter.cmsPreliminary="Unpublished";
 		plotter.SetHeader('G',int(nJetsCuts[nj]),int(HtCuts[h]))
